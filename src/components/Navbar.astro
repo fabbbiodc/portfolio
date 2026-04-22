@@ -1,0 +1,24 @@
+---
+// Navbar component
+import Bars3Icon from 'heroicons/24/solid/bars-3.svg'
+const linkClasses = "text-text hover:text-brand transition";
+---
+
+<nav
+    class="sticky top-0 z-50 bg-background"
+>
+    <div class="max-w-300 mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+            <div class="text-brand font-bold text-lg">Portfolio</div>
+            <div class="hidden md:flex gap-6">
+                <a href="/" class={linkClasses}>Home</a>
+                <a href="/about" class={linkClasses}>About</a>
+                <a href="/projects" class={linkClasses}>Projects</a>
+                <a href="/contact" class={linkClasses}>Contact</a>
+            </div>
+            <button class="flex md:hidden flex-col gap-1">
+                <Bars3Icon class="w-6 h-6 text-brand" />
+            </button>
+        </div>
+    </div>
+</nav>
