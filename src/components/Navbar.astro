@@ -2,33 +2,31 @@
 // Navbar component
 import Bars3Icon from "heroicons/24/solid/bars-3.svg";
 import XMarkIcon from "heroicons/24/solid/x-mark.svg";
-import SunIcon from "heroicons/24/solid/sun.svg";
-import MoonIcon from "heroicons/24/solid/moon.svg";
+import ThemeToggle from "./ThemeToggle.astro";
+
 const linkClasses = "text-text hover:text-brand transition";
 const logoClass = "text-brand hover:text-text transition font-bold text-lg";
-const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand-transition";
 ---
 
 <nav class="relative top-0 z-50 bg-background">
   <div class="max-w-300 mx-auto px-4 py-4">
     <div class="flex justify-between items-center">
       <a href="/" class={logoClass}>Portfolio</a>
-      <div class="hidden md:flex gap-6">
-        <a href="/" class={linkClasses}>Home</a>
-        <a href="/about" class={linkClasses}>About</a>
-        <a href="/projects" class={linkClasses}>Projects</a>
-        <a href="/contact" class={linkClasses}>Contact</a>
+      <div class="flex gap-6 items-center ml-auto">
+        <div class="hidden md:flex gap-6">
+          <a href="/" class={linkClasses}>Home</a>
+          <a href="/about" class={linkClasses}>About</a>
+          <a href="/projects" class={linkClasses}>Projects</a>
+          <a href="/contact" class={linkClasses}>Contact</a>
+          <ThemeToggle id="theme-toggle-desktop" />
+        </div>
       </div>
-      <!-- Hamburger menu for mobile breakpoint -->
-      <button id="hamburger" class="flex md:hidden flex-col gap-1">
-        <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
-        <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
-      </button>
-      <button id="theme-toggle" class={toggleClass}>
-          <SunIcon id="sun-icon" class="w-6 h-6 text-brand" />
-          <MoonIcon id="moon-icon" class="w-6 h-6 text-brand hidden" />
-      </button>
     </div>
+    <!-- Hamburger menu for mobile breakpoint -->
+    <button id="hamburger" class="flex md:hidden flex-col gap-1">
+      <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
+      <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
+    </button>
   </div>
   <!-- Mobile dropdown menu -->
   <div
@@ -40,9 +38,12 @@ const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand-transition";
       <a href="/about" class={linkClasses}>About</a>
       <a href="/projects" class={linkClasses}>Projects</a>
       <a href="/contact" class={linkClasses}>Contact</a>
+      <div class="border-t border-text mt-4 pt-4"></div>
+      <ThemeToggle id="theme-toggle-mobile"/>
     </div>
   </div>
 </nav>
+
 <script>
   // State
   let isOpen = false;
