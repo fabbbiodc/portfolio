@@ -1,24 +1,104 @@
 ---
 // Navbar component
-import Bars3Icon from 'heroicons/24/solid/bars-3.svg'
+import Bars3Icon from "heroicons/24/solid/bars-3.svg";
+import XMarkIcon from "heroicons/24/solid/x-mark.svg";
+import SunIcon from "heroicons/24/solid/sun.svg";
+import MoonIcon from "heroicons/24/solid/moon.svg";
 const linkClasses = "text-text hover:text-brand transition";
+const logoClass = "text-brand hover:text-text transition font-bold text-lg";
+const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand-transition";
 ---
 
-<nav
-    class="sticky top-0 z-50 bg-background"
->
-    <div class="max-w-300 mx-auto px-4 py-4">
-        <div class="flex justify-between items-center">
-            <div class="text-brand font-bold text-lg">Portfolio</div>
-            <div class="hidden md:flex gap-6">
-                <a href="/" class={linkClasses}>Home</a>
-                <a href="/about" class={linkClasses}>About</a>
-                <a href="/projects" class={linkClasses}>Projects</a>
-                <a href="/contact" class={linkClasses}>Contact</a>
-            </div>
-            <button class="flex md:hidden flex-col gap-1">
-                <Bars3Icon class="w-6 h-6 text-brand" />
-            </button>
-        </div>
+<nav class="relative top-0 z-50 bg-background">
+  <div class="max-w-300 mx-auto px-4 py-4">
+    <div class="flex justify-between items-center">
+      <a href="/" class={logoClass}>Portfolio</a>
+      <div class="hidden md:flex gap-6">
+        <a href="/" class={linkClasses}>Home</a>
+        <a href="/about" class={linkClasses}>About</a>
+        <a href="/projects" class={linkClasses}>Projects</a>
+        <a href="/contact" class={linkClasses}>Contact</a>
+      </div>
+      <!-- Hamburger menu for mobile breakpoint -->
+      <button id="hamburger" class="flex md:hidden flex-col gap-1">
+        <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
+        <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
+      </button>
+      <button id="theme-toggle" class={toggleClass}>
+          <SunIcon id="sun-icon" class="w-6 h-6 text-brand" />
+          <MoonIcon id="moon-icon" class="w-6 h-6 text-brand hidden" />
+      </button>
     </div>
+  </div>
+  <!-- Mobile dropdown menu -->
+  <div
+    id="mobile-menu"
+    class="md:hidden absolute top-full left-0 right-0 max-h-0 overflow-hidden max-w-max ml-auto transition-all duration-300 bg-background"
+  >
+    <div class="max-w-300 mx-auto px-4 py-4 flex flex-col gap-4">
+      <a href="/" class={linkClasses}>Home</a>
+      <a href="/about" class={linkClasses}>About</a>
+      <a href="/projects" class={linkClasses}>Projects</a>
+      <a href="/contact" class={linkClasses}>Contact</a>
+    </div>
+  </div>
 </nav>
+<script>
+  // State
+  let isOpen = false;
+
+  // DOM elements
+  const hamburgerBtn = document.getElementById("hamburger");
+  const barsIcon = document.getElementById("bars-icon");
+  const xIcon = document.getElementById("x-icon");
+  const mobileMenu = document.getElementById("mobile-menu") as HTMLElement;
+
+  if (!mobileMenu) {
+    console.error("mobile-menu element not found");
+  }
+
+  // Toggle function
+  function toggleMenu() {
+    isOpen = !isOpen;
+    if (isOpen) {
+      //Menu open
+      barsIcon?.classList.add("hidden");
+      xIcon?.classList.remove("hidden");
+      mobileMenu.style.maxHeight = mobileMenu?.scrollHeight + "px";
+    } else {
+      // Menu closed
+      barsIcon?.classList.remove("hidden");
+      xIcon?.classList.add("hidden");
+      mobileMenu.style.maxHeight = "0";
+    }
+  }
+
+  // Close menu function
+  function closeMenu() {
+    isOpen = false;
+    barsIcon?.classList.remove("hidden");
+    xIcon?.classList.add("hidden");
+    mobileMenu.style.maxHeight = "0";
+  }
+
+  // Queryselector for a elements in mobile-menu
+  // Add event listener click
+  const mobileMenuLinks = mobileMenu.querySelectorAll("a");
+
+  mobileMenuLinks.forEach((link) => {
+    link.addEventListener("click", closeMenu);
+  });
+
+  //Menu outside click handler
+  document.addEventListener("click", (event) => {
+    const clickInside = mobileMenu.contains(event.target as Node);
+    const clickHamburger = hamburgerBtn?.contains(event.target as Node);
+
+    if (!clickInside && !clickHamburger && isOpen) {
+      closeMenu();
+    }
+  });
+
+  // Hamburger click listener
+  hamburgerBtn?.addEventListener("click", toggleMenu);
+</script>
