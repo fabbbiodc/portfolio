@@ -16,7 +16,7 @@ This document serves as both:
 - **Writing:** User writes most code; AI assists and helps debug unless explicitly asked to write/build something
 
 ## Current Status (update per session)
-- Project bootstrap complete
+- Project bootstrap complete ✅
 - Tailwind CSS v4 setup complete ✅
 - Custom theme colors working via `@theme` in `src/styles/global.css` ✅
 - Fonts configured (Archivo + IBM Plex Mono) ✅
@@ -24,7 +24,13 @@ This document serves as both:
 - Navbar integrated into homepage ✅
 - Logo link to homepage working ✅
 - Mobile navigation dropdown complete with smooth animations ✅
-- Next: Implement dark/light theme toggle with centralized styles & tokens, then enhance homepage content and create additional pages (About, Projects, Contact)
+- Dark/light theme toggle system complete ✅
+  - Centralized tokens (light/dark color definitions) ✅
+  - Theme persistence (localStorage + system preference) ✅
+  - Smooth color transitions ✅
+  - Reusable ThemeToggle component ✅
+  - Pure utility functions in `src/utils/theme.ts` ✅
+- Next: Extract hamburger menu logic to utils, then enhance homepage content and create additional pages (About, Projects, Contact)
 
 ## Session Guidance/Prompt
 - Treat each session as part of an ongoing series; always check this file first for context and status.
@@ -178,41 +184,49 @@ This document serves as both:
 
 ---
 
-## Day 4: Dark/Light Theme Toggle & Centralized Design Tokens (In Progress)
+## Day 4: Dark/Light Theme Toggle & Centralized Design Tokens (✅ Complete)
 
 ### Objectives
-- Implement dark and light theme system
-- Centralize color tokens and design values
-- Add theme toggle button to Navbar
-- Persist theme preference in browser (localStorage)
-- Support system preference detection (prefers-color-scheme)
+- Implement dark and light theme system ✅
+- Centralize color tokens and design values ✅
+- Add theme toggle button to Navbar ✅
+- Persist theme preference in browser (localStorage) ✅
+- Support system preference detection (prefers-color-scheme) ✅
+- Separate JavaScript into reusable utility modules ✅
 
 ### Architecture Plan
-- **Centralized Tokens:** Create `src/styles/tokens.css` with all color definitions for both light and dark themes
-- **Theme Switching:** Use CSS custom properties (variables) and `data-theme` attribute on `<html>` element
-- **Local Storage:** Save user's theme preference to browser storage so it persists across sessions
-- **System Preference:** Detect user's OS theme preference and use as default if no preference is set
-- **UI Toggle:** Add theme toggle button to Navbar (sun/moon icon using Heroicons)
+- **Centralized Tokens:** Create `src/styles/tokens.css` with all color definitions for both light and dark themes ✅
+- **Theme Switching:** Use CSS custom properties (variables) and `data-theme` attribute on `<html>` element ✅
+- **Utility Functions:** Extract theme logic to `src/utils/theme.ts` for reusability and testability ✅
+- **Component:** Create reusable `ThemeToggle.astro` component that can be imported multiple times ✅
+- **Local Storage:** Save user's theme preference to browser storage so it persists across sessions ✅
+- **System Preference:** Detect user's OS theme preference and use as default if no preference is set ✅
+- **UI Toggle:** Add theme toggle button to Navbar (sun/moon icon using Heroicons) - desktop and mobile ✅
 
 ### Implementation Phases
 1. **Phase A (✅ Complete):** Create centralized token system with light/dark color definitions
-2. **Phase B (In Progress):** Add theme toggle button to Navbar UI
-3. **Phase C (Pending):** Implement JavaScript logic for theme switching and persistence
-4. **Phase D (Pending):** Test across components and pages
+2. **Phase B (✅ Complete):** Add theme toggle button to Navbar UI (desktop + mobile with spacing)
+3. **Phase C (✅ Complete):** Implement JavaScript logic for theme switching and persistence
+4. **Phase D (✅ Complete):** Extract JavaScript to pure utility functions and reusable components
+5. **Phase E (✅ Complete):** Test across components and pages
 
 ### Checklist
 - [x] Create `src/styles/tokens.css` with light and dark theme tokens
 - [x] Update `src/styles/global.css` to import tokens and keep `@theme` block
-- [ ] Add theme toggle button to Navbar component (sun/moon icons)
-- [ ] Implement theme switching logic (light ↔ dark)
-- [ ] Add localStorage persistence for theme preference
-- [ ] Add system preference detection (prefers-color-scheme)
-- [ ] Update all components to use centralized tokens
-- [ ] Test theme persistence and system preference fallback
-- [ ] Document theme token structure in NOTES.md
+- [x] Add theme toggle button to Navbar component (sun/moon icons)
+- [x] Position toggle on desktop (rightmost in navbar)
+- [x] Position toggle on mobile (bottom of dropdown menu with spacing)
+- [x] Implement theme switching logic (light ↔ dark)
+- [x] Add localStorage persistence for theme preference
+- [x] Add system preference detection (prefers-color-scheme)
+- [x] Add smooth color transitions (0.3s ease)
+- [x] Create `ThemeToggle.astro` reusable component
+- [x] Extract logic to `src/utils/theme.ts` with pure functions
+- [x] Test theme persistence and system preference fallback
+- [x] Build verification - no errors
 
 ### Rationale & Notes
-- **Dual-Config Approach:** Phase A revealed that Tailwind v4 requires `@theme` block to generate utility classes. Solution: Keep `@theme` in global.css for Tailwind's build-time class generation, use tokens.css for runtime theme switching via CSS variables.
+- **Dual-Config Approach:** Tailwind v4 requires `@theme` block to generate utility classes. Solution: Keep `@theme` in global.css for Tailwind's build-time class generation, use tokens.css for runtime theme switching via CSS variables.
 - **CSS Variables Architecture:**
   - `:root[data-theme="light"]` and `:root:not([data-theme])` - Light theme (default)
   - `:root[data-theme="dark"]` - Dark theme
@@ -221,6 +235,8 @@ This document serves as both:
 - **Light Theme Colors:** #f8f8f8 background, #2d2d2d text, #5b21b6 brand
 - **Dark Theme Colors:** #1a1a1a background, #f0f0f0 text, #a78bfa brand (lighter, more visible on dark)
 - **Icon Pattern:** Theme toggle uses same icon-toggle pattern as hamburger menu (sun visible/moon hidden in light, vice versa in dark)
+- **Component Reusability:** `ThemeToggle.astro` imported twice (desktop + mobile) uses the same utility functions, no code duplication
+- **Pure Functions:** All theme logic in `src/utils/theme.ts` uses pure functions for testability and reusability
 
 ### Session Notes - Phase A
 - **Problem:** Created tokens.css with CSS variables but colors disappeared (everything black)
@@ -228,13 +244,40 @@ This document serves as both:
 - **Solution:** Keep `@theme` block in global.css for Tailwind's class generation + use tokens.css for dynamic variable overrides. Both files work in tandem.
 - **Learning:** Tailwind v4's dual-config system: `@theme` for static utilities, CSS variables for dynamic theming.
 
-### Design Decision
+### Session Notes - Phase D (Refactoring to Pure Functions)
+- **Problem:** Initial implementation had `currentTheme` variable scoped to component, functions relied on global state, made testing/reuse difficult
+- **Solution:** Refactored to pure functions:
+  - `getSystemTheme()` - Returns system preference (pure)
+  - `initializeTheme()` - Gets saved or system theme (pure)
+  - `toggleTheme(currentTheme)` - Takes current theme, returns new theme (pure)
+  - `setTheme(theme)` - Sets HTML attribute + localStorage (side effect, explicit)
+  - `updateThemeUI(theme)` - Updates icon visibility (side effect, explicit)
+- **Benefit:** Functions are predictable, testable, and reusable across components
+- **Pattern:** All functions receive data as parameters, compute/perform operations, return results. No hidden dependencies on global state.
+
+### Design Decisions
 - **CSS Variables + @theme Hybrid:** Using both approaches elegantly separates concerns:
   - `@theme` (build-time) - Tells Tailwind what utilities to generate
   - `tokens.css` (runtime) - Provides variable values that change based on theme
   - Color utilities (e.g., `text-brand`) always exist, but their values change when theme switches
 - **Token Centralization:** Single source of truth for all design values prevents color inconsistencies and makes maintenance easier
 - **localStorage + System Preference:** User choice takes precedence, but system preference is fallback, providing good UX
+- **Pure Functions in Utils:** Enables testing, reuse, and easier composition for future features
+- **Reusable Component:** `ThemeToggle.astro` can be used anywhere (desktop, mobile, future pages, sidebars, etc.)
+
+### Completed This Session
+1. ✅ Implemented complete dark/light theme system with CSS variables and Tailwind integration
+2. ✅ Created responsive theme toggle UI:
+   - Desktop: Positioned on rightmost side of navbar
+   - Mobile: At bottom of dropdown menu with spacing divider
+3. ✅ Implemented theme switching with:
+   - localStorage persistence
+   - System preference detection (prefers-color-scheme)
+   - Smooth 0.3s color transitions
+4. ✅ Refactored JavaScript to pure utility functions in `src/utils/theme.ts`
+5. ✅ Created reusable `ThemeToggle.astro` component (imported twice, no duplication)
+6. ✅ Build passes with no errors
+7. ✅ All tests passing (theme switching, persistence, icon toggle, system preference fallback)
 
 ---
 

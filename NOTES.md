@@ -18,7 +18,8 @@ This document serves as a comprehensive reference for all technologies, techniqu
 4. [JavaScript (Client-Side)](#javascript-client-side)
 5. [SVG & Icons](#svg--icons)
 6. [CSS Animations & Transitions](#css-animations--transitions)
-7. [Theme System (Dark/Light Mode)](#theme-system-darklight-mode)
+7. [Pure Functions & Utility Modules](#pure-functions--utility-modules)
+8. [Theme System (Dark/Light Mode)](#theme-system-darklight-mode)
 
 ---
 
@@ -606,6 +607,197 @@ import CloseIcon from 'heroicons/24/solid/x-mark.svg'
 
 ---
 
+## Pure Functions & Utility Modules
+
+### What are Pure Functions?
+Pure functions are functions that:
+1. **Always return the same output for the same input** - No hidden dependencies on global state
+2. **Have no side effects** - Don't modify external state, DOM, or call external APIs within the function
+3. **Are easy to test** - Can be tested independently without mocking
+4. **Are reusable** - Can be called from anywhere without worrying about context
+
+**Pure function example:**
+```typescript
+// Pure - same input always gives same output
+export function toggleTheme(currentTheme: string): string {
+  return currentTheme === "light" ? "dark" : "light";
+}
+
+// Called from anywhere:
+const newTheme = toggleTheme("light");  // Always returns "dark"
+```
+
+**Impure function example (avoid this):**
+```typescript
+let globalTheme = "light";  // Hidden dependency!
+
+function toggleTheme() {  // No parameters!
+  globalTheme = globalTheme === "light" ? "dark" : "light";
+  return globalTheme;  // Output depends on global state
+}
+```
+
+### Why Use Pure Functions?
+
+| Benefit | Example |
+|---------|---------|
+| **Predictable** | `toggleTheme("light")` always returns `"dark"` |
+| **Testable** | No mocking needed, just call function and check result |
+| **Reusable** | Use same function from buttons, keyboard shortcuts, API calls, etc. |
+| **Debuggable** | If output is wrong, issue is only in that function, not global state |
+| **Composable** | Combine multiple pure functions easily |
+
+### Utility Module Pattern
+
+**File structure:**
+```
+src/
+├── utils/
+│   ├── theme.ts          (Pure functions for theme logic)
+│   ├── menu.ts           (Future: menu utilities)
+│   └── validation.ts     (Future: form validation)
+└── components/
+    ├── ThemeToggle.astro (UI component, imports from utils)
+    └── Navbar.astro      (UI component, imports from utils)
+```
+
+### Example: Theme Utility Module
+
+**File: `src/utils/theme.ts`**
+```typescript
+// Pure functions - no side effects, no global state
+export function getSystemTheme(): string {
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    return "dark";
+  }
+  return "light";
+}
+
+export function initializeTheme(): string {
+  const saved = localStorage.getItem("theme-preference");
+  return saved || getSystemTheme();
+}
+
+export function toggleTheme(currentTheme: string): string {
+  return currentTheme === "light" ? "dark" : "light";
+}
+
+// Side-effect functions - modify DOM/storage, explicit operations
+export function setTheme(theme: string): void {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme-preference", theme);
+}
+
+export function updateThemeUI(theme: string): void {
+  const allSunIcons = document.querySelectorAll("#sun-icon");
+  const allMoonIcons = document.querySelectorAll("#moon-icon");
+
+  if (theme === "light") {
+    allSunIcons.forEach((icon) => icon.classList.remove("hidden"));
+    allMoonIcons.forEach((icon) => icon.classList.add("hidden"));
+  } else {
+    allSunIcons.forEach((icon) => icon.classList.add("hidden"));
+    allMoonIcons.forEach((icon) => icon.classList.remove("hidden"));
+  }
+}
+```
+
+### Using Utility Modules in Components
+
+**File: `src/components/ThemeToggle.astro`**
+```astro
+<script>
+  import { initializeTheme, toggleTheme, setTheme, updateThemeUI } from "../utils/theme";
+
+  // Initialize
+  let currentTheme = initializeTheme();
+  document.documentElement.setAttribute("data-theme", currentTheme);
+
+  // Handle toggle
+  function handleToggle() {
+    const newTheme = toggleTheme(currentTheme);  // Pure function
+    setTheme(newTheme);                          // Side effect
+    updateThemeUI(newTheme);                     // Side effect
+    currentTheme = newTheme;
+  }
+
+  // Attach listeners
+  const btn = document.getElementById("theme-toggle-desktop");
+  btn?.addEventListener("click", handleToggle);
+  
+  updateThemeUI(currentTheme);
+</script>
+```
+
+### Best Practices for Utility Modules
+
+1. **Keep functions small and focused**
+   - One function = one responsibility
+   - Easy to understand, test, and reuse
+
+2. **Separate pure and side-effect functions**
+   - Pure functions have no `void` return (they return data)
+   - Side-effect functions often return `void` (they modify external state)
+
+3. **Export everything explicitly**
+   - Use `export function` for functions you want to reuse
+   - Makes it clear what the module offers
+
+4. **Use TypeScript for clarity**
+   - Document input/output types
+   - Helps catch bugs early
+   - Makes code self-documenting
+
+5. **Follow naming conventions**
+   - `get*` - Functions that retrieve/calculate
+   - `set*` - Functions that modify state
+   - `toggle*` - Functions that flip boolean/dual state
+   - `update*` - Functions that modify UI
+
+### Testing Pure Functions
+
+Pure functions are easy to test:
+
+```typescript
+// Test: toggleTheme() works correctly
+function testToggleTheme() {
+  const result1 = toggleTheme("light");
+  console.assert(result1 === "dark", "light → dark");
+  
+  const result2 = toggleTheme("dark");
+  console.assert(result2 === "light", "dark → light");
+  
+  console.log("✓ toggleTheme() tests pass");
+}
+
+// Test: getSystemTheme() returns expected values
+function testGetSystemTheme() {
+  const result = getSystemTheme();
+  console.assert(
+    result === "light" || result === "dark",
+    "returns either light or dark"
+  );
+  
+  console.log("✓ getSystemTheme() tests pass");
+}
+```
+
+### When to Use Utility Modules
+
+✅ **Good candidates:**
+- Theme switching
+- Form validation
+- Data transformation
+- String formatting
+- Calculations
+
+❌ **Not good candidates:**
+- Single-use logic in a component
+- Complex UI state (use framework components instead)
+- Heavy business logic (might need a separate backend)
+
+---
+
 ## Theme System (Dark/Light Mode)
 
 ### What is a Theme System?
@@ -862,5 +1054,5 @@ This creates smooth color transitions when theme changes, improving UX.
 
 ---
 
-**Last Updated:** Day 4 (Theme System - Phase A)
-**Next Review:** After Phase B (theme button UI) and Phase C (JavaScript implementation)
+**Last Updated:** Day 4 (Theme System - Complete + Pure Functions Pattern)
+**Status:** Full dark/light theme system implemented with reusable pure utility functions

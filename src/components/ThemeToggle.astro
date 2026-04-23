@@ -17,57 +17,34 @@ const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand transition";
 </button>
 
 <script>
-  // Theme initialization
-  function getSystemTheme() {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-    return "light";
+  import {
+    initializeTheme,
+    toggleTheme,
+    setTheme,
+    updateThemeUI,
+  } from "../utils/theme";
+
+  // THeme swap and set
+  let currentTheme = initializeTheme();
+  document.documentElement.setAttribute("data-theme", currentTheme);
+
+  function handleToggle() {
+    const newTheme = toggleTheme(currentTheme);
+
+    setTheme(newTheme);
+
+    updateThemeUI(newTheme);
+
+    currentTheme = newTheme;
   }
 
-  function initializeTheme() {
-    const saved = localStorage.getItem("theme-preference");
-
-    if (saved) {
-      return saved;
-    } else {
-      return getSystemTheme();
-    }
-  }
-
-  // Theme setup on load
-  const initialTheme = initializeTheme();
-  document.documentElement.setAttribute("data-theme", initialTheme);
-
-  // Theme toggle
-  let currentTheme = initialTheme;
-
-  function toggleTheme() {
-    currentTheme = currentTheme === "light" ? "dark" : "light";
-
-    document.documentElement.setAttribute("data-theme", currentTheme);
-
-    localStorage.setItem("theme-preference", currentTheme);
-
-    updateThemeUI();
-  }
-
-  function updateThemeUI() {
-    const allSunIcons = document.querySelectorAll("#sun-icon");
-    const allMoonIcons = document.querySelectorAll("#moon-icon");
-    if (currentTheme === "light") {
-      allSunIcons.forEach((icon) => icon.classList.remove("hidden"));
-      allMoonIcons.forEach((icon) => icon.classList.add("hidden"));
-    } else {
-      allSunIcons.forEach((icon) => icon.classList.add("hidden"));
-      allMoonIcons.forEach((icon) => icon.classList.remove("hidden"));
-    }
-  }
-
-  //Theme toggle listener (desktop+ mobile)
-  const themeToggleBtn = document.getElementById("theme-toggle-desktop");
-  themeToggleBtn?.addEventListener("click", toggleTheme);
-
-  const themeToggleMobileBtn = document.getElementById("theme-toggle-mobile");
-  themeToggleMobileBtn?.addEventListener("click", toggleTheme);
+  // Attach click listeners to both buttons
+  const desktopBtn = document.getElementById("theme-toggle-desktop");
+  const mobileBtn = document.getElementById("theme-toggle-mobile");
+  
+  desktopBtn?.addEventListener("click", handleToggle);
+  mobileBtn?.addEventListener("click", handleToggle);
+  
+  // Initialize icon display on page load
+  updateThemeUI(currentTheme);
 </script>
