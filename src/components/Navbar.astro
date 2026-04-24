@@ -13,7 +13,7 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
     <div class="flex justify-between items-center">
       <a href="/" class={logoClass}>Portfolio</a>
       <div class="flex gap-6 items-center ml-auto">
-        <div class="hidden md:flex gap-6">
+        <div class="hidden md:flex gap-6 items-center">
           <a href="/" class={linkClasses}>Home</a>
           <a href="/about" class={linkClasses}>About</a>
           <a href="/projects" class={linkClasses}>Projects</a>
@@ -21,12 +21,12 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
           <ThemeToggle id="theme-toggle-desktop" />
         </div>
       </div>
+      <button id="hamburger" class="flex md:hidden flex-col gap-1">
+        <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
+        <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
+      </button>
     </div>
     <!-- Hamburger menu for mobile breakpoint -->
-    <button id="hamburger" class="flex md:hidden flex-col gap-1">
-      <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
-      <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
-    </button>
   </div>
   <!-- Mobile dropdown menu -->
   <div
@@ -39,7 +39,7 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
       <a href="/projects" class={linkClasses}>Projects</a>
       <a href="/contact" class={linkClasses}>Contact</a>
       <div class="border-t border-text mt-4 pt-4"></div>
-      <ThemeToggle id="theme-toggle-mobile"/>
+      <ThemeToggle id="theme-toggle-mobile" />
     </div>
   </div>
 </nav>
