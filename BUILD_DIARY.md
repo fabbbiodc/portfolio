@@ -30,7 +30,13 @@ This document serves as both:
   - Smooth color transitions ✅
   - Reusable ThemeToggle component ✅
   - Pure utility functions in `src/utils/theme.ts` ✅
-- Next: Extract hamburger menu logic to utils, then enhance homepage content and create additional pages (About, Projects, Contact)
+- Hamburger menu logic extracted to `src/utils/menu.ts` ✅
+- Content Collections configured (`programming` + `design` collections) ✅
+- Layout component created (`src/layouts/Layout.astro`) ✅
+- All pages created (Home, About, Projects, Contact) ✅
+- Transparent navbar ✅
+- Mobile menu border fixed (no line when closed) ✅
+- Next: Enhance homepage content and add real project content
 
 ## Session Guidance/Prompt
 - Treat each session as part of an ongoing series; always check this file first for context and status.
@@ -278,6 +284,246 @@ This document serves as both:
 5. ✅ Created reusable `ThemeToggle.astro` component (imported twice, no duplication)
 6. ✅ Build passes with no errors
 7. ✅ All tests passing (theme switching, persistence, icon toggle, system preference fallback)
+
+---
+
+## Day 5: Extract Hamburger Menu Logic to Utils (✅ Complete)
+
+### Objectives
+- Extract hamburger menu JavaScript from Navbar.astro to utility module
+- Follow the same pure functions pattern as theme.ts
+- Make menu logic reusable and testable
+
+### Architecture Plan
+- **Utility Module:** Create `src/utils/menu.ts` with pure functions
+- **Refactor:** Update Navbar.astro to import and use utility functions
+- **Pattern Match:** Same structure as theme.ts (pure + side-effect functions)
+
+### Checklist
+- [x] Create `src/utils/menu.ts` with menu utility functions
+- [x] Implement pure functions: `toggleMenuState`, `calculateMaxHeight`
+- [x] Implement side-effect functions: `updateMenuUI`, `setMenuMaxHeight`, `closeMenuUI`, `toggleMenuUI`
+- [x] Implement setup function: `setupMenuListeners` (attaches all event handlers)
+- [x] Refactor Navbar.astro to import and use menu utilities
+- [x] Test hamburger functionality (toggle, close on click, close on outside)
+- [x] Build verification - no errors
+
+### Function Reference
+
+**Pure Functions (no side effects):**
+- `toggleMenuState(isOpen: boolean): boolean` - Flips boolean state
+- `calculateMaxHeight(isOpen: boolean, element: HTMLElement): string` - Returns "0" or scrollHeight
+
+**Side-Effect Functions (DOM manipulation):**
+- `updateMenuUI(barsIcon, xIcon, isOpen)` - Toggles icon visibility
+- `setMenuMaxHeight(menu, maxHeight)` - Sets CSS max-height for animation
+- `closeMenuUI(menu, barsIcon, xIcon)` - Convenience: closes menu in one call
+- `toggleMenuUI(menu, barsIcon, xIcon, isOpen)` - Convenience: toggles in one call
+- `setupMenuListeners(hamburgerBtn, mobileMenu, barsIcon, xIcon)` - Attaches all event listeners
+
+### Rationale & Notes
+- **Why this pattern:** Same as theme.ts - separates pure computation from side effects
+- **Pure functions** can be tested in isolation without DOM
+- **Side-effect functions** are explicit about what they modify
+- **Setup function** is the "glue" that connects elements to handlers
+- **Pattern benefit:** Menu logic is now reusable if we add similar navigation elsewhere
+
+### Session Notes
+- **Problem:** Initial thought was to pass state as parameter to all functions (like theme)
+- **Solution:** Menu needs internal state for toggle, so `isOpen` is maintained in `setupMenuListeners`
+- **Key difference from theme.ts:** Theme passes state through; menu maintains internal state
+- **Still valid pattern:** Pure functions (`toggleMenuState`, `calculateMaxHeight`) are testable
+
+### Completed This Session
+1. ✅ Created `src/utils/menu.ts` with all menu utility functions
+2. ✅ Refactored Navbar.astro to import and use menu utilities
+3. ✅ All hamburger functionality works (toggle, link clicks, outside clicks)
+4. ✅ Build passes with no errors
+
+---
+
+## Day 6: Content Collections Setup (✅ Complete)
+
+### Objectives
+- Set up Content Collections for project case studies
+- Fix "Content config not loaded" warning
+- Organize projects into two collections (programming + design)
+
+### Folder Structure
+```
+src/content/
+├── config.ts          (defines collections)
+├── programming/        (collection 1)
+│   └── program-01.md  (project file)
+└── design/            (collection 2)
+    └── design-01.md   (project file)
+```
+
+### Checklist
+- [x] Create `src/content/config.ts` with collection definitions
+- [x] Define `programming` collection (type: 'content')
+- [x] Define `design` collection (type: 'content')
+- [x] Verify warning is fixed
+- [x] Build verification - no errors
+
+### Implementation
+
+**File: `src/content/config.ts`**
+```typescript
+import { defineCollection } from 'astro:content';
+
+export const collections = {
+  programming: defineCollection({ type: 'content' }),
+  design: defineCollection({ type: 'content' }),
+};
+```
+
+### Rationale & Notes
+- **Minimal config:** Using simple `type: 'content'` without schema for now
+- **Why minimal:** Zod was deprecated in newer Astro versions; full schema can be added later
+- **Schema available later:** When ready, can add fields like title, description, techStack, etc.
+- **Collection usage:** Later pages will use `getCollection('programming')` and `getCollection('design')`
+
+### Session Notes
+- **Problem:** Initial attempt used incorrect Astro API syntax (plain object, not `defineCollection`)
+- **Problem:** `z` from astro:content is deprecated in Astro 6.x
+- **Solution:** Use minimal config without schema - enough to fix warning and enable collections
+
+### Completed This Session
+1. ✅ Created `src/content.config.ts` with minimal collection definitions
+2. ✅ Fixed "Content config not loaded" warning
+3. ✅ Both collections (programming + design) now available
+4. ✅ Build passes with no errors
+
+---
+
+## Day 7: Layout Component & Page Creation (✅ Complete)
+
+### Objectives
+- Create reusable Layout component to avoid code duplication
+- Create placeholder pages for About, Projects, Contact
+- Refactor homepage to use Layout
+
+### Folder Structure
+```
+src/
+├── layouts/
+│   └── Layout.astro        (new - shared layout)
+├── pages/
+│   ├── index.astro         (refactored to use Layout)
+│   ├── about.astro         (new)
+│   ├── projects.astro      (new - uses getCollection)
+│   └── contact.astro       (new)
+└── content.config.ts       (updated to root level for Astro 6.x)
+```
+
+### Checklist
+- [x] Create `src/layouts/Layout.astro` with title prop and slot
+- [x] Import Layout in homepage and refactor
+- [x] Create about.astro page
+- [x] Create projects.astro with getCollection()
+- [x] Create contact.astro page
+- [x] Verify all routes work (/, /about, /projects, /contact)
+- [x] Build verification - no errors
+
+### Implementation Details
+
+**Layout Component (`src/layouts/Layout.astro`):**
+- Accepts `title` prop for page-specific title
+- Imports global CSS (includes Tailwind)
+- Includes Navbar on every page
+- Uses `<slot />` for page-specific content
+- Keeps all HTML structure (doctype, head, body) in one place
+
+**Homepage (`src/pages/index.astro`):**
+- Refactored to use Layout component
+- Removed duplicate HTML structure
+- Only contains page-specific content
+
+**Projects Page (`src/pages/projects.astro`):**
+- Uses `getCollection('programming')` and `getCollection('design')`
+- Groups projects by category
+- Shows "No projects yet" if collection is empty
+- Displays project id (filename) as placeholder
+
+### Rationale & Notes
+- **Layout pattern:** Eliminates code duplication - Navbar, global CSS, HTML structure all in one place
+- **getCollection:** Astro 6.x uses `getCollection('collection-name')` to fetch content
+- **project.id:** In Astro content collections, the id is typically the filename (without extension)
+- **Slot mechanism:** Astro's `<slot />` is a placeholder where page content gets injected
+
+### Session Notes
+- **Problem 1:** LegacyContentConfigError - config was in wrong location
+- **Solution:** Moved from `src/content/config.ts` to `src/content.config.ts` (root)
+- **Problem 2:** Loader type error in config
+- **Solution:** Used `glob` from `astro/loaders` with correct syntax (not wrapped in object with 'type')
+- **Key learning:** Astro 6.x changed content collections API significantly
+
+### Completed This Session
+1. ✅ Created `src/layouts/Layout.astro` with title prop and slot
+2. ✅ Refactored `src/pages/index.astro` to use Layout
+3. ✅ Created `src/pages/about.astro` placeholder page
+4. ✅ Created `src/pages/projects.astro` with content collections
+5. ✅ Created `src/pages/contact.astro` placeholder page
+6. ✅ Fixed content.config.ts for Astro 6.x (moved to root, correct loader syntax)
+7. ✅ All routes work correctly
+8. ✅ Build passes with no errors
+
+---
+
+## Day 8: Navbar UI Enhancements (✅ Complete)
+
+### Objectives
+- Make navbar transparent (no background color)
+- Fix mobile menu border visibility issue
+
+### Changes Made
+
+**1. Transparent Navbar:**
+- Removed `bg-background` class from `<nav>` element in `Navbar.astro`
+- Navbar is now transparent by default
+- Layout's body now has `bg-background` for full-page theme background
+
+**2. Mobile Menu Border Fix:**
+- Problem: Border rendered even when menu was closed (collapsed to max-height: 0)
+- Solution: Moved border from outer container to inner wrapper
+- Outer div handles animation (`max-h-0`, `overflow-hidden`)
+- Inner div has the border and background (`border border-text bg-background`)
+- Border only visible when menu opens and has content height
+
+### Implementation Details
+
+**Navbar.astro changes:**
+```astro
+<!-- Before -->
+<nav class="relative top-0 z-50 bg-background">
+
+<!-- After -->
+<nav class="relative top-0 z-50">
+```
+
+**Mobile menu structure:**
+```astro
+<!-- Outer - handles animation -->
+<div id="mobile-menu" class="... max-h-0 overflow-hidden ...">
+  <!-- Inner - has border and background -->
+  <div class="border border-text bg-background">
+    <!-- menu content -->
+  </div>
+</div>
+```
+
+### Rationale & Notes
+- **Transparency:** Clean look, page content visible behind navbar
+- **Border fix:** Moving border to inner element ensures it's clipped by outer div's `overflow-hidden` when collapsed
+- **Both themes:** Works in both light and dark themes since it uses `border-text` color token
+
+### Completed This Session
+1. ✅ Made navbar transparent (removed background class)
+2. ✅ Applied theme background to Layout's body (`bg-background`)
+3. ✅ Fixed mobile menu border - only visible when open
+4. ✅ Verified both themes work correctly
+5. ✅ Build passes with no errors
 
 ---
 

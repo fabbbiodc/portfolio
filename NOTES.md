@@ -13,13 +13,16 @@ This document serves as a comprehensive reference for all technologies, techniqu
 
 ## Table of Contents
 1. [Astro](#astro)
-2. [Tailwind CSS](#tailwind-css)
-3. [HTML & Semantic Elements](#html--semantic-elements)
-4. [JavaScript (Client-Side)](#javascript-client-side)
-5. [SVG & Icons](#svg--icons)
-6. [CSS Animations & Transitions](#css-animations--transitions)
-7. [Pure Functions & Utility Modules](#pure-functions--utility-modules)
-8. [Theme System (Dark/Light Mode)](#theme-system-darklight-mode)
+   - [Astro Layouts](#astro-layouts)
+2. [Content Collections](#content-collections)
+3. [Tailwind CSS](#tailwind-css)
+4. [HTML & Semantic Elements](#html--semantic-elements)
+5. [JavaScript (Client-Side)](#javascript-client-side)
+6. [SVG & Icons](#svg--icons)
+7. [CSS Animations & Transitions](#css-animations--transitions)
+8. [Pure Functions & Utility Modules](#pure-functions--utility-modules)
+9. [Menu Utility Module](#menu-utility-module)
+10. [Theme System (Dark/Light Mode)](#theme-system-darklight-mode)
 
 ---
 
@@ -63,6 +66,58 @@ Files in `src/pages/` automatically become routes. File structure mirrors URL st
 - `src/pages/about.astro` → `/about`
 - `src/pages/contact.astro` → `/contact`
 
+### Content Collections
+Content Collections are Astro's way of managing content-driven pages (blogs, portfolios, docs).
+
+**Setup (Astro 6.x - at project root):**
+```typescript
+// src/content.config.ts
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const programming = defineCollection({
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/programming",
+  }),
+});
+
+const design = defineCollection({
+  loader: glob({
+    pattern: "**/*.md",
+    base: "./src/content/design",
+  }),
+});
+
+export const collections = {
+  programming,
+  design,
+};
+```
+
+**Usage in pages:**
+```astro
+---
+import { getCollection } from 'astro:content';
+
+const programmingProjects = await getCollection('programming');
+const designProjects = await getCollection('design');
+---
+```
+
+**Adding content:**
+```
+src/content/programming/project-1.md
+src/content/design/project-1.md
+```
+
+**When to use:** Perfect for portfolios with many case studies, blogs, documentation.
+
+**Key changes in Astro 6.x:**
+- Config file moved from `src/content/config.ts` to `src/content.config.ts` (root)
+- Uses `loader` instead of `type: 'content'`
+- Import `glob` from `astro/loaders` (not `astro:content`)
+
 ### Astro Components
 Reusable components go in `src/components/`. They're like Astro pages but don't create routes. Import and use them in pages or other components:
 
@@ -73,6 +128,60 @@ import Navbar from '../components/Navbar.astro';
 
 <Navbar />
 ```
+
+### Astro Layouts
+Layouts are special components that define the shared HTML structure for multiple pages. Instead of repeating `<!doctype html>`, `<head>`, `<body>`, and Navbar on every page, you create one Layout and all pages import it.
+
+**File: `src/layouts/Layout.astro`**
+```astro
+---
+import Navbar from "../components/Navbar.astro";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Navbar />
+    <main class="max-w-300 mx-auto px-4 py-10">
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+**Using Layout in pages:**
+```astro
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="About | My Portfolio">
+  <h1>About Me</h1>
+  <p>Page-specific content goes here.</p>
+</Layout>
+```
+
+**Key concepts:**
+- **Props:** Layout accepts `title` prop for dynamic page titles
+- **Slot:** `<slot />` is a placeholder where page content gets injected
+- **Single source:** Change HTML structure in one place, it updates all pages
+
+**Why use layouts:**
+- Eliminates code duplication
+- Makes maintenance easier
+- Ensures consistent page structure across the site
 
 ### Astro Script Tag
 `<script>` tags in Astro components run **client-side** (in the browser). Each script tag is automatically scoped to that component.
@@ -451,6 +560,27 @@ menu.style.maxHeight = '0';
 - `transition-all` - transition: all properties
 - `duration-300` - transition-duration: 300ms
 
+### Border/Shadow in Animated Elements
+
+**Problem:** When animating a collapsible element (like a dropdown), a border or shadow on the element may still be visible when collapsed to `max-height: 0`.
+
+**Solution:** Move the border/shadow to an inner element. The outer element handles the animation (`max-height`, `overflow-hidden`), and the inner element has the visual styling.
+
+```astro
+<!-- Outer - handles animation -->
+<div class="max-h-0 overflow-hidden transition-all duration-300">
+  <!-- Inner - has border/shadow -->
+  <div class="border border-text bg-background">
+    <!-- content here -->
+  </div>
+</div>
+```
+
+**Why this works:**
+- When `max-height: 0` with `overflow: hidden`, the inner content (including border) is clipped
+- When expanded, the inner content becomes visible
+- Border only appears when the element actually has height
+
 ---
 
 ## State Management Patterns
@@ -654,7 +784,7 @@ function toggleTheme() {  // No parameters!
 src/
 ├── utils/
 │   ├── theme.ts          (Pure functions for theme logic)
-│   ├── menu.ts           (Future: menu utilities)
+│   ├── menu.ts           (Pure functions for menu logic)
 │   └── validation.ts     (Future: form validation)
 └── components/
     ├── ThemeToggle.astro (UI component, imports from utils)
@@ -795,6 +925,142 @@ function testGetSystemTheme() {
 - Single-use logic in a component
 - Complex UI state (use framework components instead)
 - Heavy business logic (might need a separate backend)
+
+---
+
+## Menu Utility Module
+
+### What is a Menu Utility Module?
+A utility module that handles mobile hamburger menu functionality - toggle state, icon visibility, animations, and event listeners. Following the same pure functions pattern as theme.ts.
+
+### File Location
+`src/utils/menu.ts`
+
+### Architecture
+
+**Pure Functions (no side effects):**
+```typescript
+// Flips the menu state (true → false, false → true)
+export function toggleMenuState(isOpen: boolean): boolean {
+  return !isOpen;
+}
+
+// Returns "0" if closed, or actual content height if open
+export function calculateMaxHeight(isOpen: boolean, element: HTMLElement): string {
+  return isOpen ? element.scrollHeight + "px" : "0";
+}
+```
+
+**Side-Effect Functions (DOM manipulation):**
+```typescript
+// Shows/hides hamburger icons based on state
+export function updateMenuUI(
+  barsIcon: Element | null,
+  xIcon: Element | null,
+  isOpen: boolean
+): void {
+  if (isOpen) {
+    barsIcon?.classList.add("hidden");
+    xIcon?.classList.remove("hidden");
+  } else {
+    barsIcon?.classList.remove("hidden");
+    xIcon?.classList.add("hidden");
+  }
+}
+
+// Sets the max-height CSS property for animation
+export function setMenuMaxHeight(menu: HTMLElement | null, maxHeight: string): void {
+  if (menu) {
+    menu.style.maxHeight = maxHeight;
+  }
+}
+
+// Convenience: closes menu in one call
+export function closeMenuUI(
+  menu: HTMLElement | null,
+  barsIcon: Element | null,
+  xIcon: Element | null
+): void {
+  updateMenuUI(barsIcon, xIcon, false);
+  setMenuMaxHeight(menu, "0");
+}
+
+// Convenience: toggles menu in one call
+export function toggleMenuUI(
+  menu: HTMLElement | null,
+  barsIcon: Element | null,
+  xIcon: Element | null,
+  isOpen: boolean
+): void {
+  const newState = toggleMenuState(isOpen);
+  updateMenuUI(barsIcon, xIcon, newState);
+  setMenuMaxHeight(menu, calculateMaxHeight(newState, menu as HTMLElement));
+}
+
+// Setup function: attaches all event listeners
+export function setupMenuListeners(
+  hamburgerBtn: HTMLElement | null,
+  mobileMenu: HTMLElement | null,
+  barsIcon: Element | null,
+  xIcon: Element | null
+): void {
+  let isOpen = false;
+
+  // Hamburger click → toggle menu
+  hamburgerBtn?.addEventListener("click", () => {
+    isOpen = toggleMenuState(isOpen);
+    toggleMenuUI(mobileMenu, barsIcon, xIcon, isOpen);
+  });
+
+  // Link click → close menu
+  mobileMenu?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      isOpen = false;
+      closeMenuUI(mobileMenu, barsIcon, xIcon);
+    });
+  });
+
+  // Outside click → close menu if open
+  document.addEventListener("click", (event) => {
+    const clickedInside = mobileMenu?.contains(event.target as Node);
+    const clickedHamburger = hamburgerBtn?.contains(event.target as Node);
+
+    if (!clickedInside && !clickedHamburger && isOpen) {
+      isOpen = false;
+      closeMenuUI(mobileMenu, barsIcon, xIcon);
+    }
+  });
+}
+```
+
+### Using in Navbar.astro
+
+```astro
+<script>
+  import { setupMenuListeners } from "../utils/menu";
+
+  const hamburgerBtn = document.getElementById("hamburger");
+  const barsIcon = document.getElementById("bars-icon");
+  const xIcon = document.getElementById("x-icon");
+  const mobileMenu = document.getElementById("mobile-menu") as HTMLElement;
+
+  setupMenuListeners(hamburgerBtn, mobileMenu, barsIcon, xIcon);
+</script>
+```
+
+### Difference from theme.ts
+
+| Aspect | theme.ts | menu.ts |
+|--------|----------|---------|
+| State management | Passed as parameter | Maintained in `setupMenuListeners` |
+| Reason | Toggle returns new theme, caller manages | Multiple events need shared state |
+| Still testable | Yes - pure functions are testable | Yes - `toggleMenuState`, `calculateMaxHeight` are pure |
+
+### Best Practices
+- **Pure functions first** - Test `toggleMenuState(false)` returns `true`
+- **Side-effect functions explicit** - Name indicates DOM manipulation
+- **Setup as entry point** - Component only calls `setupMenuListeners`
+- **Keep elements null-safe** - Use `?.` for optional elements
 
 ---
 
@@ -1054,5 +1320,5 @@ This creates smooth color transitions when theme changes, improving UX.
 
 ---
 
-**Last Updated:** Day 4 (Theme System - Complete + Pure Functions Pattern)
-**Status:** Full dark/light theme system implemented with reusable pure utility functions
+**Last Updated:** Day 8 (Navbar Enhancements)
+**Status:** Navbar made transparent; mobile menu border fix; Layout + all pages created; content collections for Astro 6.x

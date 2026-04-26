@@ -8,7 +8,7 @@ const linkClasses = "text-text hover:text-brand transition";
 const logoClass = "text-brand hover:text-text transition font-bold text-lg";
 ---
 
-<nav class="relative top-0 z-50 bg-background">
+<nav class="relative top-0 z-50">
   <div class="max-w-300 mx-auto px-4 py-4">
     <div class="flex justify-between items-center">
       <a href="/" class={logoClass}>Portfolio</a>
@@ -31,9 +31,9 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
   <!-- Mobile dropdown menu -->
   <div
     id="mobile-menu"
-    class="md:hidden absolute top-full left-0 right-0 max-h-0 overflow-hidden max-w-max ml-auto transition-all duration-300 bg-background"
+    class="md:hidden absolute top-full left-0 right-4 max-h-0 overflow-hidden max-w-max ml-auto transition-all duration-300 bg-background"
   >
-    <div class="max-w-300 mx-auto px-4 py-4 flex flex-col gap-4">
+    <div class="max-w-300 mx-auto border border-text px-4 py-4 flex flex-col gap-4">
       <a href="/" class={linkClasses}>Home</a>
       <a href="/about" class={linkClasses}>About</a>
       <a href="/projects" class={linkClasses}>Projects</a>
@@ -45,61 +45,14 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
 </nav>
 
 <script>
-  // State
-  let isOpen = false;
+  import { setupMenuListeners } from "../utils/menu";
 
-  // DOM elements
+  // Get DOM elements
   const hamburgerBtn = document.getElementById("hamburger");
   const barsIcon = document.getElementById("bars-icon");
   const xIcon = document.getElementById("x-icon");
   const mobileMenu = document.getElementById("mobile-menu") as HTMLElement;
 
-  if (!mobileMenu) {
-    console.error("mobile-menu element not found");
-  }
-
-  // Toggle function
-  function toggleMenu() {
-    isOpen = !isOpen;
-    if (isOpen) {
-      //Menu open
-      barsIcon?.classList.add("hidden");
-      xIcon?.classList.remove("hidden");
-      mobileMenu.style.maxHeight = mobileMenu?.scrollHeight + "px";
-    } else {
-      // Menu closed
-      barsIcon?.classList.remove("hidden");
-      xIcon?.classList.add("hidden");
-      mobileMenu.style.maxHeight = "0";
-    }
-  }
-
-  // Close menu function
-  function closeMenu() {
-    isOpen = false;
-    barsIcon?.classList.remove("hidden");
-    xIcon?.classList.add("hidden");
-    mobileMenu.style.maxHeight = "0";
-  }
-
-  // Queryselector for a elements in mobile-menu
-  // Add event listener click
-  const mobileMenuLinks = mobileMenu.querySelectorAll("a");
-
-  mobileMenuLinks.forEach((link) => {
-    link.addEventListener("click", closeMenu);
-  });
-
-  //Menu outside click handler
-  document.addEventListener("click", (event) => {
-    const clickInside = mobileMenu.contains(event.target as Node);
-    const clickHamburger = hamburgerBtn?.contains(event.target as Node);
-
-    if (!clickInside && !clickHamburger && isOpen) {
-      closeMenu();
-    }
-  });
-
-  // Hamburger click listener
-  hamburgerBtn?.addEventListener("click", toggleMenu);
+  // Initialization
+  setupMenuListeners(hamburgerBtn, mobileMenu, barsIcon, xIcon);
 </script>
