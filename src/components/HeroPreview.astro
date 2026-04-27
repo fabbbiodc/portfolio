@@ -45,10 +45,22 @@ const initialMessage = "> use arrow keys to navigate or click links";
     },
   };
 
-  (window as unknown as Window & { updatePreviewGlobal: (key: string) => void }).updatePreviewGlobal = (sectionKey: string) => {
+  (
+    window as unknown as Window & {
+      updatePreviewGlobal?: (key: string) => void;
+    }
+  ).updatePreviewGlobal = (sectionKey: string) => {
+    // Handle initial state
+    if (sectionKey === "initial") {
+      const content = document.getElementById("preview-content");
+      if (content) {
+        content.textContent = "> use arrow keys to navigate or click links";
+      }
+      return;
+    }
+    // Handle section keys
     const section = (sections as Record<string, Section>)[sectionKey];
     if (!section) return;
-
     const content = document.getElementById("preview-content");
     if (content) {
       content.textContent = `> ${section.name}\n\n${section.description}`;

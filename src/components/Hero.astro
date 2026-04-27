@@ -32,8 +32,8 @@
   }
 
   .hero-link.hovered {
-      background-color: var(--color-text);
-      color: var(--color-background);
+    background-color: var(--color-text);
+    color: var(--color-background);
   }
 
   @media (max-width: 767px) {
@@ -69,8 +69,11 @@
       links[newIndex].classList.add("selected");
       links[newIndex].textContent = "> " + originalTexts[newIndex];
       currentIndex = newIndex;
-      const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset.section!;
-      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+      const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset
+        .section!;
+      (
+        window as Window & { updatePreviewGlobal?: (key: string) => void }
+      ).updatePreviewGlobal?.(sectionKey);
     }
   }
 
@@ -92,8 +95,11 @@
     });
 
     if (newHoverIndex >= 0) {
-      const sectionKey = (links[newHoverIndex] as HTMLAnchorElement).dataset.section!;
-      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+      const sectionKey = (links[newHoverIndex] as HTMLAnchorElement).dataset
+        .section!;
+      (
+        window as Window & { updatePreviewGlobal?: (key: string) => void }
+      ).updatePreviewGlobal?.(sectionKey);
     }
   }
 
@@ -113,9 +119,28 @@
 
     // Restore preview to current selection
     if (currentIndex >= 0) {
-      const sectionKey = (links[currentIndex] as HTMLAnchorElement).dataset.section!;
-      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+      const sectionKey = (links[currentIndex] as HTMLAnchorElement).dataset
+        .section!;
+      (
+        window as Window & { updatePreviewGlobal?: (key: string) => void }
+      ).updatePreviewGlobal?.(sectionKey);
     }
+  }
+
+  function cancelSelection(): void {
+    currentIndex = -1;
+    hoveredIndex = -1;
+
+    links.forEach((link, index) => {
+      link.classList.remove("selected");
+      link.classList.remove("hovered");
+      link.textContent = "  " + originalTexts[index];
+    });
+    (
+      window as unknown as Window & {
+        updatePreviewGlobal?: (key: string) => void;
+      }
+    ).updatePreviewGlobal?.("initial");
   }
 
   document.addEventListener("keydown", (event) => {
@@ -143,6 +168,9 @@
       if (currentIndex >= 0 && currentIndex < links.length) {
         (links[currentIndex] as HTMLAnchorElement).click();
       }
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelSelection();
     }
   });
 

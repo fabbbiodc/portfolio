@@ -715,4 +715,220 @@ Fixed:
 
 ---
 
+## Day 11: ESC Key Handler & TypeScript Error Fixes (✅ Complete)
+
+### Objectives
+- Add ESC key handler to cancel selection and reset preview
+- Fix all TypeScript/IDE errors in Hero.astro and HeroPreview.astro
+- Extend `updatePreviewGlobal` to handle "initial" state
+- Update documentation with all changes
+
+### Session Flow & Key Discoveries
+
+**Problem 1: TypeScript Errors in Hero.astro (9 errors)**
+- **Issues Found:**
+  - Line 62: Parameter `newIndex` implicitly `any`
+  - Line 72: Property `dataset` does not exist on `Element`
+  - Line 73: Property `updatePreviewGlobal` does not exist on `Window`
+  - Line 79: Parameter `newHoverIndex` implicitly `any`
+  - Line 95, 116: Same `dataset` error
+  - Line 96, 117: Same `updatePreviewGlobal` error
+  - Line 144: Property `click()` does not exist on `Element`
+  - All errors requiring type assertions and casts
+
+- **Solutions Applied:**
+  - Added `: number` type annotations to function parameters (lines 62, 79)
+  - Cast `Element` to `HTMLAnchorElement` for dataset access (lines 72, 95, 116)
+  - Added non-null assertion `!` for `dataset.section` to handle potential `undefined`
+  - Extended `Window` type for `updatePreviewGlobal` property
+  - Cast `Element` to `HTMLAnchorElement` for `.click()` method (line 144)
+
+**Problem 2: TypeScript Errors in HeroPreview.astro (2 errors)**
+- **Issues Found:**
+  - Line 39: `updatePreviewGlobal` not on `Window`
+  - Line 40: Element index signature missing for sections object
+
+- **Solutions Applied:**
+  - Added `Section` and `Sections` interfaces for proper typing
+  - Extended `Window` type to include `updatePreviewGlobal` property with proper signature
+  - Cast sections object with `Record<string, Section>` type
+  - Used double-cast pattern: `window as unknown as Window & { ... }` to satisfy TypeScript strict mode
+
+**Problem 3: Missing ESC Key Handler**
+- **Issue:** Hero component had keyboard support for Arrow keys and Enter, but no way to cancel selection
+- **Solution:** Added `cancelSelection()` function that resets both selection and preview
+- **Implementation:** Added ESC key handler to keydown event listener
+
+### Architecture: ESC Key Handler (Option B)
+
+**Implementation Approach:**
+1. **Extend HeroPreview.astro** - Modified `updatePreviewGlobal()` to accept special "initial" key
+2. **Add cancelSelection() Function** - New function in Hero.astro to reset state
+3. **Add ESC Key Handler** - Added to existing keydown event listener
+
+**Functions Created:**
+
+1. **`cancelSelection()` in Hero.astro (after clearHover)**
+   ```typescript
+   function cancelSelection(): void {
+     currentIndex = -1;
+     hoveredIndex = -1;
+     
+     links.forEach((link, index) => {
+       link.classList.remove("selected");
+       link.classList.remove("hovered");
+       link.textContent = "  " + originalTexts[index];
+     });
+     
+     // Reset preview to initial message
+     (window as unknown as Window & { updatePreviewGlobal?: (key: string) => void })
+       .updatePreviewGlobal?.("initial");
+   }
+   ```
+
+2. **ESC Handler in keydown listener**
+   ```typescript
+   } else if (event.key === "Escape") {
+     event.preventDefault();
+     cancelSelection();
+   }
+   ```
+
+3. **Enhanced `updatePreviewGlobal()` in HeroPreview.astro**
+   - Added check for `sectionKey === "initial"`
+   - Resets preview to initial message when ESC is pressed
+   - No need to call function from Hero; just pass "initial" string
+
+### Checklist - Day 11
+- [x] Fix all 9 TypeScript errors in Hero.astro
+  - [x] Add `: number` type annotations
+  - [x] Cast Element to HTMLAnchorElement
+  - [x] Add non-null assertions for dataset.section
+  - [x] Extend Window type for updatePreviewGlobal
+  - [x] Cast for .click() method
+- [x] Fix all 2 TypeScript errors in HeroPreview.astro
+  - [x] Add Section and Sections interfaces
+  - [x] Extend Window type with double-cast pattern
+  - [x] Cast sections object with Record type
+- [x] Add `cancelSelection()` function to Hero.astro
+- [x] Add ESC key handler to keydown listener
+- [x] Modify `updatePreviewGlobal()` to handle "initial" state
+- [x] Test ESC key functionality (selection and preview reset)
+- [x] Test all three interaction modes still work (keyboard, click, hover)
+- [x] Verify build passes with no errors
+- [x] Update BUILD_DIARY.md with Day 11 session
+- [x] Update NOTES.md with ESC handler and TypeScript fixes
+
+### Implementation Details
+
+**File: `src/components/Hero.astro`**
+
+TypeScript Fixes:
+- Line 62: `function updateSelection(newIndex: number)`
+- Line 72: `const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset.section!;`
+- Line 73: `(window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);`
+- Line 79: `function updateHoverUI(newHoverIndex: number)`
+- Lines 95, 96, 116, 117: Same pattern as 72-73
+- Line 144: `(links[currentIndex] as HTMLAnchorElement).click();`
+
+New Feature:
+- Added `cancelSelection()` function after `clearHover()` (~12 lines)
+- Added ESC key handler in keydown listener (~3 lines)
+
+**File: `src/components/HeroPreview.astro`**
+
+TypeScript Fixes:
+- Added interfaces (lines 21-28):
+  ```typescript
+  interface Section {
+    name: string;
+    description: string;
+  }
+  
+  interface Sections {
+    [key: string]: Section;
+  }
+  ```
+- Line 30: `const sections: Sections = { ... }`
+- Line 48: Double-cast for Window: `window as unknown as Window & { ... }`
+- Line 49: Cast sections: `(sections as Record<string, Section>)[sectionKey]`
+
+Enhanced Feature:
+- Added "initial" state handling in `updatePreviewGlobal()` (~5 lines)
+
+### ESC Key Behavior (Complete Flow)
+
+| State | User Action | Visual Result | Preview | `currentIndex` |
+|-------|-------------|---------------|---------|----------------|
+| Keyboard selection (about) | Press ESC | No highlight | Initial message | = -1 |
+| Click selection (projects) | Press ESC | No highlight | Initial message | = -1 |
+| Hover preview | Press ESC | No highlight | Initial message | = -1 |
+| After ESC cancel | Arrow Down | `> about` + inverse | About description | = 0 |
+
+### Testing Summary
+
+**✅ All Features Working:**
+- Keyboard navigation (Arrow up/down + Enter) ✓
+- Click/tap selection ✓
+- Hover-as-selection with preview sync ✓
+- **NEW:** ESC cancels selection and resets preview ✓
+- Spacing visible on page load ✓
+- Theme switching ✓
+- Mobile interactions ✓
+- Build: No errors, passes compilation ✓
+
+### TypeScript Fixes Summary
+
+**Hero.astro (9 fixes):**
+- 2 function parameter type annotations
+- 4 Element → HTMLAnchorElement casts with dataset
+- 4 non-null assertions for dataset.section
+- 4 Window type extensions
+- 1 Element → HTMLAnchorElement cast for .click()
+
+**HeroPreview.astro (2 fixes):**
+- 2 interfaces added (Section, Sections)
+- 1 type annotation on sections object
+- 1 double-cast for Window
+- 1 type assertion for sections access
+
+**Build Result:** ✅ All errors resolved, build passes with no errors
+
+### Completed This Session
+
+1. ✅ Fixed all 9 TypeScript errors in Hero.astro using type assertions
+2. ✅ Fixed all 2 TypeScript errors in HeroPreview.astro with interfaces and casts
+3. ✅ Implemented ESC key handler (Option B approach):
+   - Added `cancelSelection()` function
+   - Extended `updatePreviewGlobal()` to handle "initial" state
+   - Added ESC key listener to keydown event
+4. ✅ Tested all interaction modes:
+   - Keyboard selection + ESC → reset ✓
+   - Click selection + ESC → reset ✓
+   - Hover preview + ESC → reset ✓
+   - Can select again after ESC ✓
+5. ✅ Verified build passes with no errors
+6. ✅ Updated documentation (BUILD_DIARY + NOTES)
+
+### Next Steps (Ready for Implementation)
+
+**Phase 4 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
+- Add `data-section` attributes to page content sections
+- Create observer utility function
+- Auto-highlight hero link when section enters viewport
+- Keyboard/click/ESC selection can override auto-highlight
+
+**Phase 5 (Pending):** Mobile refinement and responsive testing
+- Test at multiple breakpoints
+- Verify touch interactions
+- Test accessibility features
+
+**Phase 6 (Pending):** Add real page content
+- Replace lorem ipsum in HeroPreview
+- Build substantial About page
+- Build Projects showcase
+- Build Contact information page
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._

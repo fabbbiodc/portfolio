@@ -1752,5 +1752,282 @@ links.forEach((link, index) => {
 
 ---
 
-**Last Updated:** Day 10 (Spacing Fix + Hover-as-Selection + Documentation)
-**Status:** Hero component complete with full hover support; all interaction modes working; build passes with no errors
+### ESC Key Handler (Day 11) - NEW FEATURE
+
+**What is ESC Key Handler?**
+- User presses ESC → cancels current selection and resets preview
+- Completely resets to initial state (no links selected, no hover styling)
+- Clears both `currentIndex` and `hoveredIndex` to -1
+- Shows initial preview message: "use arrow keys to navigate or click links"
+- Desktop and mobile support
+
+**Why This Feature?**
+- Provides escape route if user changes their mind
+- Common UX pattern in terminal-style interfaces
+- Gives user full control over navigation state
+- Works seamlessly with all other interaction modes
+
+**Implementation Files:**
+- `src/components/Hero.astro` (lines ~125-139): `cancelSelection()` function and ESC handler
+- `src/components/HeroPreview.astro` (lines ~48-60): Enhanced `updatePreviewGlobal()` to handle "initial" state
+
+**Functions:**
+
+1. **`cancelSelection()` in Hero.astro**
+   ```typescript
+   function cancelSelection(): void {
+     currentIndex = -1;
+     hoveredIndex = -1;
+     
+     links.forEach((link, index) => {
+       link.classList.remove("selected");
+       link.classList.remove("hovered");
+       link.textContent = "  " + originalTexts[index];
+     });
+     
+     // Reset preview to initial message using special "initial" key
+     (window as unknown as Window & { updatePreviewGlobal?: (key: string) => void })
+       .updatePreviewGlobal?.("initial");
+   }
+   ```
+
+2. **ESC Handler in keydown listener**
+   ```typescript
+   } else if (event.key === "Escape") {
+     event.preventDefault();
+     cancelSelection();
+   }
+   ```
+
+3. **Enhanced `updatePreviewGlobal()` in HeroPreview.astro**
+   ```typescript
+   (window as unknown as Window & { updatePreviewGlobal: (key: string) => void }).updatePreviewGlobal = (sectionKey: string) => {
+     // Handle initial state
+     if (sectionKey === "initial") {
+       const content = document.getElementById("preview-content");
+       if (content) {
+         content.textContent = "> use arrow keys to navigate or click links";
+       }
+       return;
+     }
+
+     // Handle section keys (about, projects, contact)
+     const section = (sections as Record<string, Section>)[sectionKey];
+     if (!section) return;
+
+     const content = document.getElementById("preview-content");
+     if (content) {
+       content.textContent = `> ${section.name}\n\n${section.description}`;
+     }
+   };
+   ```
+
+**State After ESC:**
+
+| Property | Before ESC | After ESC | Result |
+|----------|-----------|-----------|--------|
+| `currentIndex` | 0 (about) | -1 | No selection |
+| `hoveredIndex` | -1 | -1 | No hover |
+| Link text | `> about` | `  about` | Spacing, no prefix |
+| Link CSS class | `.selected` | none | No highlight |
+| Preview text | Section description | Initial message | Defaults shown |
+
+**ESC vs Hover Behavior:**
+- **ESC:** Resets EVERYTHING (selection, hover, preview)
+- **Hover:** Only shows preview, doesn't change `currentIndex`
+- **After ESC:** Can use keyboard, click, or hover again immediately
+
+**Interaction Flow Example:**
+
+```
+1. Page load
+   → No selection, initial preview
+
+2. User presses Arrow Down
+   → currentIndex = 0, shows "about" with highlight
+
+3. User presses ESC
+   → currentIndex = -1, removes highlight, shows initial message
+
+4. User presses Arrow Up
+   → currentIndex = 2 (wraps to last), shows "contact" with highlight
+
+5. User hovers "projects"
+   → Temporary hover styling, preview updates to "projects"
+   → currentIndex still = 2 (unchanged)
+
+6. User presses ESC while hovering
+   → currentIndex = -1, removes both hover and selection, resets preview
+
+7. User presses Enter (no selection)
+   → Nothing happens (only works if currentIndex >= 0)
+```
+
+**All Four Keyboard Controls:**
+
+| Key | Action | Effect on Selection | Effect on Preview | Mobile |
+|-----|--------|---------------------|-------------------|--------|
+| **Arrow Up** | Previous link | Changes currentIndex | Updates | Works |
+| **Arrow Down** | Next link | Changes currentIndex | Updates | Works |
+| **Enter** | Navigate | Only if selected | No change | Works |
+| **ESC** | Cancel | Resets to -1 | Resets to initial | Works |
+
+---
+
+### TypeScript Fixes (Day 11) - Complete Reference
+
+**Build Status:** ✅ All 11 errors fixed, no TypeScript issues
+
+**Hero.astro Fixes (9 errors → all fixed):**
+
+1. **Line 62:** Parameter type annotation
+   ```typescript
+   // BEFORE: function updateSelection(newIndex)
+   // AFTER:
+   function updateSelection(newIndex: number)
+   ```
+
+2. **Line 72:** Element to HTMLAnchorElement cast + non-null assertion
+   ```typescript
+   // BEFORE: const sectionKey = links[newIndex].dataset.section;
+   // AFTER:
+   const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset.section!;
+   ```
+
+3. **Line 73:** Window type extension for updatePreviewGlobal
+   ```typescript
+   // BEFORE: window.updatePreviewGlobal?.(sectionKey);
+   // AFTER:
+   (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+   ```
+
+4. **Line 79:** Parameter type annotation
+   ```typescript
+   // BEFORE: function updateHoverUI(newHoverIndex)
+   // AFTER:
+   function updateHoverUI(newHoverIndex: number)
+   ```
+
+5. **Lines 95, 96, 116, 117:** Same fixes as 72-73 (repeated for multiple locations)
+
+6. **Line 144:** HTMLAnchorElement cast for .click() method
+   ```typescript
+   // BEFORE: links[currentIndex].click();
+   // AFTER:
+   (links[currentIndex] as HTMLAnchorElement).click();
+   ```
+
+**HeroPreview.astro Fixes (2 errors → all fixed):**
+
+1. **Line 21-28:** Add TypeScript interfaces
+   ```typescript
+   interface Section {
+     name: string;
+     description: string;
+   }
+
+   interface Sections {
+     [key: string]: Section;
+   }
+   ```
+
+2. **Line 30:** Type annotation for sections object
+   ```typescript
+   // BEFORE: const sections = { ... }
+   // AFTER:
+   const sections: Sections = { ... }
+   ```
+
+3. **Line 48:** Double-cast pattern for Window
+   ```typescript
+   // BEFORE: window.updatePreviewGlobal = (sectionKey: string) => { ... }
+   // AFTER (cast through unknown to satisfy TypeScript strict mode):
+   (window as unknown as Window & { updatePreviewGlobal: (key: string) => void }).updatePreviewGlobal = ...
+   ```
+
+4. **Line 49:** Record type assertion for sections access
+   ```typescript
+   // BEFORE: const section = sections[sectionKey];
+   // AFTER:
+   const section = (sections as Record<string, Section>)[sectionKey];
+   ```
+
+**Why These Casts Are Necessary:**
+
+| Error | Root Cause | Why Occurs | Solution |
+|-------|-----------|-----------|----------|
+| Parameter `any` | TypeScript can't infer type | Function parameters need explicit types | Add `: number` annotation |
+| `dataset` missing | Element type doesn't have dataset | Specific to HTMLAnchorElement | Cast `as HTMLAnchorElement` |
+| `updatePreviewGlobal` missing | Custom property on Window | TypeScript doesn't know about custom props | Extend Window type with intersection |
+| `.click()` missing | Element type doesn't have method | Specific to HTMLAnchorElement | Cast `as HTMLAnchorElement` |
+| Index signature missing | Plain object doesn't support dynamic indexing | Need type with index signature | Use `Record<string, Type>` |
+| Type incompatibility | Can't directly cast Window to extended type | TypeScript strict mode requires bridge | Cast through `unknown` first |
+
+**Double-Cast Pattern (TypeScript Strict Mode):**
+```typescript
+// Direct cast fails:
+window as Window & { updatePreviewGlobal: ... }  // ❌ Type incompatibility
+
+// Use unknown as bridge:
+window as unknown as Window & { ... }  // ✅ Works!
+```
+
+This pattern tells TypeScript: "Trust me, this is valid. First treat as unknown, then as the target type."
+
+---
+
+### Common TypeScript Patterns in This Project
+
+**Type Assertions (casting):**
+```typescript
+// Assume value is of specific type
+const element = document.querySelector('.item') as HTMLDivElement;
+const target = event.target as HTMLButtonElement;
+
+// Multiple assertions (for strict mode)
+const value = obj as unknown as CustomType;
+```
+
+**Interface Definitions:**
+```typescript
+interface Section {
+  name: string;
+  description: string;
+}
+
+interface Sections {
+  [key: string]: Section;  // Index signature for dynamic access
+}
+
+// Usage:
+const data: Sections = { ... };
+```
+
+**Window Type Extension:**
+```typescript
+declare global {
+  interface Window {
+    customProperty: (param: string) => void;
+  }
+}
+
+// Then use normally:
+window.customProperty('value');
+```
+
+**Record Type (alternative to index signature):**
+```typescript
+// Index signature approach:
+interface Sections { [key: string]: Section; }
+
+// Record approach (equivalent):
+type Sections = Record<string, Section>;
+
+// Using in assertion:
+const section = (obj as Record<string, Section>)['key'];
+```
+
+---
+
+**Last Updated:** Day 11 (ESC Key Handler + TypeScript Fixes)
+**Status:** Hero component feature-complete with keyboard (arrows + Enter + ESC), click, and hover support; all TypeScript errors resolved; build passes with no errors
