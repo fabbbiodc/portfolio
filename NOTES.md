@@ -2029,5 +2029,322 @@ const section = (obj as Record<string, Section>)['key'];
 
 ---
 
-**Last Updated:** Day 11 (ESC Key Handler + TypeScript Fixes)
-**Status:** Hero component feature-complete with keyboard (arrows + Enter + ESC), click, and hover support; all TypeScript errors resolved; build passes with no errors
+### CSS Grid Responsive Layout Pattern (Day 12) - NEW PATTERN
+
+**What is Responsive CSS Grid?**
+A flexible grid layout that adapts the number of columns based on screen size. Perfect for navigation bars or any component needing different layouts on mobile vs desktop.
+
+**Problem This Solves:**
+- Single-column grid on all breakpoints doesn't adapt to mobile constraints
+- Fixed column widths don't distribute space evenly
+- Hidden middle columns on mobile don't free up space for other elements
+
+**Solution: Responsive Grid Columns**
+
+**File: `src/components/Navbar.astro` (Line 14)**
+```astro
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
+  <!-- Logo -->
+  <div>Logo</div>
+  
+  <!-- Navigation Links (hidden on mobile) -->
+  <div class="hidden md:flex justify-center gap-6">
+    <a href="/">Link 1</a>
+    <a href="/">Link 2</a>
+  </div>
+  
+  <!-- Theme Toggle + Hamburger (flex with gap) -->
+  <div class="flex justify-end gap-4 items-center">
+    <ThemeToggle />
+    <button id="hamburger">Menu</button>
+  </div>
+</div>
+```
+
+**Breakpoint Behavior:**
+
+| Breakpoint | Grid | Col 1 | Col 2 | Col 3 | Result |
+|-----------|------|-------|-------|-------|--------|
+| **Mobile** (< 768px) | 2 cols | Logo (50%) | Hidden | Hamburger (50%) | Balanced |
+| **Tablet/Desktop** (≥ 768px) | 3 cols | Logo (~33%) | Links (centered) | Toggle (~33%) | Perfect |
+
+**Key CSS Classes:**
+- `grid` - Creates grid container
+- `grid-cols-2` - 2 equal-width columns (default)
+- `md:grid-cols-3` - Switch to 3 equal-width columns at md breakpoint
+- `gap-4` - Space between grid items
+- `items-center` - Vertically center all grid items
+- `hidden md:flex` - Hide links on mobile, show on desktop
+- `justify-center` - Center content within grid column
+- `justify-end` - Right-align content in grid column
+
+**Why This Works:**
+1. **Mobile (2 cols):** Logo takes 50% of width, hamburger takes 50% → balanced
+2. **Desktop (3 cols):** Each column = ~33% width, links centered in middle column
+3. **Middle column hidden on mobile doesn't matter:** With only 2 columns, the hidden col 2 doesn't exist
+4. **Simple, responsive:** No media queries needed beyond class prefixes
+
+**Advanced: Equal-Width vs Auto-Width**
+
+```astro
+<!-- Equal-width (current approach) -->
+<div class="grid grid-cols-3">
+  <!-- All columns get same width -->
+</div>
+
+<!-- Auto-width (if you needed flexible sizing) -->
+<div class="grid grid-cols-[auto_1fr_auto]">
+  <!-- Col 1: shrink to content -->
+  <!-- Col 2: grows to fill space -->
+  <!-- Col 3: shrink to content -->
+</div>
+```
+
+Use equal-width (`grid-cols-3`) when you want predictable, centered layouts. Use auto-width when you need flexible spacing.
+
+**Common Responsive Grid Patterns:**
+
+**Pattern 1: Navigation Bar (Current)**
+```astro
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
+  <!-- Logo, Links, Actions -->
+</div>
+```
+
+**Pattern 2: Sidebar + Content**
+```astro
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <aside class="md:col-span-1">Sidebar</aside>
+  <main class="md:col-span-2">Content</main>
+</div>
+```
+
+**Pattern 3: 3-Column on Desktop, 1-Column on Mobile**
+```astro
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div>Item 1</div>
+  <div>Item 2</div>
+  <div>Item 3</div>
+</div>
+```
+
+---
+
+### Text Truncation with "Read More" Link (Day 12) - NEW PATTERN
+
+**What is Text Truncation?**
+Limiting displayed text to a certain length (characters or lines) and showing a "..." indicator with a link to view more. Common UX pattern for previews and summaries.
+
+**Problem This Solves:**
+- Long descriptions overflow container height
+- No visual indication that more content exists
+- Users don't know they can click for full content
+
+**Solution: Character-Based Truncation with Word Boundaries**
+
+**File: `src/components/HeroPreview.astro`**
+
+**Utility Function:**
+```typescript
+function truncateToCharCount(text: string, maxChars: number): { text: string; isTruncated: boolean } {
+  if (text.length <= maxChars) {
+    return { text, isTruncated: false };
+  }
+  
+  const truncated = text.substring(0, maxChars);
+  const lastSpace = truncated.lastIndexOf(' ');
+  const finalText = lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated;
+  
+  return { text: finalText + '...', isTruncated: true };
+}
+```
+
+**How It Works:**
+1. **Check length:** If text ≤ maxChars, return full text
+2. **Find cutoff point:** Get first `maxChars` characters
+3. **Find word boundary:** Search for last space within truncated text
+4. **Break at word:** Cut at that space (avoids mid-word cuts)
+5. **Add indicator:** Append "..." to show more content exists
+
+**Example Truncation:**
+```
+Original (200 chars):
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+
+Truncated (result):
+"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor 
+incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis 
+nostrud exercitation ullamco laboris nisi ut aliquip..."
+```
+
+**HTML Structure:**
+```astro
+<div class="flex flex-col gap-2">
+  <!-- Content container (flex-1 allows expansion) -->
+  <div class="flex-1 overflow-hidden">
+    <p id="preview-content">Initial preview text</p>
+  </div>
+  
+  <!-- "Read More" Link (hidden initially) -->
+  <a id="read-more-link" href="/about" class="hidden text-brand hover:underline">
+    read more →
+  </a>
+</div>
+```
+
+**CSS Classes Used:**
+- `flex flex-col` - Stack content and link vertically
+- `flex-1` - Content expands to fill available space
+- `overflow-hidden` - Hides text beyond container bounds
+- `hidden` - "Read more" link hidden by default (controlled via JS)
+- `text-brand` - Link color matches theme
+- `hover:underline` - Underline on hover
+
+**JavaScript Implementation:**
+```typescript
+function updatePreviewGlobal(sectionKey: string) {
+  const section = sections[sectionKey];
+  if (!section) return;
+  
+  const content = document.getElementById('preview-content');
+  const readMoreLink = document.getElementById('read-more-link');
+  
+  if (!content || !readMoreLink) return;
+  
+  // Truncate description
+  const { text: truncatedText, isTruncated } = truncateToCharCount(section.description, 200);
+  
+  // Update content with truncated text
+  content.textContent = `> ${section.name}\n\n${truncatedText}`;
+  
+  // Show/hide "read more" link
+  if (isTruncated) {
+    readMoreLink.classList.remove('hidden');
+    readMoreLink.href = section.link;  // Set correct page link
+  } else {
+    readMoreLink.classList.add('hidden');
+  }
+}
+```
+
+**Character Count Selection:**
+- **~200 characters** ≈ **4 lines** of terminal text (at 50 chars/line)
+- Allows preview of essential information without scrolling
+- Adjustable: `truncateToCharCount(text, 300)` for more chars, `150` for less
+
+**Why Character-Based (vs Line-Based):**
+- ✅ Consistent across different fonts and sizes
+- ✅ Easy to adjust (just change number)
+- ✅ Predictable behavior
+- ❌ Line-based truncation varies by font-size and container width
+
+**Why Word Boundary Breaking:**
+- ✅ No awkward mid-word cuts ("trunca...")
+- ✅ Reads naturally
+- ✅ Professional appearance
+- ❌ Might be slightly shorter than max length (but cleaner)
+
+**"Read More" Link Behavior:**
+- **Hidden initially:** Users see truncated text only
+- **Shows when text truncated:** Clear CTA to view full content
+- **Hidden if full text fits:** No unnecessary link
+- **Dynamic href:** Link points to correct section page (`/about`, `/projects`, etc.)
+
+**Integration with Hover-as-Selection:**
+```javascript
+// When user hovers over link in hero
+updatePreviewGlobal('about');  // Truncates and updates preview
+// "read more" link shown if text is truncated
+```
+
+---
+
+### HeroPreview Responsive Visibility (Day 12) - NEW PATTERN
+
+**What is Breakpoint-Based Visibility?**
+Showing or hiding components based on screen size using Tailwind responsive prefixes.
+
+**Problem This Solves:**
+- Mobile screens have limited space; previews take up too much room
+- Tablets have enough room for preview + navigation side-by-side
+- Desktop always has room for all components
+
+**Solution: Conditional Display with Breakpoints**
+
+**File: `src/components/HeroSection.astro` (Line 15)**
+```astro
+<div class="hidden md:block">
+  <HeroPreview />
+</div>
+```
+
+**Visibility Rules:**
+- `hidden` - Default state (all breakpoints)
+- `md:block` - Show as block element starting at md breakpoint (768px+)
+
+**Breakpoint Visibility Table:**
+
+| Breakpoint | Screen Size | Class Applied | Result |
+|-----------|-------------|---------------|--------|
+| **sm** | 640px | `hidden` | Not visible |
+| **md** | 768px | `md:block` | Visible ✓ |
+| **lg** | 1024px | `md:block` | Visible ✓ |
+| **xl** | 1280px | `md:block` | Visible ✓ |
+| **2xl** | 1536px | `md:block` | Visible ✓ |
+
+**Tailwind Responsive Prefixes:**
+```
+sm:   640px (small phones)
+md:   768px (tablets)
+lg:  1024px (desktops)
+xl:  1280px (large desktops)
+2xl: 1536px (extra large)
+```
+
+**Common Visibility Patterns:**
+
+**Pattern 1: Hide Below Breakpoint (Current)**
+```astro
+<div class="hidden md:block">
+  <!-- Visible only on md and up -->
+</div>
+```
+
+**Pattern 2: Hide Above Breakpoint**
+```astro
+<div class="md:hidden">
+  <!-- Visible only below md (mobile) -->
+</div>
+```
+
+**Pattern 3: Different Display at Breakpoints**
+```astro
+<div class="block md:flex lg:grid">
+  <!-- Block on mobile, Flex on tablet, Grid on desktop -->
+</div>
+```
+
+**Pattern 4: Stacked on Mobile, Row on Desktop**
+```astro
+<div class="flex flex-col md:flex-row gap-4">
+  <!-- Vertical stack on mobile, horizontal row on md+ -->
+</div>
+```
+
+**Why md Breakpoint for HeroPreview:**
+- **Below 768px:** Too narrow, preview would squeeze content
+- **768px+:** Tablets have room; preview fits nicely beside hero
+- **1024px+:** Plenty of space on desktop
+- **Sweet spot:** md breakpoint (768px) is standard tablet size
+
+**Alternative Breakpoints:**
+- `lg:block` - Hide on tablet, show on desktop only (less optimal)
+- `sm:block` - Show on larger phones (risky, might overflow)
+- Custom: `min-h-[800px]:block` - Based on height instead
+
+---
+
+**Last Updated:** Day 12 (CSS Grid responsive layout, text truncation pattern, breakpoint visibility)
+**Status:** HeroSection centered on all breakpoints; text truncation with "read more" links; navbar with responsive 2/3 column grid; HeroPreview visible on tablets and up; build passes with no errors

@@ -10,23 +10,32 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
 
 <nav class="relative top-0 z-50">
   <div class="max-w-300 mx-auto px-4 py-4">
-    <div class="flex justify-between items-center">
+    <!-- Grid layout -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
+      
+      <!-- Column logo -->
       <a href="/" class={logoClass}>Portfolio</a>
-      <div class="flex gap-6 items-center ml-auto">
-        <div class="hidden md:flex gap-6 items-center">
-          <a href="/" class={linkClasses}>Home</a>
-          <a href="/about" class={linkClasses}>About</a>
-          <a href="/projects" class={linkClasses}>Projects</a>
-          <a href="/contact" class={linkClasses}>Contact</a>
+      
+      <!-- Column links -->
+      <div class="hidden md:flex gap-6 items-center justify-center">
+        <a href="/" class={linkClasses}>Home</a>
+        <a href="/about" class={linkClasses}>About</a>
+        <a href="/projects" class={linkClasses}>Projects</a>
+        <a href="/contact" class={linkClasses}>Contact</a>
+      </div>
+      
+      <!-- Column logos (hamburger/toggle) -->
+      <div class="flex gap-4 items-center justify-end">
+        <div class="hidden md:flex">
           <ThemeToggle id="theme-toggle-desktop" />
         </div>
+        <button id="hamburger" class="flex md:hidden flex-col gap-1">
+          <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
+          <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
+        </button>
       </div>
-      <button id="hamburger" class="flex md:hidden flex-col gap-1">
-        <Bars3Icon id="bars-icon" class="w-6 h-6 text-brand" />
-        <XMarkIcon id="x-icon" class="w-6 h-6 text-brand hidden" />
-      </button>
+      
     </div>
-    <!-- Hamburger menu for mobile breakpoint -->
   </div>
   <!-- Mobile dropdown menu -->
   <div

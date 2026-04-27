@@ -931,4 +931,238 @@ Enhanced Feature:
 
 ---
 
+## Day 12: HeroPreview Text Truncation & Navbar Grid Layout (✅ Complete)
+
+### Objectives
+- Implement elegant text truncation in HeroPreview with "..." and "read more" link
+- Restructure Navbar layout with CSS Grid for three-part alignment
+- Fix responsive behavior on mobile breakpoints
+- Make HeroPreview visible on tablet breakpoints (md and up)
+
+### Session Flow & Key Discoveries
+
+**Problem 1: Text Overflow in HeroPreview Container**
+- **Issue:** Description text exceeded h-64 container height without visual indication
+- **Initial Solution Attempted:** Added `overflow: hidden` to CSS
+- **Problem with Initial Solution:** Text was simply clipped without "..." indicator
+- **User Preference:** Wanted elegant solution with "..." and "read more →" link
+- **Final Solution:** Implemented character-based truncation with "read more" link
+
+**Problem 2: HeroPreview Display at Different Breakpoints**
+- **Current Status:** Hidden below lg breakpoint, visible lg and up
+- **User Request:** Show on tablet (md and up) as well
+- **Change Made:** Modified `hidden lg:block` → `hidden md:block`
+- **Result:** Now visible on tablets and desktops, hidden only on mobile
+
+**Problem 3: Navbar Layout Not Truly Centered**
+- **Issue:** Links appeared shifted right instead of screen-centered
+- **Root Cause:** Using `grid-cols-[auto_1fr_auto]` distributed space unevenly (logo narrower than toggle)
+- **Solution A Attempted:** Change to `grid-cols-3` for equal-width columns
+- **Result:** Links now perfectly centered on screen
+- **Additional Issue:** Mobile hamburger appeared too far left
+- **Root Cause:** 3-column grid on mobile collapsed middle column, throwing off layout
+- **Solution B:** Use responsive grid - `grid-cols-2 md:grid-cols-3`
+- **Result:** Mobile now shows 2 columns (logo | hamburger), desktop shows 3 columns with centered links
+
+**Problem 4: ThemeToggle Component Type Error**
+- **Issue:** TypeScript error: `class` prop not supported on ThemeToggle component
+- **Attempted Solution:** Pass `class="hidden md:flex"` directly to component
+- **Error:** Component doesn't accept arbitrary class props
+- **Solution Applied:** Wrapped ThemeToggle in a div with visibility classes (Option A)
+- **Result:** TypeScript error resolved, functionality unchanged
+
+### Architecture: Text Truncation with "Read More" Link
+
+**Implementation Approach:**
+1. **Flex Layout:** Container uses `flex flex-col` to stack content and link
+2. **Truncation Function:** `truncateToCharCount()` breaks at word boundary
+3. **Dynamic Link:** Updates href based on selected section (`/about`, `/projects`, `/contact`)
+4. **Visibility Toggle:** Link hidden on initial state, shown when section selected
+
+**Functions Created:**
+
+1. **`truncateToCharCount(text, maxChars)`** (Utility Function)
+   ```typescript
+   function truncateToCharCount(text: string, maxChars: number): { text: string; isTruncated: boolean } {
+     if (text.length <= maxChars) return { text, isTruncated: false };
+     const truncated = text.substring(0, maxChars);
+     const lastSpace = truncated.lastIndexOf(' ');
+     const finalText = lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated;
+     return { text: finalText + '...', isTruncated: true };
+   }
+   ```
+
+2. **Enhanced `updatePreviewGlobal(sectionKey)`**
+   - Truncates description to ~200 characters (roughly 4 lines)
+   - Shows "read more →" link with correct href
+   - Hides link when showing initial state
+   - Uses `readMoreLink.classList.add/remove('hidden')`
+
+### Architecture: CSS Grid Navbar Layout
+
+**Problem Analysis:**
+- Single 3-column grid on all breakpoints caused mobile layout issues
+- Hidden middle column (links) didn't free up space for hamburger
+
+**Solution: Responsive Grid Columns**
+- Mobile (< md): `grid-cols-2` - Logo | Hamburger
+- Desktop (≥ md): `grid-cols-3` - Logo | Links | Toggle+Hamburger
+
+**Layout Results:**
+
+| Breakpoint | Grid | Logo | Links | Toggle | Hamburger | Result |
+|-----------|------|------|-------|--------|-----------|--------|
+| **Mobile** | 2 cols | Col 1 | Hidden | Hidden | Col 2 | Balanced |
+| **Desktop** | 3 cols | Col 1 | Col 2 centered | Col 3 | Hidden | Perfect |
+
+### Checklist - Day 12
+
+**HeroPreview Text Truncation:**
+- [x] Add flex layout to container (`flex flex-col`)
+- [x] Add flex-1 overflow-hidden to preview content
+- [x] Add "read more →" link HTML with hidden class
+- [x] Update CSS for flex layout (remove max-height conflicts)
+- [x] Implement truncateToCharCount() function
+- [x] Update updatePreviewGlobal() to use truncation
+- [x] Make link hidden on initial state
+- [x] Link shows/hides based on section selection
+- [x] Test truncation across all sections
+- [x] Verify "read more" links to correct pages
+
+**HeroPreview Breakpoint Change:**
+- [x] Change from `hidden lg:block` to `hidden md:block`
+- [x] Verify visible on tablet breakpoints
+- [x] Build verification - no errors
+
+**Navbar Grid Layout:**
+- [x] Analyze mobile layout issue (hamburger too far left)
+- [x] Identify root cause (3-column grid collapsing middle)
+- [x] Implement responsive grid: `grid-cols-2 md:grid-cols-3`
+- [x] Test desktop layout (logo, centered links, toggle on right)
+- [x] Test mobile layout (logo, hamburger balanced)
+- [x] Fix ThemeToggle component type error (wrap in div)
+- [x] Verify all breakpoints
+- [x] Build verification - no errors
+
+### Implementation Details
+
+**File: `src/components/HeroPreview.astro`**
+
+Changes:
+- Line 7: Container now uses `flex flex-col` layout
+- Line 8: Content div has `flex-1 overflow-hidden` for space management
+- Lines 14-20: Added "read more →" link with `hidden` class
+- CSS: Updated for flex layout, removed `max-height` conflicts
+- Script: Added `truncateToCharCount()` function
+- Script: Updated `updatePreviewGlobal()` to handle truncation and link visibility
+
+**File: `src/components/Navbar.astro`**
+
+Changes:
+- Line 14: Changed from `grid grid-cols-3 gap-4 items-center` to `grid grid-cols-2 md:grid-cols-3 gap-4 items-center`
+- Line 29-31: Wrapped ThemeToggle in div with visibility classes
+- All responsive breakpoints now working correctly
+
+**File: `src/components/HeroSection.astro`**
+
+Changes:
+- Line 15: Changed from `hidden lg:block` to `hidden md:block`
+- HeroPreview now shows on tablets and desktops
+
+### Testing Summary
+
+**✅ HeroPreview Text Truncation:**
+- Text truncates to ~4 lines with "..." ✓
+- "Read more →" link appears only when section selected ✓
+- Link hidden on initial state (no section) ✓
+- Link href correctly points to `/about`, `/projects`, `/contact` ✓
+- Truncation preserves word boundaries (not mid-word) ✓
+- Works in light and dark themes ✓
+
+**✅ HeroPreview Breakpoint:**
+- Hidden on mobile (< md) ✓
+- Visible on tablet (md, lg) ✓
+- Visible on desktop (xl, 2xl) ✓
+
+**✅ Navbar Grid Layout:**
+- Mobile: Logo left, hamburger far right (balanced) ✓
+- Desktop: Logo left, links centered, toggle right ✓
+- All breakpoints display correctly ✓
+- TypeScript errors resolved ✓
+- Build passes with no errors ✓
+
+### Design Decisions
+
+**Text Truncation Approach:**
+- **Character-based (200 chars):** More predictable than line-based; adapts to different fonts
+- **Word boundary breaking:** Avoids awkward mid-word truncation
+- **"..." indicator:** Signals more content available
+- **"Read more" link:** Clear CTA to full section
+
+**Navbar Layout:**
+- **Responsive grid:** Handles mobile and desktop elegantly with single grid structure
+- **Equal column widths on desktop:** Ensures links truly centered on screen
+- **2-column mobile:** Distributes space evenly (logo takes ~50%, hamburger takes ~50%)
+- **Centered links:** Uses `justify-center` within column for perfect centering
+
+**HeroPreview Visibility:**
+- **md breakpoint:** Sweet spot for tablet display; readable at medium screen sizes
+- **Hidden only on mobile:** Reduces clutter on small screens where space is precious
+- **No changes to mobile menu:** Preview link still available in dropdown
+
+### Completed This Session
+
+1. ✅ Implemented elegant text truncation in HeroPreview:
+   - Character-based truncation to ~200 characters
+   - Word boundary breaking (no mid-word cuts)
+   - "..." indicator for truncated text
+   - "Read more →" link with dynamic href
+
+2. ✅ Fixed link visibility:
+   - Link hidden on initial state
+   - Link shows when section selected
+   - Correct href based on active section
+
+3. ✅ Restructured Navbar with responsive CSS Grid:
+   - Mobile: 2-column grid (logo | hamburger)
+   - Desktop: 3-column grid (logo | links | toggle)
+   - Links perfectly centered on screen
+
+4. ✅ Fixed mobile navbar layout:
+   - Hamburger no longer appears too far left
+   - Logo and hamburger evenly distributed
+   - Responsive grid adapts naturally
+
+5. ✅ Made HeroPreview visible on tablet breakpoints:
+   - Changed from `hidden lg:block` to `hidden md:block`
+   - Now shows on md, lg, xl, 2xl breakpoints
+   - Hidden only on mobile (< md)
+
+6. ✅ Resolved TypeScript errors:
+   - Wrapped ThemeToggle in div for visibility classes
+   - Fixed type compatibility issue
+
+7. ✅ Build passes with no errors
+
+### Next Steps (Ready for Implementation)
+
+**Phase 4 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
+- Add `data-section` attributes to page content sections
+- Create observer utility function
+- Auto-highlight hero link when section enters viewport
+- Keyboard/click/ESC selection can override auto-highlight
+
+**Phase 5 (Pending):** Mobile refinement and responsive testing
+- Test at multiple breakpoints
+- Verify touch interactions
+- Test accessibility features
+
+**Phase 6 (Pending):** Add real page content
+- Replace lorem ipsum in HeroPreview with actual descriptions
+- Build substantial About page
+- Build Projects showcase
+- Build Contact information page
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._
