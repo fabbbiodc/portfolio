@@ -2,12 +2,19 @@
 // Hero navigation component
 ---
 
-<div class="hero-container border border-text pl-2 pr-6 py-8 h-64">
+<div class="border border-text pl-2 pr-6 py-8 h-64">
   <nav class="space-y-2 font-mono text-text">
     <a href="/about" class="hero-link" data-section="about">about</a>
     <a href="/projects" class="hero-link" data-section="projects">projects</a>
     <a href="/contact" class="hero-link" data-section="contact">contact</a>
   </nav>
+  <div class="hidden md:flex justify-center pt-4">
+    <div class="text-left">
+      <p class="caption">↑ ↓ navigate</p>
+      <p class="caption">↵ select</p>
+      <p class="caption">esc clear</p>
+    </div>
+  </div>
 </div>
 
 <style>
@@ -46,7 +53,9 @@
 
 <script>
   // Terminal navigation keys
-  const links = document.querySelectorAll(".hero-link") as NodeListOf<HTMLAnchorElement>;
+  const links = document.querySelectorAll(
+    ".hero-link",
+  ) as NodeListOf<HTMLAnchorElement>;
   let currentIndex = -1;
   let hasInteracted = false;
 
