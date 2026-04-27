@@ -9,6 +9,7 @@
   --color-error: #dc2626;
   --color-warning: #d97706;
   --color-info: #2563eb;
+  --color-bloom: #5b21b6;
 }
 
 @layer base {
@@ -40,7 +41,7 @@
   }
 
   .bloom-border {
-    filter: drop-shadow(0 0 3px var(--color-bloom));
+    filter: drop-shadow(0 0 4px var(--color-bloom));
   }
 }
 

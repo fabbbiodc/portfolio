@@ -39,17 +39,7 @@
     color: var(--color-background);
   }
 
-  .hero-link[data-state="hovered"] {
-    background-color: var(--color-text);
-    color: var(--color-background);
-  }
-
-  @media (max-width: 767px) {
-    .hero-link[data-state="hovered"] {
-      background-color: transparent;
-      color: var(--color-text);
-    }
-  }
+  
 </style>
 
 <script>
@@ -88,57 +78,8 @@
     }
   }
 
-  let hoveredIndex = -1;
-
-  function updateHoverUI(newHoverIndex: number) {
-    links.forEach((link, index) => {
-      if (index === newHoverIndex && newHoverIndex !== currentIndex) {
-        link.dataset.state = "hovered";
-        link.textContent = "> " + originalTexts[index];
-      } else if (index === currentIndex) {
-        link.dataset.state = "selected";
-        link.textContent = "> " + originalTexts[index];
-      } else {
-        link.dataset.state = "default";
-        link.textContent = "  " + originalTexts[index];
-      }
-    });
-
-    if (newHoverIndex >= 0) {
-      const sectionKey = (links[newHoverIndex] as HTMLAnchorElement).dataset
-        .section!;
-      (
-        window as Window & { updatePreviewGlobal?: (key: string) => void }
-      ).updatePreviewGlobal?.(sectionKey);
-    }
-  }
-
-  function clearHover() {
-    hoveredIndex = -1;
-    // Restore current selection styling
-    links.forEach((link, index) => {
-      if (index === currentIndex) {
-        link.dataset.state = "selected";
-        link.textContent = "> " + originalTexts[index];
-      } else {
-        link.dataset.state = "default";
-        link.textContent = "  " + originalTexts[index];
-      }
-    });
-
-    // Restore preview to current selection
-    if (currentIndex >= 0) {
-      const sectionKey = (links[currentIndex] as HTMLAnchorElement).dataset
-        .section!;
-      (
-        window as Window & { updatePreviewGlobal?: (key: string) => void }
-      ).updatePreviewGlobal?.(sectionKey);
-    }
-  }
-
   function cancelSelection(): void {
     currentIndex = -1;
-    hoveredIndex = -1;
 
     links.forEach((link, index) => {
       link.dataset.state = "default";
@@ -188,12 +129,20 @@
       updateSelection(index);
     });
     link.addEventListener("mouseenter", () => {
-      hoveredIndex = index;
-      updateHoverUI(index);
+      updateSelection(index);
     });
 
     link.addEventListener("mouseleave", () => {
-      clearHover();
+      currentIndex = -1;
+      links.forEach((link, i) => {
+        link.dataset.state = "default";
+        link.textContent = "  " + originalTexts[i];
+      });
+      (
+        window as unknown as Window & {
+          updatePreviewGlobal?: (key: string) => void;
+        }
+      ).updatePreviewGlobal?.("initial");
     });
   });
 </script>
