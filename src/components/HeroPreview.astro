@@ -2,34 +2,6 @@
 // Terminal-style preview box showing section descriptions
 
 const initialMessage = "> use arrow keys to navigate or click links";
-
-const sections = {
-  about: {
-    name: "About",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-  },
-  projects: {
-    name: "Projects",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-  },
-  contact: {
-    name: "Contact",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-  },
-};
-
-export function updatePreview(sectionKey) {
-  const section = sections[sectionKey];
-  if (!section) return;
-
-  const content = document.getElementById("preview-content");
-  if (content) {
-    content.textContent = `> ${section.name}\n\n${section.description}`;
-  }
-}
 ---
 
 <div class="max-w-xs mx-auto border border-text px-6 py-8">
@@ -46,7 +18,16 @@ export function updatePreview(sectionKey) {
 </style>
 
 <script>
-  const sections = {
+  interface Section {
+    name: string;
+    description: string;
+  }
+
+  interface Sections {
+    [key: string]: Section;
+  }
+
+  const sections: Sections = {
     about: {
       name: "About",
       description:
@@ -64,8 +45,8 @@ export function updatePreview(sectionKey) {
     },
   };
 
-  window.updatePreviewGlobal = (sectionKey) => {
-    const section = sections[sectionKey];
+  (window as unknown as Window & { updatePreviewGlobal: (key: string) => void }).updatePreviewGlobal = (sectionKey: string) => {
+    const section = (sections as Record<string, Section>)[sectionKey];
     if (!section) return;
 
     const content = document.getElementById("preview-content");

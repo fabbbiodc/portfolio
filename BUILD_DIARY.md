@@ -527,20 +527,13 @@ src/
 
 ---
 
-## Day 9: Terminal-Style Hero Navigation Component (⚠️ IN PROGRESS)
+## Day 9: Terminal-Style Hero Navigation Component (✅ Complete)
 
 ### Objectives
 - Create a terminal-aesthetic hero section for homepage
 - Implement keyboard navigation (arrow keys + Enter)
 - Add scroll-based auto-highlighting of navigation links
 - Support touch/click interaction on mobile
-
-### Architecture Plan
-- **Component:** Create `src/components/Hero.astro` with terminal-style border and vertical link stack
-- **Styling:** Use Tailwind utilities + minimal inline CSS for inverse highlight state
-- **Keyboard Logic:** Arrow up/down to cycle through links, Enter to navigate
-- **Scroll Detection:** Use IntersectionObserver to auto-highlight based on page sections
-- **Mobile:** Touch/click to select and navigate
 
 ### Phases
 1. **Phase 1 (✅ Complete):** Component structure and styling
@@ -550,131 +543,175 @@ src/
 5. **Phase 2.5c (✅ Complete):** Add > prefix to selected links
 6. **Phase 2.5d (✅ Complete):** Sync Hero and Preview
 7. **Phase 2.5e (✅ Complete):** Update index.astro to use HeroSection
-8. **Phase 3 (⏳ Pending):** Scroll auto-highlight with IntersectionObserver
-9. **Phase 4 (⏳ Pending):** Mobile touch support refinement
-10. **Phase 5 (⏳ Pending):** Integration and polish
-
-### ⚠️ CRITICAL ISSUE - NEXT SESSION TOP PRIORITY
-
-**Problem:** Links with `>` prefix and `  ` (two-space) spacing are not showing on initial page load
-
-**Current Behavior:**
-- On page load: Links show as `about`, `projects`, `contact` (no spacing)
-- After first interaction: Links show correct spacing (`  about`, `  projects`, etc.)
-
-**Expected Behavior:**
-- On page load: All links should show with two-space padding (`  about`, `  projects`, `  contact`)
-- Selected link: Shows `> about` instead of `  about`
-- Alignment: All text starts in same column (terminal-style alignment)
-
-**Root Cause:**
-- Initialization code added to Hero.astro script at line 41-43
-- Two-space padding applied via: `link.textContent = '  ' + originalTexts[index];`
-- Code exists but spaces are NOT appearing in browser on page load
-
-**Investigation Needed:**
-1. Verify script is actually running on page load (add console.log to debug)
-2. Check if textContent is being set correctly or overwritten
-3. Test if Astro rendering is interfering with script execution
-4. Verify `originalTexts` array is populated correctly
-5. Check timing: is script running before or after DOM fully loads?
-
-**Files to Check:**
-- `/home/fdi-cecc/projects/portfolio/src/components/Hero.astro` (lines 35-90)
-- `/home/fdi-cecc/projects/portfolio/src/components/HeroPreview.astro` (verify sync logic)
-- `/home/fdi-cecc/projects/portfolio/src/components/HeroSection.astro` (wrapper structure)
-
-**Attempted Solutions:**
-1. Added initialization loop after storing `originalTexts` array ❌ (did not fix)
-2. Updated `updateSelection()` to apply spacing ✅ (works on interaction)
-3. Applied `hasInteracted` flag ✅ (tracks first interaction)
-
-**Next Steps for Next Session:**
-1. Add `console.log()` statements to debug initialization
-2. Test script execution timing
-3. Verify DOM element queries are finding links correctly
-4. Consider if Astro hydration is affecting initial render
-5. May need to wrap initialization in `DOMContentLoaded` event listener
-6. Test in different browsers to rule out browser-specific issues
-
-### Checklist - Phase 1 & 2 & 2.5
-- [x] Create `src/components/Hero.astro` with terminal border aesthetic
-- [x] Add vertical stack of three links (About, Projects, Contact)
-- [x] Style with Tailwind utilities: `border border-text`, `rounded`, `px-6 py-8`, `space-y-2`, `font-mono`
-- [x] Create `.selected` CSS class for inverse highlight (background ↔ text color)
-- [x] Import Hero component into `src/pages/index.astro`
-- [x] Implement keyboard navigation in `<script>` tag:
-  - [x] Arrow Up/Down to cycle through links (with wrapping)
-  - [x] Enter key to navigate to selected link
-  - [x] No initial highlight (highlight only after user interaction)
-- [x] Click links to select and navigate
-- [x] Create HeroPreview component with section descriptions
-- [x] Create HeroSection wrapper to combine Hero + HeroPreview
-- [x] Add > prefix to selected links and two-space padding to unselected
-- [x] Sync Hero and Preview on link selection
-- [x] Update index.astro to use HeroSection
-- [ ] ⚠️ **FIX: Get spacing to show on initial page load**
-- [ ] Build verification - pending spacing fix
-
-### Implementation Details
-
-**File: `src/components/Hero.astro`**
-- Terminal border aesthetic with Tailwind utilities
-- Three vertically-stacked navigation links
-- Inverse highlight on selection (dark ↔ light)
-- Keyboard navigation with wrapping
-- Initialization code that should add two-space padding (but currently not working)
-
-**File: `src/components/HeroPreview.astro`**
-- Preview box with initial message
-- Updates with section descriptions when link is selected
-- Exports `window.updatePreviewGlobal()` for Hero to call
-
-**File: `src/components/HeroSection.astro`**
-- Wrapper component that combines Hero and HeroPreview
-- Responsive layout (flexbox on desktop)
-- Preview hidden on mobile (< lg breakpoint)
-
-**File: `src/pages/index.astro`**
-- Refactored to use HeroSection instead of Hero directly
-
-### Session Notes
-
-**Problem 1 - Initial Typo (Day 9):**
-- **Issue:** Line 49 had `"keydow"` instead of `"keydown"`
-- **Solution:** Fixed typo
-
-**Problem 2 - Padding Typo (Day 9):**
-- **Issue:** Line 5 had `py-8` written as `y-8`
-- **Solution:** Corrected to `py-8`
-
-**Problem 3 - Spacing Not Appearing (Current Session):**
-- **Issue:** Two-space padding initialization is not showing on page load
-- **Status:** ⚠️ UNRESOLVED - top priority for next session
-- **Added:** Initialization loop, but effect not visible in browser
-- **Next:** Debug with console.log, verify timing, check DOM readiness
 
 ### Completed This Session
-
 1. ✅ Created `src/components/Hero.astro` with terminal aesthetic
 2. ✅ Implemented keyboard navigation (arrow keys + Enter)
 3. ✅ Created `src/components/HeroPreview.astro` with descriptions
 4. ✅ Created `src/components/HeroSection.astro` wrapper
 5. ✅ Added > prefix and sync logic between components
 6. ✅ Updated `src/pages/index.astro` to use HeroSection
-7. ❌ **Spacing still not appearing on initial page load - NEEDS DEBUGGING**
 
-### Next Steps (Pending)
+---
 
-**IMMEDIATE (Next Session):**
-- 🔴 **FIX: Debug and fix spacing initialization issue (TOP PRIORITY)**
-- Add console.log() to trace script execution
-- Verify DOM is ready before attempting to modify link text
-- Consider wrapping in DOMContentLoaded event
+## Day 10: Hero Component Enhancements & Hover-as-Selection (✅ Complete)
 
-**Phase 3:** Add IntersectionObserver for scroll-based auto-highlighting of links
-**Phase 4:** Refine mobile touch behavior
-**Phase 5:** Add hero sections for About, Projects, Contact pages (page content integration)
+### Objectives
+- Fix spacing initialization issue with CSS solution
+- Implement hover-as-selection with preview sync (Option A)
+- Fix TypeScript/linting errors
+- Document solutions in BUILD_DIARY and NOTES
+
+### Session Flow & Key Discoveries
+
+**Problem 1: Spacing Not Appearing on Page Load**
+- **Issue:** Links showed `about`, `projects`, `contact` without spacing on initial load
+- **Root Cause:** HTML collapses consecutive whitespace by default
+- **Solution:** Added `white-space: pre` to `.hero-link` CSS class
+- **Result:** Spaces now preserved perfectly on page load and after interactions
+- **Key Learning:** CSS `white-space: pre` is the cleanest solution for monospace spacing preservation
+
+**Problem 2: Hover Styling Typo**
+- **Issue:** Hover state showed opacity change but not inverse highlight colors
+- **Root Cause:** Line 36 had typo: `background-color: : var(--color-text)` (double colon)
+- **Solution:** Fixed typo to: `background-color: var(--color-text)`
+- **Result:** Hover now shows full inverse highlight + `> ` prefix
+
+**Problem 3: TypeScript/Linting Errors (12 errors)**
+- **Issues Found:**
+  - Line 3: Unused import `updatePreview` (imported but never used)
+  - Line 85: Loose equality `==` instead of `===`
+  - HeroPreview.astro line 24: Function parameter `sectionKey` not typed
+  - HeroPreview.astro line 24-32: Unused `updatePreview` export (duplicated in script)
+- **Solutions Applied:**
+  - Removed unused import from Hero.astro line 3
+  - Changed `==` to `===` on line 85
+  - Added type annotation: `sectionKey: string` in HeroPreview.astro
+  - Removed redundant `updatePreview` function from HeroPreview.astro frontmatter
+- **Status:** Build passes with no errors; some IDE warnings remain (non-blocking)
+
+### Architecture: Hover-as-Selection (Option A)
+
+**Implemented Features:**
+1. **Hover State Management:**
+   - Separate `hoveredIndex` variable from `currentIndex`
+   - Hover shows full selection styling without changing actual selection
+   - Moving mouse away reverts to current selection state
+
+2. **Functions Created:**
+   - `updateHoverUI(newHoverIndex)` - Shows hover styling + updates preview
+   - `clearHover()` - Reverts to current selection, restores preview
+   - Event listeners: `mouseenter` and `mouseleave` on each link
+
+3. **CSS Styling:**
+   - `.hero-link.hovered` - Same inverse highlight as `.selected`
+   - Media query: Hover effects disabled on mobile (< 768px)
+   - Desktop-only behavior preserves mobile interaction simplicity
+
+4. **Preview Sync:**
+   - Keyboard selection → updates preview + currentIndex
+   - Click selection → updates preview + currentIndex
+   - Hover → updates preview WITHOUT changing currentIndex
+   - Mouse away → reverts preview to current selection
+
+### Checklist - Day 10
+- [x] Fix spacing with `white-space: pre` CSS property
+- [x] Fix hover styling typo (double colon)
+- [x] Implement hover-as-selection (Option A)
+- [x] Add hover event listeners (mouseenter/mouseleave)
+- [x] Add `.hovered` CSS class with media query
+- [x] Sync preview on hover without changing selection
+- [x] Fix TypeScript errors (unused imports, type annotations, loose equality)
+- [x] Test hover behavior (desktop works, mobile has no hover)
+- [x] Test keyboard navigation (still works perfectly)
+- [x] Test click selection (still works perfectly)
+- [x] Test preview sync (all three modes work correctly)
+- [x] Test theme switching (colors adapt correctly)
+- [x] Build passes with no errors
+
+### Implementation Details
+
+**File: `src/components/Hero.astro`**
+
+New additions:
+- `white-space: pre` in `.hero-link` CSS (line 23)
+- `.hero-link.hovered` CSS class with inverse highlight (lines 35-38)
+- Media query for desktop-only hover (lines 40-45)
+- `hoveredIndex` state variable (line 78)
+- `updateHoverUI(newHoverIndex)` function (lines 80-99)
+- `clearHover()` function (lines 101-120)
+- `mouseenter` and `mouseleave` event listeners (lines 155-162)
+
+**File: `src/components/HeroPreview.astro`**
+
+Fixed:
+- Removed unused `updatePreview` function from frontmatter
+- Type annotation added where needed
+
+**Interaction Modes (All Working):**
+
+| Mode | User Action | Visual Result | Preview | Selection State |
+|------|-------------|---------------|---------|-----------------|
+| **Keyboard** | Arrow down | `> about` + inverse highlight | Updates | currentIndex = 0 |
+| **Click** | Click "projects" | `> projects` + inverse highlight | Updates | currentIndex = 1 |
+| **Hover** | Mouse over "contact" | `> contact` + inverse highlight | Updates | currentIndex unchanged |
+| **Hover Away** | Move mouse away | Shows current selection | Reverts | currentIndex unchanged |
+| **Mobile** | Tap link | `> about` + inverse highlight | Updates | currentIndex = 0 |
+| **Mobile** | Hover (< 768px) | No hover effect | No change | No change |
+
+### Testing Summary
+
+**✅ All Features Working:**
+- Spacing visible on page load: `  about`, `  projects`, `  contact`
+- Keyboard navigation: Arrow up/down cycles with wrapping ✓
+- Click navigation: Select and navigate ✓
+- Hover-as-selection: Shows styling without changing selection ✓
+- Preview sync: Updates with keyboard, click, and hover ✓
+- Theme switching: Light/dark modes adapt correctly ✓
+- Mobile: No hover, tap/click works, preview hidden ✓
+- Build: No errors, passes compilation ✓
+
+### Known Limitations (For Future Sessions)
+
+**Remaining TypeScript Warnings:**
+- Some IDE warnings remain (non-blocking, doesn't affect build)
+- Warnings appear to be related to Astro component imports
+- Build passes successfully despite warnings
+- Can address in future refactoring if needed
+
+### Completed This Session
+
+1. ✅ Fixed spacing with `white-space: pre` CSS
+2. ✅ Implemented hover-as-selection (Option A):
+   - Hover shows full selection styling
+   - Preview updates on hover
+   - currentIndex unchanged (keyboard still controls actual selection)
+   - Desktop-only hover via media query
+   - Mobile has no hover effects
+3. ✅ Fixed all CSS/TypeScript errors found during coding
+4. ✅ Tested all interaction modes comprehensively
+5. ✅ Verified theme switching works with new features
+6. ✅ Build passes with no errors
+7. ✅ Documentation updated (BUILD_DIARY + NOTES)
+
+### Next Steps (Ready for Implementation)
+
+**Phase 3 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
+- Add `data-section` attributes to page content sections
+- Create observer utility function
+- Auto-highlight hero link when section enters viewport
+- Keyboard/click selection can override auto-highlight
+
+**Phase 4 (Pending):** Mobile refinement and responsive testing
+- Test at multiple breakpoints
+- Verify touch interactions
+- Test accessibility features
+
+**Phase 5 (Pending):** Add real page content
+- Replace lorem ipsum in HeroPreview
+- Build substantial About page
+- Build Projects showcase
+- Build Contact information page
 
 ---
 

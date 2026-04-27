@@ -1,9 +1,8 @@
 ---
 // Hero navigation component
-import { updatePreview } from "./HeroPreview.astro";
 ---
 
-<div class="hero-container border border-text rounded px-6 py-8">
+<div class="hero-container border border-text px-6 py-8">
   <nav class="space-y-2 font-mono text-text">
     <a href="/about" class="hero-link" data-section="about">about</a>
     <a href="/projects" class="hero-link" data-section="projects">projects</a>
@@ -20,15 +19,28 @@ import { updatePreview } from "./HeroPreview.astro";
     transition: all 0.2s ease;
     /*TODO change pointer?*/
     cursor: pointer;
+    white-space: pre;
   }
 
-  .hero-link:hover {
-    opacity: 0.8;
-  }
+  /*.hero-link:hover {
+      opacity: 0.8;
+  }*/
 
   .hero-link.selected {
     background-color: var(--color-text);
     color: var(--color-background);
+  }
+
+  .hero-link.hovered {
+      background-color: var(--color-text);
+      color: var(--color-background);
+  }
+
+  @media (max-width: 767px) {
+    .hero-link.hovered {
+      background-color: transparent;
+      color: var(--color-text);
+    }
   }
 </style>
 
@@ -38,25 +50,73 @@ import { updatePreview } from "./HeroPreview.astro";
   let currentIndex = -1;
   let hasInteracted = false;
 
-  const originalTexts = Array.from(links).map(link => link.textContent.trim());
-  
+  const originalTexts = Array.from(links).map((link) =>
+    link.textContent.trim(),
+  );
+
   // Initialize all links with two-space padding on page load
   links.forEach((link, index) => {
-    link.textContent = '  ' + originalTexts[index];
+    link.textContent = "  " + originalTexts[index];
   });
-  
-  function updateSelection(newIndex) {
-    links.forEach((link, index) => {link.classList.remove("selected");
-    link.textContent = '  ' + originalTexts[index];
+
+  function updateSelection(newIndex: number) {
+    links.forEach((link, index) => {
+      link.classList.remove("selected");
+      link.textContent = "  " + originalTexts[index];
     });
-    
+
     if (newIndex >= 0 && newIndex < links.length) {
       links[newIndex].classList.add("selected");
-      links[newIndex].textContent = '> ' + originalTexts[newIndex];
+      links[newIndex].textContent = "> " + originalTexts[newIndex];
       currentIndex = newIndex;
-         const sectionKey = links[newIndex].dataset.section;
-    window.updatePreviewGlobal?.(sectionKey);
-  }}
+      const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset.section!;
+      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+    }
+  }
+
+  let hoveredIndex = -1;
+
+  function updateHoverUI(newHoverIndex: number) {
+    links.forEach((link, index) => {
+      if (index === newHoverIndex && newHoverIndex !== currentIndex) {
+        link.classList.add("hovered");
+        link.textContent = "> " + originalTexts[index];
+      } else if (index === currentIndex) {
+        link.classList.add("selected");
+        link.textContent = "> " + originalTexts[index];
+      } else {
+        link.classList.remove("hovered");
+        link.classList.remove("selected");
+        link.textContent = "  " + originalTexts[index];
+      }
+    });
+
+    if (newHoverIndex >= 0) {
+      const sectionKey = (links[newHoverIndex] as HTMLAnchorElement).dataset.section!;
+      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+    }
+  }
+
+  function clearHover() {
+    hoveredIndex = -1;
+    // Restore current selection styling
+    links.forEach((link, index) => {
+      link.classList.remove("hovered");
+      if (index === currentIndex) {
+        link.classList.add("selected");
+        link.textContent = "> " + originalTexts[index];
+      } else {
+        link.classList.remove("selected");
+        link.textContent = "  " + originalTexts[index];
+      }
+    });
+
+    // Restore preview to current selection
+    if (currentIndex >= 0) {
+      const sectionKey = (links[currentIndex] as HTMLAnchorElement).dataset.section!;
+      (window as Window & { updatePreviewGlobal?: (key: string) => void }).updatePreviewGlobal?.(sectionKey);
+    }
+  }
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowUp") {
@@ -81,7 +141,7 @@ import { updatePreview } from "./HeroPreview.astro";
       }
     } else if (event.key === "Enter") {
       if (currentIndex >= 0 && currentIndex < links.length) {
-        links[currentIndex].click();
+        (links[currentIndex] as HTMLAnchorElement).click();
       }
     }
   });
@@ -90,6 +150,14 @@ import { updatePreview } from "./HeroPreview.astro";
     link.addEventListener("click", (event) => {
       hasInteracted = true;
       updateSelection(index);
+    });
+    link.addEventListener("mouseenter", () => {
+      hoveredIndex = index;
+      updateHoverUI(index);
+    });
+
+    link.addEventListener("mouseleave", () => {
+      clearHover();
     });
   });
 </script>
