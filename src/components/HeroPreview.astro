@@ -4,17 +4,31 @@
 const initialMessage = "> use arrow keys to navigate or click links";
 ---
 
-<div class="max-w-xs mx-auto border border-text px-6 py-8">
-  <div id="preview-content" class="font-mono text-text whitespace-pre-wrap">
+<div class="max-w-xs mx-auto border border-text px-6 py-8 h-64 flex flex-col">
+  <div
+    id="preview-content"
+    class="font-mono text-text whitespace-pre-wrap flex-1 overflow-hidden"
+  >
     {initialMessage}
   </div>
+  <a
+    id="read-more-link"
+    href="#"
+    class="text-brand hover:underline transition-colors mt-4 text-sm font-mono hidden"
+  >
+    read more →
+  </a>
 </div>
 
 <style>
   #preview-content {
-    min-height: 150px;
     line-height: 1.6;
   }
+
+  #read-more-link {
+    text-decoration: none;
+  }
+
 </style>
 
 <script>
@@ -45,25 +59,55 @@ const initialMessage = "> use arrow keys to navigate or click links";
     },
   };
 
+  function truncateToCharCount(
+    text: string,
+    maxChars: number,
+  ): { text: string; isTruncated: boolean } {
+    if (text.length <= maxChars) {
+      return { text, isTruncated: false };
+    }
+
+    const truncated = text.substring(0, maxChars);
+    const lastSpace = truncated.lastIndexOf(" ");
+    const finalText =
+      lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated;
+
+    return {
+      text: finalText + "...",
+      isTruncated: true,
+    };
+  }
+
   (
     window as unknown as Window & {
       updatePreviewGlobal?: (key: string) => void;
     }
   ).updatePreviewGlobal = (sectionKey: string) => {
-    // Handle initial state
+    const content = document.getElementById("preview-content");
+    const readMoreLink = document.getElementById(
+      "read-more-link",
+    ) as HTMLAnchorElement;
     if (sectionKey === "initial") {
       const content = document.getElementById("preview-content");
       if (content) {
         content.textContent = "> use arrow keys to navigate or click links";
       }
+      readMoreLink.classList.add("hidden");
       return;
     }
-    // Handle section keys
+
     const section = (sections as Record<string, Section>)[sectionKey];
     if (!section) return;
-    const content = document.getElementById("preview-content");
-    if (content) {
-      content.textContent = `> ${section.name}\n\n${section.description}`;
-    }
+
+    const maxChars = 200;
+    const { text: truncatedText } = truncateToCharCount(
+      section.description,
+      maxChars,
+    );
+
+    if (content) content.textContent = `> ${section.name}\n\n${truncatedText}`;
+
+    readMoreLink.classList.remove("hidden");
+    readMoreLink.href = `/${sectionKey}`;
   };
 </script>

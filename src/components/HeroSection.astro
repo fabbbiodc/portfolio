@@ -4,12 +4,16 @@ import Hero from './Hero.astro'; // TODO change to HeroMenu
 import HeroPreview from './HeroPreview.astro';
 ---
 
-<div class="flex gap-4 items-start">
-  <!-- Hero Box (always visible) -->
-  <Hero />
-  
-  <!-- Preview Box (hidden on lg breakpoint and below) -->
-  <div class="hidden lg:block">
-    <HeroPreview />
+<!-- Outer centering div -->
+<div class="flex justify-center items-center min-h-screen">
+  <!-- Inner layout div -->
+  <div class="flex gap-4 items-start">
+    <!-- Hero Box (always visible) -->
+    <Hero />
+    
+    <!-- Preview Box (hidden on lg breakpoint and below) -->
+    <div class="hidden lg:block">
+      <HeroPreview />
+    </div>
   </div>
 </div>
