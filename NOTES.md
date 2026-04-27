@@ -23,6 +23,7 @@ This document serves as a comprehensive reference for all technologies, techniqu
 8. [Pure Functions & Utility Modules](#pure-functions--utility-modules)
 9. [Menu Utility Module](#menu-utility-module)
 10. [Theme System (Dark/Light Mode)](#theme-system-darklight-mode)
+11. [Hero Navigation Component](#hero-navigation-component)
 
 ---
 
@@ -1320,5 +1321,285 @@ This creates smooth color transitions when theme changes, improving UX.
 
 ---
 
-**Last Updated:** Day 8 (Navbar Enhancements)
-**Status:** Navbar made transparent; mobile menu border fix; Layout + all pages created; content collections for Astro 6.x
+## Hero Navigation Component
+
+### What is a Hero Component?
+A hero component is a prominent section at the top of a page designed to draw attention and guide users. In this project, the Hero serves as a terminal-style interactive navigation hub with keyboard support and scroll-based highlighting.
+
+### File Location
+`src/components/Hero.astro`
+
+### Visual Design
+```
+┌──────────────────────────┐
+│                          │
+│        About             │  ← Terminal-style border
+│        Projects          │  ← Monospace font
+│        Contact           │  ← Inverse highlight on selection
+│                          │
+└──────────────────────────┘
+```
+
+### Component Structure
+
+**HTML:**
+```astro
+<div class="max-w-xs mx-auto border border-text rounded px-6 py-8">
+  <nav class="space-y-2 font-mono text-text">
+    <a href="/about" class="hero-link" data-section="about">About</a>
+    <a href="/projects" class="hero-link" data-section="projects">Projects</a>
+    <a href="/contact" class="hero-link" data-section="contact">Contact</a>
+  </nav>
+</div>
+```
+
+**Tailwind Classes Used:**
+- `max-w-xs` - Max width small (20rem = 320px) - compact, focused
+- `mx-auto` - Center horizontally
+- `border border-text` - Terminal aesthetic border in theme color
+- `rounded` - Subtle rounded corners
+- `px-6 py-8` - Padding (horizontal 1.5rem, vertical 2rem)
+- `space-y-2` - Vertical spacing between links (0.5rem)
+- `font-mono` - Monospace font (IBM Plex Mono)
+- `text-text` - Theme-aware text color
+
+**CSS Styling:**
+```css
+.hero-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  color: var(--color-text);           /* Theme-aware */
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.hero-link:hover {
+  opacity: 0.8;                        /* Subtle hover feedback */
+}
+
+.hero-link.selected {
+  background-color: var(--color-text);      /* Inverse highlight */
+  color: var(--color-background);           /* Inverse highlight */
+}
+```
+
+### Keyboard Navigation
+
+**Arrow Keys:**
+- **Arrow Up** - Move to previous link (or last if at first)
+- **Arrow Down** - Move to next link (or first if at last)
+- Wrapping makes navigation feel natural and terminal-like
+
+**Enter Key:**
+- Navigate to currently selected link
+- Only works if a link is selected
+
+**Implementation:**
+```javascript
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    // Cycle backwards with wrapping
+    const newIndex = currentIndex === -1 
+      ? links.length - 1 
+      : currentIndex === 0 
+        ? links.length - 1 
+        : currentIndex - 1;
+    updateSelection(newIndex);
+  }
+  // Similar logic for ArrowDown
+  // Enter key triggers navigation
+});
+```
+
+### Selection State Management
+
+**Selection Index:**
+- `currentIndex = -1` initially (no selection)
+- Range: `-1` (none), `0` (first), `1` (second), `2` (third)
+- Only updates when user presses keys or clicks
+
+**`updateSelection(newIndex)` Function:**
+```javascript
+function updateSelection(newIndex) {
+  // Remove selection from all links
+  links.forEach(link => link.classList.remove('selected'));
+  
+  // Add selection to new link (if valid index)
+  if (newIndex >= 0 && newIndex < links.length) {
+    links[newIndex].classList.add('selected');
+    currentIndex = newIndex;
+  }
+}
+```
+
+### Click/Touch Interaction
+
+**Desktop (Mouse):**
+- Click link to select it (add `.selected` class)
+- Link navigation happens automatically (default `<a>` behavior)
+
+**Mobile (Touch):**
+- Tap link to select and navigate
+- Can select first, then navigate, or navigate directly
+
+**Implementation:**
+```javascript
+links.forEach((link, index) => {
+  link.addEventListener('click', (event) => {
+    updateSelection(index);
+    // Navigation happens automatically
+  });
+});
+```
+
+### Theme Integration
+
+**Color Variables:**
+- All colors use CSS variables from `src/styles/tokens.css`
+- `var(--color-text)` - Normal text, inverse highlight background
+- `var(--color-background)` - Normal background, inverse highlight text
+- Automatically adapts when theme toggles (light ↔ dark)
+
+**No Extra Logic Needed:**
+- Inverse highlight colors change automatically with theme
+- No JavaScript theme awareness needed in this component
+- Theme switching handled by existing theme system
+
+### Data Attributes
+
+**Purpose:**
+- `data-section="about"` on each link
+- Enables future scroll detection integration
+- Connects navigation links to page sections
+
+**Usage in Future Phases:**
+```javascript
+// Future: IntersectionObserver will use data-section
+// to identify which section is in view and highlight
+// the corresponding link
+```
+
+### Best Practices
+
+1. **Minimal Component CSS**
+   - Use Tailwind utilities for most styling
+   - Only add inline `<style>` for complex states (like `.selected`)
+   - Follow project's utility-first approach
+
+2. **Theme-Aware Design**
+   - Always use CSS variables for colors
+   - Test in both light and dark themes
+   - Inverse highlight adapts automatically
+
+3. **Keyboard Accessibility**
+   - Provide keyboard navigation (arrow keys)
+   - Clear visual feedback (inverse highlight)
+   - No screen-reader issues (standard `<a>` elements)
+
+4. **State Management**
+   - Keep state simple: just track current index
+   - Update selection immediately, navigation automatically
+   - No complex state lifecycle needed
+
+5. **User Experience**
+   - No initial highlight (clean slate)
+   - Visual feedback on hover (opacity change)
+   - Terminal aesthetic maintained throughout
+
+### Interaction Flow
+
+**1. Page Load:**
+- Hero renders with three links
+- No links highlighted initially
+- Ready for user input
+
+**2. User Presses Arrow Down:**
+- First link gets `.selected` class (inverse highlight)
+- `currentIndex` becomes `0`
+
+**3. User Presses Arrow Down Again:**
+- First link loses `.selected` class
+- Second link gets `.selected` class
+- `currentIndex` becomes `1`
+
+**4. User Presses Enter:**
+- Links[1] (Projects) is clicked
+- Navigation to `/projects` happens
+
+**5. User Scrolls:**
+- (Future Phase 3) IntersectionObserver detects page section
+- Corresponding hero link auto-highlights
+- Overrides keyboard selection
+
+### Future Enhancements
+
+**Phase 3 - Scroll Auto-Highlight:**
+- Add IntersectionObserver to detect page sections
+- Auto-highlight link when corresponding section enters view
+- Keyboard selection can override auto-highlight
+
+**Phase 4 - Mobile Optimization:**
+- Refine touch behavior on mobile devices
+- Consider if arrow key navigation needed on touch devices
+- Test responsiveness at all breakpoints
+
+**Phase 5 - Content Integration:**
+- Add actual content sections to About, Projects, Contact pages
+- Link each section with `data-section` attribute
+- Scroll detection will highlight corresponding hero link
+
+### Common Patterns
+
+**Getting All Hero Links:**
+```javascript
+const links = document.querySelectorAll('.hero-link');
+```
+
+**Applying Selection to Specific Link:**
+```javascript
+links[0].classList.add('selected');    // Highlight first link
+links[0].classList.remove('selected'); // Remove highlight
+```
+
+**Preventing Default Behavior:**
+```javascript
+event.preventDefault();  // Stop page scroll on arrow keys
+```
+
+**Toggle Class:**
+```javascript
+element.classList.toggle('selected'); // Add if absent, remove if present
+```
+
+### Styling Precedence
+
+1. **Tailwind Utilities** (lowest) - `border`, `rounded`, `px-6`, etc.
+2. **Inline CSS Hover** - `.hero-link:hover`
+3. **Inline CSS Selected** (highest) - `.hero-link.selected`
+4. **Theme Variables** - Applied through CSS custom properties
+
+This precedence ensures selected state always shows over hover state.
+
+### Debugging Tips
+
+**Links not responding to keyboard:**
+- Check browser console for errors
+- Verify `keydown` event listener is attached (not `keydow` or other typos)
+- Ensure links have `class="hero-link"` in HTML
+
+**Highlight not showing:**
+- Verify `.selected` CSS class has both `background-color` and `color`
+- Check theme colors in `src/styles/tokens.css`
+- Test in both light and dark themes
+
+**Navigation not working:**
+- Verify links have correct `href` attributes
+- Check that routes exist (`/about`, `/projects`, `/contact`)
+- Browser console should show navigation in real-time
+
+---
+
+**Last Updated:** Day 9 (Terminal Hero Navigation)
+**Status:** Hero component complete with keyboard navigation; scroll integration pending

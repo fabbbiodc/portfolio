@@ -527,4 +527,212 @@ src/
 
 ---
 
+## Day 9: Terminal-Style Hero Navigation Component (✅ Complete)
+
+### Objectives
+- Create a terminal-aesthetic hero section for homepage
+- Implement keyboard navigation (arrow keys + Enter)
+- Add scroll-based auto-highlighting of navigation links
+- Support touch/click interaction on mobile
+
+### Architecture Plan
+- **Component:** Create `src/components/Hero.astro` with terminal-style border and vertical link stack
+- **Styling:** Use Tailwind utilities + minimal inline CSS for inverse highlight state
+- **Keyboard Logic:** Arrow up/down to cycle through links, Enter to navigate
+- **Scroll Detection:** Use IntersectionObserver to auto-highlight based on page sections
+- **Mobile:** Touch/click to select and navigate
+
+### Phases
+1. **Phase 1 (✅ Complete):** Component structure and styling
+2. **Phase 2 (✅ Complete):** Keyboard navigation (arrow keys + Enter)
+3. **Phase 3 (⏳ Pending):** Scroll auto-highlight with IntersectionObserver
+4. **Phase 4 (⏳ Pending):** Mobile touch support refinement
+5. **Phase 5 (⏳ Pending):** Integration and polish
+
+### Checklist - Phase 1 & 2
+- [x] Create `src/components/Hero.astro` with terminal border aesthetic
+- [x] Add vertical stack of three links (About, Projects, Contact)
+- [x] Style with Tailwind utilities: `border border-text`, `rounded`, `px-6 py-8`, `space-y-2`, `font-mono`
+- [x] Create `.selected` CSS class for inverse highlight (background ↔ text color)
+- [x] Import Hero component into `src/pages/index.astro`
+- [x] Implement keyboard navigation in `<script>` tag:
+  - [x] Arrow Up/Down to cycle through links (with wrapping)
+  - [x] Enter key to navigate to selected link
+  - [x] No initial highlight (highlight only after user interaction)
+- [x] Click links to select and navigate
+- [x] Build verification - no errors
+
+### Implementation Details
+
+**File: `src/components/Hero.astro`**
+```astro
+---
+// Terminal-style hero navigation component
+---
+
+<div class="max-w-xs mx-auto border border-text rounded px-6 py-8">
+  <nav class="space-y-2 font-mono text-text">
+    <a href="/about" class="hero-link" data-section="about">About</a>
+    <a href="/projects" class="hero-link" data-section="projects">Projects</a>
+    <a href="/contact" class="hero-link" data-section="contact">Contact</a>
+  </nav>
+</div>
+
+<style>
+  .hero-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .hero-link:hover {
+    opacity: 0.8;
+  }
+
+  .hero-link.selected {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+</style>
+
+<script>
+  // Keyboard navigation + selection logic
+  const links = document.querySelectorAll('.hero-link');
+  let currentIndex = -1;
+
+  function updateSelection(newIndex) {
+    links.forEach(link => link.classList.remove('selected'));
+    if (newIndex >= 0 && newIndex < links.length) {
+      links[newIndex].classList.add('selected');
+      currentIndex = newIndex;
+    }
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        updateSelection(links.length - 1);
+      } else {
+        const newIndex = currentIndex === 0 ? links.length - 1 : currentIndex - 1;
+        updateSelection(newIndex);
+      }
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (currentIndex === -1) {
+        updateSelection(0);
+      } else {
+        const newIndex = currentIndex === links.length - 1 ? 0 : currentIndex + 1;
+        updateSelection(newIndex);
+      }
+    } else if (event.key === 'Enter') {
+      if (currentIndex >= 0 && currentIndex < links.length) {
+        links[currentIndex].click();
+      }
+    }
+  });
+
+  links.forEach((link, index) => {
+    link.addEventListener('click', (event) => {
+      updateSelection(index);
+    });
+  });
+</script>
+```
+
+**File: `src/pages/index.astro`**
+```astro
+---
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+---
+
+<Layout title="My Portfolio">
+  <Hero />
+</Layout>
+```
+
+### Rationale & Notes
+
+**Design Decisions:**
+- **Minimalist Terminal Aesthetic:** Simple border container, monospace font (IBM Plex Mono), no decorations
+- **No Initial Highlight:** Links appear normal until user interacts (clean, minimal UX)
+- **Inverse Highlight:** Selected link inverts colors (dark ↔ light), aligned with terminal aesthetic
+- **Keyboard Navigation:** Arrow keys for accessibility, wrapping makes it feel natural (up from first = last)
+- **Utility-First CSS:** Used Tailwind for container styling, minimal inline CSS for `.selected` state (follows project best practices)
+- **Data Attributes:** Each link has `data-section` for future scroll detection integration
+
+**Key Implementation Points:**
+- `currentIndex = -1` initially (no selection until user acts)
+- Arrow key handlers wrap around (Up from "About" → "Contact", Down from "Contact" → "About")
+- `event.preventDefault()` on arrow keys stops page scrolling
+- Click handler updates selection and triggers default link navigation
+- CSS `transition: all 0.2s ease` makes highlight changes smooth
+
+**Theme Integration:**
+- Uses `var(--color-text)` and `var(--color-background)` (theme-aware)
+- Inverse highlight automatically adapts when theme toggles
+- Works in both light and dark modes without additional logic
+
+### Session Notes
+
+**Problem 1 - Initial Typo:**
+- **Issue:** Line 49 had `"keydow"` instead of `"keydown"`
+- **Impact:** Keyboard navigation not responding
+- **Solution:** Fixed typo to `"keydown"`
+
+**Problem 2 - Padding Typo:**
+- **Issue:** Line 5 had `py-8` written as `y-8`
+- **Impact:** Minor styling issue
+- **Solution:** Corrected to `py-8`
+
+**CSS Architecture Discussion:**
+- User asked whether component styles should follow project's single-source-of-truth pattern
+- Decision: Use Tailwind utilities for most styling (already utility-first approach)
+- Keep minimal inline `<style>` for `.selected` state only (which Tailwind can't easily express)
+- Extract to shared CSS file only if pattern is reused across multiple components (later optimization)
+
+**Best Practices Applied:**
+- Minimal CSS in component (Tailwind-first approach)
+- Theme colors use CSS variables (light/dark aware)
+- No hardcoded colors or magic numbers
+- Clear separation of HTML structure and JavaScript logic
+- Keyboard accessibility built-in
+
+### Completed This Session
+
+1. ✅ Created `src/components/Hero.astro` with terminal aesthetic
+   - Border container using Tailwind
+   - Monospace font (IBM Plex Mono)
+   - Three vertically-stacked navigation links
+   - Inverse highlight on selection
+
+2. ✅ Implemented keyboard navigation
+   - Arrow up/down to cycle through links
+   - Wrapping behavior (natural cycling)
+   - Enter key to navigate to selected link
+   - No initial highlight
+
+3. ✅ Integrated Hero into homepage (`src/pages/index.astro`)
+   - Replaced placeholder content
+   - Clean, minimal hero on page load
+
+4. ✅ Verified functionality
+   - Keyboard navigation works correctly
+   - Hover effects subtle and responsive
+   - Links navigate correctly
+   - Theme toggle works with inverse highlight
+
+5. ✅ Build passes with no errors
+
+### Next Steps (Pending Phases)
+- **Phase 3:** Add IntersectionObserver for scroll-based auto-highlighting of links
+- **Phase 4:** Refine mobile touch behavior
+- **Phase 5:** Add hero sections for About, Projects, Contact pages (page content integration)
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._
