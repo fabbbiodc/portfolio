@@ -4,7 +4,7 @@ import Bars3Icon from "heroicons/24/solid/bars-3.svg";
 import XMarkIcon from "heroicons/24/solid/x-mark.svg";
 import ThemeToggle from "./ThemeToggle.astro";
 
-const linkClasses = "text-text hover:text-brand transition";
+const linkClasses = "text-text hover:text-brand border hover:bg-brand/20 border-text px-4 py-1 transition";
 const logoClass = "text-brand hover:text-text transition font-bold text-lg";
 ---
 
@@ -18,7 +18,7 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
       
       <!-- Column links -->
       <div class="hidden md:flex gap-6 items-center justify-center">
-        <a href="/" class={linkClasses}>Home</a>
+        <!-- <a href="/" class={linkClasses}>Home</a> -->
         <a href="/about" class={linkClasses}>About</a>
         <a href="/projects" class={linkClasses}>Projects</a>
         <a href="/contact" class={linkClasses}>Contact</a>

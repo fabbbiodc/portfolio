@@ -1165,4 +1165,188 @@ Changes:
 
 ---
 
+## Day 12 Addendum: Hero.astro Best Practice Refactor (✅ Complete)
+
+### Objective
+Refactor Hero.astro to use Astro best practices: replace classList operations with data-* attributes for state management, improving code semantics and maintainability.
+
+### Rationale for Refactor
+
+**Research Findings:**
+After consulting Astro documentation and TypeScript best practices, determined that the hybrid approach (Tailwind + scoped CSS) is correct, but state management could be improved:
+
+**Problem with classList approach:**
+- ❌ State hidden in class names (harder to inspect)
+- ❌ Multiple classes for single state (`.selected`, `.hovered`)
+- ❌ CSS rules target classes (semantic mismatch)
+- ❌ Harder to debug in DevTools
+
+**Solution with data-* attributes:**
+- ✅ State explicit and visible (inspect `data-state` attribute)
+- ✅ Single attribute for all state variations
+- ✅ CSS rules target data attributes (semantic alignment)
+- ✅ Clear state values: `"default"`, `"selected"`, `"hovered"`
+- ✅ Aligns with Astro scoped CSS best practices
+
+### Implementation Details
+
+**Change 1: TypeScript Type Cast (Line 49)**
+```typescript
+// BEFORE: const links = document.querySelectorAll(".hero-link");
+// Type: NodeListOf<Element> - doesn't have .dataset
+
+// AFTER: Added type assertion
+const links = document.querySelectorAll(".hero-link") as NodeListOf<HTMLAnchorElement>;
+// Type: NodeListOf<HTMLAnchorElement> - has .dataset
+```
+
+**Reason:** TypeScript strict mode requires explicit casting. The generic `Element` type doesn't have `.dataset` property; must cast to `HTMLAnchorElement`.
+
+**Change 2: CSS Selectors (Lines 29-44)**
+- Line 29: `.hero-link.selected` → `.hero-link[data-state="selected"]`
+- Line 34: `.hero-link.hovered` → `.hero-link[data-state="hovered"]` (fixed syntax error: removed extra dot)
+- Line 40: Media query selector updated to `.hero-link[data-state="hovered"]`
+
+**Change 3: Initialize State (Line 60)**
+```typescript
+links.forEach((link, index) => {
+  link.textContent = "  " + originalTexts[index];
+  link.dataset.state = "default";  // ← ADD: explicit initial state
+});
+```
+
+**Change 4: updateSelection() Function**
+- Line 65: `link.classList.remove("selected")` → `link.dataset.state = "default"`
+- Line 70: `links[newIndex].classList.add("selected")` → `links[newIndex].dataset.state = "selected"`
+
+**Change 5: updateHoverUI() Function**
+- Line 86: `link.classList.add("hovered")` → `link.dataset.state = "hovered"`
+- Line 89: `link.classList.add("selected")` → `link.dataset.state = "selected"`
+- Line 92: Two classList removes → single `link.dataset.state = "default"`
+
+**Change 6: clearHover() Function**
+- Removed: `link.classList.remove("hovered")`
+- Line 111: `link.classList.add("selected")` → `link.dataset.state = "selected"`
+- Line 114: `link.classList.remove("selected")` → `link.dataset.state = "default"`
+
+**Change 7: cancelSelection() Function**
+- Line 134: Two classList removes → single `link.dataset.state = "default"`
+
+### State Mapping Table
+
+| Interaction | Before (classList) | After (dataset) | Visual Result |
+|-------------|-------------------|-----------------|---------------|
+| **Page load** | No class | `data-state="default"` | `  about` spacing |
+| **Arrow Down** | `.selected` added | `data-state="selected"` | `> about` inverse highlight |
+| **Mouse hover** | `.hovered` added | `data-state="hovered"` | `> about` inverse highlight (desktop only) |
+| **Hover away** | `.hovered` removed | `data-state="default"` | `  about` spacing |
+| **Click link** | `.selected` added | `data-state="selected"` | `> about` inverse highlight |
+| **ESC key** | Both removed | `data-state="default"` | `  about` spacing |
+| **Mobile hover** | `.hovered` (no style) | `data-state="hovered"` (no style via media query) | `  about` no highlight |
+
+### Verification Checklist - All Passing ✅
+
+**TypeScript:**
+- ✅ Type cast enables `.dataset` access
+- ✅ No TypeScript errors
+- ✅ All dataset assignments are type-safe
+
+**CSS:**
+- ✅ Syntax error fixed (removed extra dot before bracket)
+- ✅ All three selectors using `[data-state="value"]` syntax
+- ✅ Media query targets correct attribute
+
+**JavaScript:**
+- ✅ All 9 classList operations converted to dataset
+- ✅ Initial state set on page load
+- ✅ State properly managed in all functions
+
+**Build:**
+- ✅ `npm run build` passes with no errors
+- ✅ All pages build successfully (/, /about, /projects, /contact)
+- ✅ No TypeScript warnings
+
+**Functionality:**
+- ✅ Keyboard navigation (arrow keys) works correctly
+- ✅ Selection persists and displays correctly
+- ✅ Hover preview updates and restores correctly
+- ✅ ESC key resets state properly
+- ✅ Click selection works
+- ✅ Mobile hover styling disabled (via media query)
+- ✅ Theme switching works (colors adapt correctly)
+
+### Before & After Code Example
+
+**Before (classList pattern):**
+```javascript
+link.classList.add('selected');
+link.classList.add('hovered');
+link.classList.remove('selected');
+```
+
+```css
+.hero-link.selected { ... }
+.hero-link.hovered { ... }
+```
+
+**After (data-* pattern):**
+```javascript
+link.dataset.state = 'selected';
+link.dataset.state = 'hovered';
+link.dataset.state = 'default';
+```
+
+```css
+.hero-link[data-state="selected"] { ... }
+.hero-link[data-state="hovered"] { ... }
+```
+
+### Why This Matters
+
+**DevTools Inspection:**
+- **Before:** Have to read HTML class names to understand state
+- **After:** State clearly visible in DOM attributes (easier debugging)
+
+**Code Semantics:**
+- **Before:** State scattered across multiple class names
+- **After:** Single source of truth (`data-state` attribute)
+
+**Maintainability:**
+- **Before:** Must remember which classes represent which states
+- **After:** State values are self-documenting
+
+**Astro Best Practices:**
+- Aligns with scoped CSS pattern recommended by Astro
+- Data-driven styling (state in attributes, not classes)
+- Hybrid approach: Tailwind for layout, scoped CSS for complex state
+
+### Files Modified
+- `src/components/Hero.astro`
+  - CSS: 3 selectors updated
+  - JavaScript: 9 locations updated
+  - Type safety: Added TypeScript cast
+  - No breaking changes; all functionality preserved
+
+### Commit Message
+```
+Day 12 Addendum: Hero.astro best practice refactor
+
+Refactored state management from classList to data-* attributes:
+- Replaced .classList.add/remove with link.dataset.state assignments
+- Updated CSS selectors from .hero-link.selected to [data-state="selected"]
+- Added TypeScript cast for NodeListOf<HTMLAnchorElement>
+- Fixed CSS syntax error (removed extra dot before bracket)
+- All state now explicit and inspectable in DevTools
+- Maintains all functionality; improves code semantics
+- Aligns with Astro scoped CSS best practices
+
+Changes:
+- CSS: 3 selectors refactored (lines 29, 34, 40)
+- JavaScript: 9 dataset assignments (lines 60, 65, 70, 86, 89, 92, 111, 114, 134)
+- TypeScript: Added cast (line 49)
+- Tests: Build passes, all functionality verified
+```
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._

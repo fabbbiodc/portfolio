@@ -2346,5 +2346,353 @@ xl:  1280px (large desktops)
 
 ---
 
-**Last Updated:** Day 12 (CSS Grid responsive layout, text truncation pattern, breakpoint visibility)
-**Status:** HeroSection centered on all breakpoints; text truncation with "read more" links; navbar with responsive 2/3 column grid; HeroPreview visible on tablets and up; build passes with no errors
+## Astro Hybrid Styling: Tailwind + Scoped CSS (Best Practice Pattern)
+
+### What is the Hybrid Approach?
+
+The hybrid approach combines the best of both worlds:
+- **Tailwind CSS** for responsive layout utilities and simple styling
+- **Scoped `<style>` blocks** for complex state-based styling and animations
+- **Data attributes** for semantic, explicit state management
+
+This is the **recommended pattern for Astro components** according to Astro documentation.
+
+### When to Use This Pattern
+
+✅ **Use hybrid approach for:**
+- Interactive components with multiple states
+- Components with responsive behavior (media queries)
+- Components with animations/transitions
+- Desktop vs mobile behavioral differences
+- Theme-aware styling with CSS variables
+
+❌ **Don't use for:**
+- Static components (Tailwind alone is sufficient)
+- Design system components (consider CSS modules instead)
+- Business logic heavy components (separate concerns)
+
+### Architecture Pattern
+
+```astro
+---
+// Component logic in frontmatter
+---
+
+<!-- Markup with Tailwind utilities for layout -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+  <!-- Simple responsive layout -->
+</div>
+
+<style>
+  /* Scoped CSS for state-based and complex styling */
+  .my-element[data-state="selected"] {
+    /* Complex styling, animations, media queries */
+  }
+  
+  @media (max-width: 640px) {
+    .my-element[data-state="hover"] {
+      /* Mobile-specific behavior */
+    }
+  }
+  
+  @keyframes fadeIn {
+    /* Animations */
+  }
+</style>
+
+<script>
+  // Client-side interactivity
+  // Manage data-* attributes for state
+</script>
+```
+
+### Key Components of the Pattern
+
+#### 1. Tailwind for Layout & Structure
+```astro
+<!-- Use Tailwind classes for responsive layout -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+  <div class="rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow">
+    Content
+  </div>
+</div>
+```
+
+**Tailwind Utilities:**
+- `grid`, `grid-cols-*` - Grid layouts
+- `gap-*` - Spacing between items
+- `p-*`, `m-*` - Padding/margin
+- `rounded`, `shadow-*` - Basic styling
+- `hover:*` - Simple hover effects
+- `transition-*` - Smooth transitions
+- `md:`, `lg:` - Responsive prefixes
+
+#### 2. Data Attributes for State
+```typescript
+// Set state via data attributes (not classes)
+link.dataset.state = "selected";
+link.dataset.state = "hovered";
+link.dataset.state = "default";
+```
+
+**Why data attributes instead of classes:**
+- ✅ Single attribute for all state values
+- ✅ State explicit and inspectable in DevTools
+- ✅ Semantic: state is data, not styling class
+- ✅ Easier to manage: `dataset.state = "value"` vs multiple classList operations
+- ✅ Better for CSS selectors: `[data-state="selected"]` is clearer than `.selected`
+
+#### 3. Scoped CSS for Complex Styling
+```css
+/* Scoped to this component only via Astro's [data-astro-cid-*] */
+.hero-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+/* State-based styling using data attributes */
+.hero-link[data-state="selected"] {
+  background-color: var(--color-text);
+  color: var(--color-background);
+}
+
+.hero-link[data-state="hovered"] {
+  background-color: var(--color-text);
+  color: var(--color-background);
+}
+
+/* Mobile-specific behavior */
+@media (max-width: 767px) {
+  .hero-link[data-state="hovered"] {
+    background-color: transparent;  /* Disable hover on mobile */
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hero-link[data-state="entering"] {
+  animation: slideIn 500ms ease-out;
+}
+```
+
+### Hero.astro as Reference Implementation
+
+**File: `src/components/Hero.astro`**
+
+This component exemplifies the hybrid pattern:
+
+**Layout (Tailwind):**
+```astro
+<div class="hero-container border border-text pl-2 pr-6 py-8 h-64">
+  <nav class="space-y-2 font-mono text-text">
+    <!-- Links with Tailwind for spacing, border, theme colors -->
+  </nav>
+</div>
+```
+
+**State (Data Attributes):**
+```javascript
+links.forEach((link, index) => {
+  link.dataset.state = "default";     // Initialize state
+});
+
+// Later: update state
+link.dataset.state = "selected";      // Selected
+link.dataset.state = "hovered";       // Hovered
+link.dataset.state = "default";       // Reset
+```
+
+**Styling (Scoped CSS):**
+```css
+.hero-link[data-state="selected"] {
+  background-color: var(--color-text);
+  color: var(--color-background);
+}
+
+.hero-link[data-state="hovered"] {
+  background-color: var(--color-text);
+  color: var(--color-background);
+}
+
+@media (max-width: 767px) {
+  .hero-link[data-state="hovered"] {
+    background-color: transparent;
+  }
+}
+```
+
+### Step-by-Step Implementation Guide
+
+**Step 1: Identify Component States**
+```
+Define all possible states:
+- default: Initial, no interaction
+- selected: User selected (keyboard/click)
+- hovered: Mouse hover
+- loading: Data loading
+- error: Error state
+```
+
+**Step 2: Create Data Attribute for State**
+```typescript
+link.dataset.state = "default";
+```
+
+**Step 3: Write CSS for Each State**
+```css
+element[data-state="default"] { /* default styling */ }
+element[data-state="selected"] { /* selected styling */ }
+element[data-state="hovered"] { /* hover styling */ }
+```
+
+**Step 4: Update State in JavaScript**
+```typescript
+// On user interaction
+link.dataset.state = "selected";
+
+// When clearing
+link.dataset.state = "default";
+```
+
+**Step 5: Handle Responsive Behavior**
+```css
+@media (max-width: 768px) {
+  element[data-state="hovered"] {
+    /* Disable hover on mobile */
+  }
+}
+```
+
+### Comparison: Three Styling Approaches
+
+| Aspect | Tailwind Only | Scoped CSS Only | Hybrid (Recommended) |
+|--------|---------------|-----------------|----------------------|
+| **Setup** | Easiest | Medium | Medium |
+| **Readability** | Markup cluttered | Clean markup | Clean + readable |
+| **State management** | Complex | Excellent | Excellent |
+| **Animations** | Limited | Full control | Full control |
+| **Media queries** | Classes prefix | Native @media | Native @media |
+| **Maintainability** | Okay | Good | Excellent |
+| **Bundle size** | Smallest | Medium | Medium |
+| **DevTools** | State in classes | Clear CSS | Clear data attrs |
+
+### Common Gotchas & Solutions
+
+**Problem 1: TypeScript doesn't have `.dataset` on Element**
+```typescript
+// ❌ WRONG
+const links = document.querySelectorAll(".link");
+links.forEach(link => link.dataset.state = "active");  // Error!
+
+// ✅ RIGHT - Cast to HTMLElement
+const links = document.querySelectorAll(".link") as NodeListOf<HTMLElement>;
+links.forEach(link => link.dataset.state = "active");  // Works!
+```
+
+**Problem 2: Scoped CSS not scoping properly**
+```css
+/* ❌ WRONG - This becomes global */
+button { }
+
+/* ✅ RIGHT - Scoped by Astro automatically */
+.my-button { }
+
+/* The browser sees: .my-button[data-astro-cid-xxxxx] */
+```
+
+**Problem 3: Media queries in scoped CSS not working**
+```css
+/* ✅ This works - @media queries are preserved */
+@media (max-width: 640px) {
+  .my-element {
+    /* Mobile styles */
+  }
+}
+```
+
+**Problem 4: Mixing Tailwind and CSS specificity conflicts**
+```astro
+<!-- ❌ RISKY - Tailwind class might be overridden -->
+<div class="bg-blue-500 my-element"></div>
+
+<style>
+  .my-element {
+    background-color: red;  /* Higher specificity wins */
+  }
+</style>
+
+<!-- ✅ BETTER - Use Tailwind for base, CSS for state -->
+<div class="bg-blue-500 my-element" data-state="default"></div>
+
+<style>
+  .my-element[data-state="active"] {
+    background-color: red;  /* Clear, state-based */
+  }
+</style>
+```
+
+### Best Practices Checklist
+
+✅ **DO:**
+- Use Tailwind for responsive layout utilities
+- Use `data-*` attributes to represent component state
+- Use scoped CSS for complex styling and animations
+- Use CSS variables (`var(--color-*)`) for theme-aware colors
+- Define all possible states upfront
+- Document state values and when they're used
+- Test media queries at mobile breakpoints
+
+❌ **DON'T:**
+- Mix multiple state representations (classes + data attributes)
+- Use inline styles for state-based styling
+- Rely solely on Tailwind for complex interactions
+- Forget to cast `querySelectorAll` results for `.dataset` access
+- Use global classes in component `<style>` blocks (use BEM or namespacing)
+- Hardcode media query values (extract to CSS custom properties)
+
+### DevTools Inspection
+
+**Viewing State in DevTools:**
+```html
+<!-- With data attributes, state is clear and inspectable -->
+<a href="/about" class="hero-link" data-section="about" data-state="selected">about</a>
+        ↑ Data attribute clearly shows state
+
+<!-- Inspect element in DevTools: -->
+<!-- Will see data-state attribute value directly -->
+```
+
+### Performance Considerations
+
+**Dataset vs classList Performance:**
+- Both are equally fast (no performance difference)
+- Dataset is more readable/maintainable (preferred)
+- Consider using class names only if setting 5+ classes frequently
+
+**CSS Scoping Performance:**
+- Astro's scoping adds `[data-astro-cid-*]` selectors
+- Negligible performance impact (automatic at build time)
+- No runtime overhead
+
+**Tailwind Performance:**
+- Utility classes purged at build time
+- Unused utilities never included
+- Optimal for hybrid approach
+
+### Future-Proofing
+
+This pattern scales well:
+- **Add states:** Just add new `[data-state="value"]` rules in CSS
+- **Add components:** Same pattern applies to other interactive components
+- **Add animations:** Scoped CSS handles all animation complexities
+- **Add themes:** CSS variables adapt automatically
+
+---
+
+**Last Updated:** Day 12 (Hybrid styling pattern documented with Hero.astro as reference)
+**Status:** Hero.astro now exemplifies Astro best practices; pattern documented for reuse in future components

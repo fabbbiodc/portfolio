@@ -26,18 +26,18 @@
       opacity: 0.8;
   }*/
 
-  .hero-link.selected {
+  .hero-link[data-state="selected"] {
     background-color: var(--color-text);
     color: var(--color-background);
   }
 
-  .hero-link.hovered {
+  .hero-link[data-state="hovered"] {
     background-color: var(--color-text);
     color: var(--color-background);
   }
 
   @media (max-width: 767px) {
-    .hero-link.hovered {
+    .hero-link[data-state="hovered"] {
       background-color: transparent;
       color: var(--color-text);
     }
@@ -46,7 +46,7 @@
 
 <script>
   // Terminal navigation keys
-  const links = document.querySelectorAll(".hero-link");
+  const links = document.querySelectorAll(".hero-link") as NodeListOf<HTMLAnchorElement>;
   let currentIndex = -1;
   let hasInteracted = false;
 
@@ -57,16 +57,17 @@
   // Initialize all links with two-space padding on page load
   links.forEach((link, index) => {
     link.textContent = "  " + originalTexts[index];
+    link.dataset.state = "default";
   });
 
   function updateSelection(newIndex: number) {
     links.forEach((link, index) => {
-      link.classList.remove("selected");
+      link.dataset.state = "default";
       link.textContent = "  " + originalTexts[index];
     });
 
     if (newIndex >= 0 && newIndex < links.length) {
-      links[newIndex].classList.add("selected");
+      links[newIndex].dataset.state = "selected";
       links[newIndex].textContent = "> " + originalTexts[newIndex];
       currentIndex = newIndex;
       const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset
@@ -82,14 +83,13 @@
   function updateHoverUI(newHoverIndex: number) {
     links.forEach((link, index) => {
       if (index === newHoverIndex && newHoverIndex !== currentIndex) {
-        link.classList.add("hovered");
+        link.dataset.state = "hovered";
         link.textContent = "> " + originalTexts[index];
       } else if (index === currentIndex) {
-        link.classList.add("selected");
+        link.dataset.state = "selected";
         link.textContent = "> " + originalTexts[index];
       } else {
-        link.classList.remove("hovered");
-        link.classList.remove("selected");
+        link.dataset.state = "default";
         link.textContent = "  " + originalTexts[index];
       }
     });
@@ -107,12 +107,11 @@
     hoveredIndex = -1;
     // Restore current selection styling
     links.forEach((link, index) => {
-      link.classList.remove("hovered");
       if (index === currentIndex) {
-        link.classList.add("selected");
+        link.dataset.state = "selected";
         link.textContent = "> " + originalTexts[index];
       } else {
-        link.classList.remove("selected");
+        link.dataset.state = "default";
         link.textContent = "  " + originalTexts[index];
       }
     });
@@ -132,8 +131,7 @@
     hoveredIndex = -1;
 
     links.forEach((link, index) => {
-      link.classList.remove("selected");
-      link.classList.remove("hovered");
+      link.dataset.state = "default";
       link.textContent = "  " + originalTexts[index];
     });
     (
