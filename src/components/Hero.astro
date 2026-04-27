@@ -2,7 +2,7 @@
 // Hero navigation component
 ---
 
-<div class="border border-text pl-2 pr-6 py-8 h-auto md:h-64">
+<div class="border border-text pl-2 pr-6 py-8 h-auto md:h-64 bloom-border">
   <nav class="space-y-2 font-mono text-text">
     <a href="/about" class="hero-link" data-section="about">about.......</a>
     <a href="/projects" class="hero-link" data-section="projects">projects....</a>
@@ -27,6 +27,7 @@
     /*TODO change pointer?*/
     cursor: pointer;
     white-space: pre;
+    filter: drop-shadow(0 0 4px var(--color-bloom));
   }
 
   /*.hero-link:hover {

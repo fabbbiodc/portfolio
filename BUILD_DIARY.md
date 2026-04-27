@@ -1349,4 +1349,184 @@ Changes:
 
 ---
 
+## Day 13: Bloom Effect Implementation (Phase 1) - OLD SCREEN AESTHETIC ✅ COMPLETE
+
+### Objectives
+- Add subtle bloom/glow effect to UI (text, borders)
+- Emulate old CRT screen aesthetic
+- Create reusable CSS utility classes
+- Integrate theme-aware bloom colors (light/dark modes)
+- Apply bloom to key components (Hero, Navbar, HeroPreview, ThemeToggle)
+
+### Implementation Approach
+- **Technology:** CSS `filter: drop-shadow()` for subtle glow
+- **Intensity:** Subtle (not pronounced CRT scanlines, just soft glow)
+- **Scope:** Text + borders (not all elements)
+- **Colors:** Theme-aware (automatic light/dark adaptation)
+- **Performance:** GPU-accelerated, minimal overhead
+
+### Key Design Decisions
+
+**Why CSS filter drop-shadow()?**
+- Native CSS, GPU-accelerated (good performance)
+- Works perfectly on text without affecting readability
+- Color automatically matches theme variables
+- Minimal code changes needed
+- Subtle and elegant
+
+**Why theme-aware bloom colors?**
+- Light mode: Lower opacity (0.2) with brand color to avoid washed-out appearance
+- Dark mode: Slightly higher opacity (0.25) with lighter brand color for authentic CRT glow
+- Both automatically adapt when theme switches
+
+**Bloom Filter Parameters:**
+- `.bloom-text`: `filter: drop-shadow(0 0 4px var(--color-bloom))`
+  - 4px blur radius for text (soft, readable)
+  - Creates gentle halo around characters
+- `.bloom-border`: `filter: drop-shadow(0 0 3px var(--color-bloom))`
+  - 3px blur radius for borders (slightly tighter)
+  - Creates soft edge glow
+
+### Checklist - Day 13 (Phase 1)
+
+**Setup:**
+- [x] Add `--color-bloom` variable to light theme in tokens.css
+- [x] Add `--color-bloom` variable to dark theme in tokens.css
+- [x] Create `.bloom-text` utility class in global.css
+- [x] Create `.bloom-border` utility class in global.css
+
+**Implementation:**
+- [x] Apply bloom effect to Hero.astro (text links + border)
+- [x] Apply bloom effect to Navbar.astro (nav links + mobile menu border)
+- [x] Apply bloom effect to HeroPreview.astro (preview content + border)
+- [x] Apply bloom effect to ThemeToggle.astro (theme icons)
+
+**Testing & Verification:**
+- [x] Build passes with no errors
+- [x] Visual inspection: bloom visible on all elements
+- [x] Light theme: Subtle warm purple glow ✓
+- [x] Dark theme: Subtle cool purple glow ✓
+- [x] Theme switching: Bloom adapts instantly ✓
+- [x] No performance issues detected
+
+### Bloom Color Palette
+
+**Light Theme:**
+- `--color-bloom: rgba(91, 33, 182, 0.2)`
+- Brand color (#5b21b6 - dark purple) at 20% opacity
+- Creates subtle warm glow without overwhelming light background
+- Pairs well with #2d2d2d text color
+
+**Dark Theme:**
+- `--color-bloom: rgba(167, 139, 250, 0.25)`
+- Lighter brand color (#a78bfa - light purple) at 25% opacity
+- Creates soft cool glow authentic to CRT aesthetic
+- Matches dark background (#1a1a1a) and light text (#f0f0f0)
+
+### Files Modified
+
+**1. `src/styles/tokens.css`**
+- Line 9: Added `--color-bloom: rgba(91, 33, 182, 0.2);` to light theme
+- Line 19: Added `--color-bloom: rgba(167, 139, 250, 0.25);` to dark theme
+
+**2. `src/styles/global.css`**
+- Lines 37-44: Added bloom utility classes
+  - `.bloom-text`: `filter: drop-shadow(0 0 4px var(--color-bloom))`
+  - `.bloom-border`: `filter: drop-shadow(0 0 3px var(--color-bloom))`
+
+**3. `src/components/Hero.astro`**
+- Line 5: Added `bloom-border` class to hero container div
+- Line 21: Added `filter: drop-shadow(0 0 4px var(--color-bloom));` to `.hero-link` CSS
+
+**4. `src/components/Navbar.astro`**
+- Line 7: Added `bloom-text bloom-border` classes to linkClasses variable
+- Line 8: Added `bloom-text` class to logoClass variable
+- Line 45: Added `bloom-border` class to mobile menu inner container
+
+**5. `src/components/HeroPreview.astro`**
+- Line 7: Added `bloom-border` class to container
+- Line 10: Added `bloom-text` class to preview content div
+- Line 17: Added `bloom-text` class to "read more" link
+
+**6. `src/components/ThemeToggle.astro`**
+- Line 11: Added `bloom-text` class to toggleClass variable
+
+### Visual Results
+
+**Hero Component:**
+- Navigation links have soft purple glow
+- Container border glows subtly
+- Text remains fully readable
+- Hover and selected states work perfectly with bloom
+
+**Navbar:**
+- Logo has gentle glow (thematic)
+- Navigation links glow when hovered
+- Mobile menu border glows when expanded
+- Theme toggle icons glow (subtle, themed)
+
+**HeroPreview:**
+- Text content glows (easy to read)
+- Container border glows (terminal aesthetic)
+- "Read more" link glows (cohesive design)
+
+**Overall Aesthetic:**
+- Subtle old-screen feel achieved
+- Not overdone (bloom doesn't overwhelm)
+- Cohesive across all components
+- Automatically adapts to theme changes
+
+### Testing Summary
+
+✅ **Build:** Passes with no errors
+✅ **Light Mode:** Purple bloom visible, not too bright
+✅ **Dark Mode:** Light purple bloom visible, authentic CRT feel
+✅ **Theme Switch:** Bloom colors transition smoothly with theme
+✅ **Responsive:** Works on all breakpoints (mobile, tablet, desktop)
+✅ **Performance:** No lag detected; GPU-accelerated
+✅ **Accessibility:** Text remains fully readable; no impact on contrast
+
+### Known Limitations & Future Enhancements
+
+**Phase 2 (Next Session - Comprehensive Bloom Expansion):**
+- Apply bloom to ALL text and borders site-wide
+- Add bloom to interactive elements (buttons, inputs, forms)
+- Extend bloom to page sections and containers
+- Consider subtle bloom on headings
+- Add bloom to footer and secondary UI
+
+**Phase 3 (Future - Advanced Effects):**
+- Experiment with color-shifting bloom (RGB phosphor effect)
+- Add subtle scanline overlay (CSS pattern)
+- Consider animated bloom pulse (breathing effect)
+- Test with different blur radii for effect variation
+
+**Phase 4 (Future - Performance Optimization):**
+- Profile performance across devices (mobile, tablet, desktop)
+- Consider reducing bloom intensity on low-end devices
+- Test at 60fps+ to ensure smooth interactions
+
+### Next Steps (For Next Session)
+
+1. **Expand bloom to all site text/borders** (Phase 2 full implementation)
+2. **Add bloom to form elements and buttons** (when implemented)
+3. **Test bloom on additional pages** (About, Projects, Contact)
+4. **Gather user feedback** on bloom intensity
+5. **Document bloom design system** in NOTES.md
+
+### Completed This Session
+
+1. ✅ Identified optimal bloom implementation approach (CSS filter drop-shadow)
+2. ✅ Created theme-aware bloom color variables (light/dark)
+3. ✅ Implemented two utility classes (`.bloom-text`, `.bloom-border`)
+4. ✅ Applied bloom to Hero component (links + border)
+5. ✅ Applied bloom to Navbar (logo, nav links, mobile menu)
+6. ✅ Applied bloom to HeroPreview (content + border + link)
+7. ✅ Applied bloom to ThemeToggle (icons)
+8. ✅ Verified build passes with no errors
+9. ✅ Tested bloom in light and dark themes
+10. ✅ Updated BUILD_DIARY.md with complete session notes
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._

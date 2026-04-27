@@ -33,6 +33,15 @@
     color: var(--color-text);
     opacity: 0.7;
   }
+
+  /* Bloom effect */
+  .bloom-text {
+    filter: drop-shadow(0 0 4px var(--color-bloom));
+  }
+
+  .bloom-border {
+    filter: drop-shadow(0 0 3px var(--color-bloom));
+  }
 }
 
 :root {

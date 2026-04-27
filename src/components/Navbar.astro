@@ -4,8 +4,8 @@ import Bars3Icon from "heroicons/24/solid/bars-3.svg";
 import XMarkIcon from "heroicons/24/solid/x-mark.svg";
 import ThemeToggle from "./ThemeToggle.astro";
 
-const linkClasses = "text-text hover:text-brand border hover:bg-brand/20 border-text px-4 py-1 transition";
-const logoClass = "text-brand hover:text-text transition font-bold text-lg";
+const linkClasses = "text-text hover:text-brand border hover:bg-brand/20 border-text px-4 py-1 transition bloom-text bloom-border";
+const logoClass = "text-brand hover:text-text transition font-bold text-lg bloom-text";
 ---
 
 <nav class="relative top-0 z-50">
@@ -42,7 +42,7 @@ const logoClass = "text-brand hover:text-text transition font-bold text-lg";
     id="mobile-menu"
     class="md:hidden absolute top-full left-0 right-4 max-h-0 overflow-hidden max-w-max ml-auto transition-all duration-300 bg-background"
   >
-    <div class="max-w-300 mx-auto border border-text px-4 py-4 flex flex-col gap-4">
+    <div class="max-w-300 mx-auto border border-text px-4 py-4 flex flex-col gap-4 bloom-border">
       <a href="/" class={linkClasses}>Home</a>
       <a href="/about" class={linkClasses}>About</a>
       <a href="/projects" class={linkClasses}>Projects</a>
