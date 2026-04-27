@@ -527,7 +527,7 @@ src/
 
 ---
 
-## Day 9: Terminal-Style Hero Navigation Component (✅ Complete)
+## Day 9: Terminal-Style Hero Navigation Component (⚠️ IN PROGRESS)
 
 ### Objectives
 - Create a terminal-aesthetic hero section for homepage
@@ -545,11 +545,59 @@ src/
 ### Phases
 1. **Phase 1 (✅ Complete):** Component structure and styling
 2. **Phase 2 (✅ Complete):** Keyboard navigation (arrow keys + Enter)
-3. **Phase 3 (⏳ Pending):** Scroll auto-highlight with IntersectionObserver
-4. **Phase 4 (⏳ Pending):** Mobile touch support refinement
-5. **Phase 5 (⏳ Pending):** Integration and polish
+3. **Phase 2.5a (✅ Complete):** HeroPreview component with descriptions
+4. **Phase 2.5b (✅ Complete):** HeroSection wrapper component
+5. **Phase 2.5c (✅ Complete):** Add > prefix to selected links
+6. **Phase 2.5d (✅ Complete):** Sync Hero and Preview
+7. **Phase 2.5e (✅ Complete):** Update index.astro to use HeroSection
+8. **Phase 3 (⏳ Pending):** Scroll auto-highlight with IntersectionObserver
+9. **Phase 4 (⏳ Pending):** Mobile touch support refinement
+10. **Phase 5 (⏳ Pending):** Integration and polish
 
-### Checklist - Phase 1 & 2
+### ⚠️ CRITICAL ISSUE - NEXT SESSION TOP PRIORITY
+
+**Problem:** Links with `>` prefix and `  ` (two-space) spacing are not showing on initial page load
+
+**Current Behavior:**
+- On page load: Links show as `about`, `projects`, `contact` (no spacing)
+- After first interaction: Links show correct spacing (`  about`, `  projects`, etc.)
+
+**Expected Behavior:**
+- On page load: All links should show with two-space padding (`  about`, `  projects`, `  contact`)
+- Selected link: Shows `> about` instead of `  about`
+- Alignment: All text starts in same column (terminal-style alignment)
+
+**Root Cause:**
+- Initialization code added to Hero.astro script at line 41-43
+- Two-space padding applied via: `link.textContent = '  ' + originalTexts[index];`
+- Code exists but spaces are NOT appearing in browser on page load
+
+**Investigation Needed:**
+1. Verify script is actually running on page load (add console.log to debug)
+2. Check if textContent is being set correctly or overwritten
+3. Test if Astro rendering is interfering with script execution
+4. Verify `originalTexts` array is populated correctly
+5. Check timing: is script running before or after DOM fully loads?
+
+**Files to Check:**
+- `/home/fdi-cecc/projects/portfolio/src/components/Hero.astro` (lines 35-90)
+- `/home/fdi-cecc/projects/portfolio/src/components/HeroPreview.astro` (verify sync logic)
+- `/home/fdi-cecc/projects/portfolio/src/components/HeroSection.astro` (wrapper structure)
+
+**Attempted Solutions:**
+1. Added initialization loop after storing `originalTexts` array ❌ (did not fix)
+2. Updated `updateSelection()` to apply spacing ✅ (works on interaction)
+3. Applied `hasInteracted` flag ✅ (tracks first interaction)
+
+**Next Steps for Next Session:**
+1. Add `console.log()` statements to debug initialization
+2. Test script execution timing
+3. Verify DOM element queries are finding links correctly
+4. Consider if Astro hydration is affecting initial render
+5. May need to wrap initialization in `DOMContentLoaded` event listener
+6. Test in different browsers to rule out browser-specific issues
+
+### Checklist - Phase 1 & 2 & 2.5
 - [x] Create `src/components/Hero.astro` with terminal border aesthetic
 - [x] Add vertical stack of three links (About, Projects, Contact)
 - [x] Style with Tailwind utilities: `border border-text`, `rounded`, `px-6 py-8`, `space-y-2`, `font-mono`
@@ -560,178 +608,73 @@ src/
   - [x] Enter key to navigate to selected link
   - [x] No initial highlight (highlight only after user interaction)
 - [x] Click links to select and navigate
-- [x] Build verification - no errors
+- [x] Create HeroPreview component with section descriptions
+- [x] Create HeroSection wrapper to combine Hero + HeroPreview
+- [x] Add > prefix to selected links and two-space padding to unselected
+- [x] Sync Hero and Preview on link selection
+- [x] Update index.astro to use HeroSection
+- [ ] ⚠️ **FIX: Get spacing to show on initial page load**
+- [ ] Build verification - pending spacing fix
 
 ### Implementation Details
 
 **File: `src/components/Hero.astro`**
-```astro
----
-// Terminal-style hero navigation component
----
+- Terminal border aesthetic with Tailwind utilities
+- Three vertically-stacked navigation links
+- Inverse highlight on selection (dark ↔ light)
+- Keyboard navigation with wrapping
+- Initialization code that should add two-space padding (but currently not working)
 
-<div class="max-w-xs mx-auto border border-text rounded px-6 py-8">
-  <nav class="space-y-2 font-mono text-text">
-    <a href="/about" class="hero-link" data-section="about">About</a>
-    <a href="/projects" class="hero-link" data-section="projects">Projects</a>
-    <a href="/contact" class="hero-link" data-section="contact">Contact</a>
-  </nav>
-</div>
+**File: `src/components/HeroPreview.astro`**
+- Preview box with initial message
+- Updates with section descriptions when link is selected
+- Exports `window.updatePreviewGlobal()` for Hero to call
 
-<style>
-  .hero-link {
-    display: block;
-    padding: 0.5rem 0.75rem;
-    text-decoration: none;
-    color: var(--color-text);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .hero-link:hover {
-    opacity: 0.8;
-  }
-
-  .hero-link.selected {
-    background-color: var(--color-text);
-    color: var(--color-background);
-  }
-</style>
-
-<script>
-  // Keyboard navigation + selection logic
-  const links = document.querySelectorAll('.hero-link');
-  let currentIndex = -1;
-
-  function updateSelection(newIndex) {
-    links.forEach(link => link.classList.remove('selected'));
-    if (newIndex >= 0 && newIndex < links.length) {
-      links[newIndex].classList.add('selected');
-      currentIndex = newIndex;
-    }
-  }
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      if (currentIndex === -1) {
-        updateSelection(links.length - 1);
-      } else {
-        const newIndex = currentIndex === 0 ? links.length - 1 : currentIndex - 1;
-        updateSelection(newIndex);
-      }
-    } else if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      if (currentIndex === -1) {
-        updateSelection(0);
-      } else {
-        const newIndex = currentIndex === links.length - 1 ? 0 : currentIndex + 1;
-        updateSelection(newIndex);
-      }
-    } else if (event.key === 'Enter') {
-      if (currentIndex >= 0 && currentIndex < links.length) {
-        links[currentIndex].click();
-      }
-    }
-  });
-
-  links.forEach((link, index) => {
-    link.addEventListener('click', (event) => {
-      updateSelection(index);
-    });
-  });
-</script>
-```
+**File: `src/components/HeroSection.astro`**
+- Wrapper component that combines Hero and HeroPreview
+- Responsive layout (flexbox on desktop)
+- Preview hidden on mobile (< lg breakpoint)
 
 **File: `src/pages/index.astro`**
-```astro
----
-import Layout from "../layouts/Layout.astro";
-import Hero from "../components/Hero.astro";
----
-
-<Layout title="My Portfolio">
-  <Hero />
-</Layout>
-```
-
-### Rationale & Notes
-
-**Design Decisions:**
-- **Minimalist Terminal Aesthetic:** Simple border container, monospace font (IBM Plex Mono), no decorations
-- **No Initial Highlight:** Links appear normal until user interacts (clean, minimal UX)
-- **Inverse Highlight:** Selected link inverts colors (dark ↔ light), aligned with terminal aesthetic
-- **Keyboard Navigation:** Arrow keys for accessibility, wrapping makes it feel natural (up from first = last)
-- **Utility-First CSS:** Used Tailwind for container styling, minimal inline CSS for `.selected` state (follows project best practices)
-- **Data Attributes:** Each link has `data-section` for future scroll detection integration
-
-**Key Implementation Points:**
-- `currentIndex = -1` initially (no selection until user acts)
-- Arrow key handlers wrap around (Up from "About" → "Contact", Down from "Contact" → "About")
-- `event.preventDefault()` on arrow keys stops page scrolling
-- Click handler updates selection and triggers default link navigation
-- CSS `transition: all 0.2s ease` makes highlight changes smooth
-
-**Theme Integration:**
-- Uses `var(--color-text)` and `var(--color-background)` (theme-aware)
-- Inverse highlight automatically adapts when theme toggles
-- Works in both light and dark modes without additional logic
+- Refactored to use HeroSection instead of Hero directly
 
 ### Session Notes
 
-**Problem 1 - Initial Typo:**
+**Problem 1 - Initial Typo (Day 9):**
 - **Issue:** Line 49 had `"keydow"` instead of `"keydown"`
-- **Impact:** Keyboard navigation not responding
-- **Solution:** Fixed typo to `"keydown"`
+- **Solution:** Fixed typo
 
-**Problem 2 - Padding Typo:**
+**Problem 2 - Padding Typo (Day 9):**
 - **Issue:** Line 5 had `py-8` written as `y-8`
-- **Impact:** Minor styling issue
 - **Solution:** Corrected to `py-8`
 
-**CSS Architecture Discussion:**
-- User asked whether component styles should follow project's single-source-of-truth pattern
-- Decision: Use Tailwind utilities for most styling (already utility-first approach)
-- Keep minimal inline `<style>` for `.selected` state only (which Tailwind can't easily express)
-- Extract to shared CSS file only if pattern is reused across multiple components (later optimization)
-
-**Best Practices Applied:**
-- Minimal CSS in component (Tailwind-first approach)
-- Theme colors use CSS variables (light/dark aware)
-- No hardcoded colors or magic numbers
-- Clear separation of HTML structure and JavaScript logic
-- Keyboard accessibility built-in
+**Problem 3 - Spacing Not Appearing (Current Session):**
+- **Issue:** Two-space padding initialization is not showing on page load
+- **Status:** ⚠️ UNRESOLVED - top priority for next session
+- **Added:** Initialization loop, but effect not visible in browser
+- **Next:** Debug with console.log, verify timing, check DOM readiness
 
 ### Completed This Session
 
 1. ✅ Created `src/components/Hero.astro` with terminal aesthetic
-   - Border container using Tailwind
-   - Monospace font (IBM Plex Mono)
-   - Three vertically-stacked navigation links
-   - Inverse highlight on selection
+2. ✅ Implemented keyboard navigation (arrow keys + Enter)
+3. ✅ Created `src/components/HeroPreview.astro` with descriptions
+4. ✅ Created `src/components/HeroSection.astro` wrapper
+5. ✅ Added > prefix and sync logic between components
+6. ✅ Updated `src/pages/index.astro` to use HeroSection
+7. ❌ **Spacing still not appearing on initial page load - NEEDS DEBUGGING**
 
-2. ✅ Implemented keyboard navigation
-   - Arrow up/down to cycle through links
-   - Wrapping behavior (natural cycling)
-   - Enter key to navigate to selected link
-   - No initial highlight
+### Next Steps (Pending)
 
-3. ✅ Integrated Hero into homepage (`src/pages/index.astro`)
-   - Replaced placeholder content
-   - Clean, minimal hero on page load
+**IMMEDIATE (Next Session):**
+- 🔴 **FIX: Debug and fix spacing initialization issue (TOP PRIORITY)**
+- Add console.log() to trace script execution
+- Verify DOM is ready before attempting to modify link text
+- Consider wrapping in DOMContentLoaded event
 
-4. ✅ Verified functionality
-   - Keyboard navigation works correctly
-   - Hover effects subtle and responsive
-   - Links navigate correctly
-   - Theme toggle works with inverse highlight
-
-5. ✅ Build passes with no errors
-
-### Next Steps (Pending Phases)
-- **Phase 3:** Add IntersectionObserver for scroll-based auto-highlighting of links
-- **Phase 4:** Refine mobile touch behavior
-- **Phase 5:** Add hero sections for About, Projects, Contact pages (page content integration)
+**Phase 3:** Add IntersectionObserver for scroll-based auto-highlighting of links
+**Phase 4:** Refine mobile touch behavior
+**Phase 5:** Add hero sections for About, Projects, Contact pages (page content integration)
 
 ---
 

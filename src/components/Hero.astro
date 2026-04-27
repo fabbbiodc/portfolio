@@ -1,5 +1,6 @@
 ---
 // Hero navigation component
+import { updatePreview } from "./HeroPreview.astro";
 ---
 
 <div class="hero-container border border-text rounded px-6 py-8">
@@ -34,21 +35,33 @@
 <script>
   // Terminal navigation keys
   const links = document.querySelectorAll(".hero-link");
-
   let currentIndex = -1;
+  let hasInteracted = false;
 
+  const originalTexts = Array.from(links).map(link => link.textContent.trim());
+  
+  // Initialize all links with two-space padding on page load
+  links.forEach((link, index) => {
+    link.textContent = '  ' + originalTexts[index];
+  });
+  
   function updateSelection(newIndex) {
-    links.forEach((link) => link.classList.remove("selected"));
-
+    links.forEach((link, index) => {link.classList.remove("selected");
+    link.textContent = '  ' + originalTexts[index];
+    });
+    
     if (newIndex >= 0 && newIndex < links.length) {
       links[newIndex].classList.add("selected");
+      links[newIndex].textContent = '> ' + originalTexts[newIndex];
       currentIndex = newIndex;
-    }
-  }
+         const sectionKey = links[newIndex].dataset.section;
+    window.updatePreviewGlobal?.(sectionKey);
+  }}
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowUp") {
       event.preventDefault();
+      hasInteracted = true;
       if (currentIndex === -1) {
         updateSelection(links.length - 1);
       } else {
@@ -58,6 +71,7 @@
       }
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
+      hasInteracted = true;
       if (currentIndex === -1) {
         updateSelection(0);
       } else {
@@ -74,6 +88,7 @@
 
   links.forEach((link, index) => {
     link.addEventListener("click", (event) => {
+      hasInteracted = true;
       updateSelection(index);
     });
   });

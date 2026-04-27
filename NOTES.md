@@ -1584,6 +1584,47 @@ This precedence ensures selected state always shows over hover state.
 
 ### Debugging Tips
 
+**⚠️ KNOWN ISSUE - SPACING INITIALIZATION (PRIORITY FIX):**
+
+**Problem:** Links with `>` prefix and `  ` (two-space) spacing are not showing on initial page load
+
+**Symptom:**
+- Page load: `about`, `projects`, `contact` (no spacing, no prefix)
+- After first arrow key/click: `  about`, `  projects`, `  contact` (correct spacing)
+- Selected link: Shows `> about` correctly (only after first interaction)
+
+**Expected:**
+- Page load: `  about`, `  projects`, `  contact` (with spacing from start)
+
+**Current Code (Hero.astro lines 41-43):**
+```javascript
+// Initialize all links with two-space padding on page load
+links.forEach((link, index) => {
+  link.textContent = '  ' + originalTexts[index];
+});
+```
+
+**Debug Strategy for Next Session:**
+1. Add `console.log('Initializing links...')` before the loop
+2. Add `console.log('Link text set to:', link.textContent)` inside loop
+3. Check if `originalTexts` array is populated: `console.log('originalTexts:', originalTexts)`
+4. Test timing: Maybe script needs to run in `DOMContentLoaded` event
+5. Verify `document.querySelectorAll('.hero-link')` finds links (add length check)
+6. Check if Astro is re-rendering after script runs
+7. Test in browser DevTools: manually run same code in console to verify it works
+
+**Possible Causes:**
+- Script running before DOM is ready
+- Astro hydration overwriting changes
+- Links not being found by query selector
+- Text being reset somewhere else in code
+- Timing issue between Astro rendering and script execution
+
+**Files to Investigate:**
+- `src/components/Hero.astro` (script section, lines 35-90)
+- `src/components/HeroPreview.astro` (verify not interfering)
+- `src/components/HeroSection.astro` (wrapper structure)
+
 **Links not responding to keyboard:**
 - Check browser console for errors
 - Verify `keydown` event listener is attached (not `keydow` or other typos)
@@ -1601,5 +1642,5 @@ This precedence ensures selected state always shows over hover state.
 
 ---
 
-**Last Updated:** Day 9 (Terminal Hero Navigation)
-**Status:** Hero component complete with keyboard navigation; scroll integration pending
+**Last Updated:** Day 9 (Terminal Hero Navigation - Spacing Issue Documented)
+**Status:** Hero component created; spacing initialization needs debugging
