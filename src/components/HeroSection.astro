@@ -2,11 +2,14 @@
 // Wraps all hero components
 import Hero from './Hero.astro'; // TODO change to HeroMenu
 import HeroPreview from './HeroPreview.astro';
+import HeroArt from './HeroArt.astro';
 ---
 
 <!-- Outer centering div -->
 <div class="flex justify-center items-center min-h-screen">
   <!-- Inner layout div -->
+  <HeroArt />
+  
   <div class="w-full flex-1 border-t-2 border-text flex justify-center items-center gap-4 bloom-border">
     <!-- Hero Box (always visible) -->
     <Hero />

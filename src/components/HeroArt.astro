@@ -1,0 +1,43 @@
+---
+// Hero animation and title
+---
+
+<canvas
+  id="hero-animation"
+  class="absolute top-0 left-0 w-full h-full -z-10 opacity-80 pointer-events-none"
+></canvas>
+
+<script>
+  import { Application, Assets } from "pixi.js";
+  import { AsciiFilter } from "pixi-filters";
+  import { GifSprite } from "pixi.js/gif";
+
+  async function init() {
+    const canvas = document.getElementById("hero-animation") as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const app = new Application();
+    await app.init({
+      canvas: canvas,
+      resizeTo: window,
+      backgroundAlpha: 0,
+    });
+
+    const source = await Assets.load("/assets/clouds.gif");
+
+    const animatedGif = new GifSprite(source);
+
+    animatedGif.anchor.set(0.5);
+    animatedGif.x = app.screen.width / 2;
+    animatedGif.y = app.screen.height / 2;
+
+    const asciiFilter = new AsciiFilter({ size: 8 });
+    animatedGif.filters = [asciiFilter];
+
+    app.stage.addChild(animatedGif);
+
+    animatedGif.play();
+  }
+
+  init();
+</script>

@@ -12,9 +12,12 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@pixi/filter-pixelate": "^5.1.1",
     "@tailwindcss/vite": "^4.2.4",
     "astro": "^6.1.8",
     "heroicons": "^2.2.0",
+    "pixi-filters": "^6.1.5",
+    "pixi.js": "^8.18.1",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
