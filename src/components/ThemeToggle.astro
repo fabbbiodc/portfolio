@@ -8,7 +8,8 @@ interface Props {
 }
 const { id } = Astro.props;
 
-const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand transition bloom-text";
+const toggleClass =
+  "p-2 rounded hover:bg-opacity-20 hover:bg-brand transition bloom-text";
 ---
 
 <button id={id} class={toggleClass}>
@@ -17,34 +18,23 @@ const toggleClass = "p-2 rounded hover:bg-opacity-20 hover:bg-brand transition b
 </button>
 
 <script>
-  import {
-    initializeTheme,
-    toggleTheme,
-    setTheme,
-    updateThemeUI,
-  } from "../utils/theme";
+  import { toggleTheme, setTheme, updateThemeUI } from "../utils/theme";
 
-  // THeme swap and set
-  let currentTheme = initializeTheme();
-  document.documentElement.setAttribute("data-theme", currentTheme);
+  let currentTheme = localStorage.getItem("theme-preference") || "light";
 
   function handleToggle() {
     const newTheme = toggleTheme(currentTheme);
-
     setTheme(newTheme);
-
     updateThemeUI(newTheme);
-
     currentTheme = newTheme;
   }
 
   // Attach click listeners to both buttons
   const desktopBtn = document.getElementById("theme-toggle-desktop");
   const mobileBtn = document.getElementById("theme-toggle-mobile");
-  
+
   desktopBtn?.addEventListener("click", handleToggle);
   mobileBtn?.addEventListener("click", handleToggle);
-  
+
   // Initialize icon display on page load
-  updateThemeUI(currentTheme);
 </script>

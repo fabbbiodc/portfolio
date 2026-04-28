@@ -1,0 +1,50 @@
+---
+interface Props {
+  name: string;           // "about", "projects", "contact" 
+  displayName: string;    // "about.......", "projects....", "contact....."
+  isSelected: boolean;
+  dataSection: string;
+}
+
+const { name, displayName, isSelected, dataSection } = Astro.props;
+---
+
+<a href={`/${name}`} class="hero-link" data-section={name}>
+  <span class="hero-link-wrapper" data-state={isSelected ? 'selected' : 'default'}>
+    <span class="hero-link-prefix">{isSelected ? '> ' : '\u00A0\u00A0'}</span>
+    <span class="hero-link-text">{displayName}</span>
+  </span>
+</a>
+
+<style>
+  .hero-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    filter: drop-shadow(0 0 4px var(--color-bloom));
+    font-size: 1rem;
+  }
+
+  .hero-link-wrapper {
+    display: inline;
+  }
+
+  .hero-link-prefix {
+    display: inline-block;
+    width: 2ch;
+    font-family: monospace;
+  }
+
+  .hero-link-text {
+    font-family: monospace;
+    font-size: inherit;
+  }
+
+  .hero-link[data-state="selected"] {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+</style>

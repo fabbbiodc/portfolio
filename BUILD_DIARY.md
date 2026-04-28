@@ -931,6 +931,232 @@ Enhanced Feature:
 
 ---
 
+## Day 13: Component Refactoring & Persistent Selection (✅ Complete)
+
+### Objectives
+- Refactor hero links into self-contained HeroLink component
+- Move `<a>` tag into HeroLink component for better encapsulation
+- Fix whitespace prefixes that were collapsing in templates
+- Implement persistent selection on mouseleave (don't clear on hover exit)
+- Update both BUILD_DIARY.md and NOTES.md with final implementations
+
+### Session Flow & Key Discoveries
+
+**Problem 1: Whitespace Prefixes Collapsing in Templates**
+- **Issue:** Prefixes only appeared upon hover/selection, not on page load
+- **Root Cause:** Astro's template processing was collapsing regular spaces `'  '` to single spaces
+- **Solution:** Used Unicode non-breaking space escape `'\u00A0\u00A0'` in both:
+  - HeroLink.astro template (line 13)
+  - Hero.astro JavaScript functions (lines 71, 92)
+- **Verification:** Hex dump confirmed UTF-8 encoding `c2 a0` (U+00A0) in final HTML
+- **Result:** Prefixes now visible instantly on page load with fixed `2ch` width
+
+**Problem 2: Hero Links in Horizontal Row Instead of Vertical**
+- **Issue:** After moving `<a>` tag to HeroLink component, links displayed horizontally
+- **Root Cause:** CSS was scoped to Hero.astro but styles moved to HeroLink.astro
+- **Solution:** Moved all CSS rules to HeroLink.astro with `display: block`
+- **Result:** Links display vertically as intended
+
+**Problem 3: Link Text Smaller Than Body Text**
+- **Issue:** Hero link text appeared noticeably smaller
+- **Root Cause:** `.hero-link` was missing explicit `font-size`
+- **Solution:** Added `font-size: 1rem` to `.hero-link` CSS class (line 28 in HeroLink.astro)
+- **Result:** Text now matches body text size
+
+**Problem 4: Trailing Dots Disappeared**
+- **Issue:** Aesthetic trailing dots (`about.......`, `projects....`, `contact.....`) were removed
+- **Root Cause:** Refactoring used `name` prop for both href AND display text
+- **Solution:** Added `displayName` prop to HeroLink component
+  - `name` prop: used for href and data-section (clean URLs: `/about`)
+  - `displayName` prop: used for text content (with dots)
+- **Result:** Aesthetic dots restored while maintaining clean navigation
+
+**Problem 5: Mouseleave Clearing Selection**
+- **Issue:** Current behavior cleared selection when mouse left a hovered link
+- **Desired Behavior:** Selection should persist at last hover point until keyboard/click changes it
+- **Solution:** Delete the `mouseleave` event listener from Hero.astro (lines 144-146)
+  - `currentIndex` now stays at hovered link value
+  - Arrow keys continue from last hovered link
+  - Escape key still clears selection (cancelSelection() still works)
+- **Implementation:** Removed 3 lines of code; everything else handles persistence automatically
+
+### Architecture: Component-Based Hero Links
+
+**HeroLink Component Structure:**
+- Self-contained component with all styling and logic
+- Props: `name` (for href/data-section), `displayName` (for visible text), `isSelected`, `dataSection`
+- Renders `<a>` tag internally (fully self-contained)
+- Uses fixed-width prefix spans to prevent size shifting
+- CSS scoped to component with Astro's automatic scoping
+
+**Hero Component (Simplified):**
+- Renders three HeroLink components with initial `isSelected={false}`
+- State management only (keyboard, click, hover handlers)
+- No duplicate CSS
+- Cleaner separation of concerns
+
+**File Structure:**
+```
+src/components/
+├── Hero.astro          (State management + orchestration)
+├── HeroLink.astro      (Self-contained link component)
+├── HeroPreview.astro   (Preview box)
+└── HeroSection.astro   (Wrapper combining Hero + HeroPreview)
+```
+
+### Checklist - Day 13
+
+**Whitespace & Visual Issues:**
+- [x] Fix prefix whitespace collapsing with `\u00A0\u00A0` Unicode escapes
+- [x] Fix links displaying horizontally (move CSS to HeroLink)
+- [x] Fix text size (add `font-size: 1rem`)
+- [x] Restore trailing dots with `displayName` prop
+- [x] Verify build succeeds with no errors
+
+**Component Refactoring:**
+- [x] Move `<a>` tag into HeroLink.astro
+- [x] Add `displayName` prop to separate URLs from display text
+- [x] Move all CSS styling to HeroLink.astro
+- [x] Update Hero.astro to remove duplicate CSS
+- [x] Simplify Hero.astro by removing wrapper elements
+- [x] Test all interactions (keyboard, click, hover, escape)
+
+**Persistent Selection Feature:**
+- [x] Remove mouseleave event listener that was clearing selection
+- [x] Verify `currentIndex` stays at last hovered value
+- [x] Verify arrow keys start from last hover point
+- [x] Verify Escape key still clears selection
+- [x] Test complete interaction flow
+
+**Documentation:**
+- [x] Update BUILD_DIARY.md with Day 13 session details
+- [x] Update NOTES.md with HeroLink component pattern
+- [x] Document whitespace Unicode escape solution
+- [x] Document persistent selection behavior
+
+### Implementation Details
+
+**File: `src/components/HeroLink.astro`**
+
+Changes:
+- Line 11: `<a href={`/${name}`} class="hero-link" data-section={name}>`
+- Line 13: Display name uses `{displayName}` prop
+- Line 13: Default prefix uses `'\u00A0\u00A0'` (Unicode non-breaking spaces)
+- Lines 19-50: All CSS moved here (complete style block)
+- Line 28: Added `font-size: 1rem` to `.hero-link`
+
+**File: `src/components/Hero.astro`**
+
+Changes:
+- Lines 8-10: Updated to pass both `name` and `displayName` props
+- Removed duplicate CSS block (lines 21-50 in previous version)
+- Lines 71, 92: Updated to use `'\u00A0\u00A0'` Unicode escapes
+- **Removed:** Lines 144-146 (mouseleave listener that was clearing selection)
+
+**File: `src/components/Hero.astro` (JavaScript)**
+
+The rest of the JavaScript remains unchanged:
+- `updateSelection()` still works correctly
+- `cancelSelection()` still works for Escape key
+- Keyboard navigation works from persistent `currentIndex`
+- Hover preview still syncs without changing selection
+
+### Testing Summary
+
+**✅ Component Structure:**
+- HeroLink is fully self-contained ✓
+- All styling in HeroLink component ✓
+- No CSS duplication ✓
+- Clean separation of concerns ✓
+
+**✅ Visual Display:**
+- Prefixes visible on page load ✓
+- Links display vertically (not horizontal) ✓
+- Text size matches body text ✓
+- Trailing dots present (`about.......`, etc.) ✓
+- No size shift when selecting ✓
+
+**✅ Persistent Selection:**
+- Hover: shows selection styling + preview ✓
+- Mouseleave: selection stays (not cleared) ✓
+- Arrow keys: start from last hover point ✓
+- Escape: still clears selection completely ✓
+- Click: still navigates and selects ✓
+- Keyboard: still controls real selection ✓
+
+**✅ Build & Quality:**
+- Build passes with no errors ✓
+- No TypeScript errors ✓
+- All themes work (light/dark) ✓
+- Mobile interactions work ✓
+
+### Key Improvements
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **Component Encapsulation** | `<a>` in Hero, styles split | HeroLink fully self-contained |
+| **CSS Duplication** | Duplicate styles | Single source of truth |
+| **URL/Display Separation** | Combined in one prop | `name` vs `displayName` |
+| **Whitespace Handling** | Regular spaces (collapsed) | Unicode `\u00A0` (preserved) |
+| **Mouseleave Behavior** | Cleared selection | Persists selection |
+| **Code Organization** | 148 lines in Hero.astro | Split across components |
+
+### Completed This Session
+
+1. ✅ Fixed whitespace prefix collapsing using Unicode non-breaking spaces
+2. ✅ Refactored hero links into self-contained HeroLink component
+3. ✅ Moved `<a>` tag and all CSS into HeroLink component
+4. ✅ Fixed text sizing (added `font-size: 1rem`)
+5. ✅ Restored trailing dots with `displayName` prop
+6. ✅ Implemented persistent selection on mouseleave:
+   - Removed mouseleave listener
+   - Selection stays at last hover point
+   - Arrow keys continue from persistent position
+   - Escape key still clears everything
+7. ✅ Verified all interactions work correctly
+8. ✅ Updated BUILD_DIARY.md with comprehensive session notes
+9. ✅ Updated NOTES.md with HeroLink pattern and solutions
+10. ✅ Build passes with no errors
+
+### Architecture Improvements Achieved
+
+**Better Component Isolation:**
+- Each component owns its HTML, CSS, and props
+- No interdependencies between components
+- Easy to test and maintain
+
+**Cleaner State Management:**
+- Hero.astro focuses purely on state (keyboard, click, hover)
+- HeroLink focuses purely on rendering
+- Clear separation of concerns
+
+**Persistent Selection UX:**
+- Users can hover to preview different sections
+- Selection persists, allowing arrow key navigation from hover point
+- More intuitive than clearing on every mouseleave
+- Escape key still provides "clear everything" option
+
+### Next Steps (Ready for Implementation)
+
+**Phase 4 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
+- Add `data-section` attributes to page content sections
+- Create observer utility function
+- Auto-highlight hero link when section enters viewport
+- Keyboard/click/ESC selection can override auto-highlight
+
+**Phase 5 (Pending):** Mobile refinement and responsive testing
+- Test at multiple breakpoints
+- Verify touch interactions
+- Test accessibility features
+
+**Phase 6 (Pending):** Add real page content
+- Replace lorem ipsum in HeroPreview
+- Build substantial About page
+- Build Projects showcase
+- Build Contact information page
+
+---
+
 ## Day 12: HeroPreview Text Truncation & Navbar Grid Layout (✅ Complete)
 
 ### Objectives

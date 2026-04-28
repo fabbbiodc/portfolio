@@ -1,12 +1,28 @@
 ---
 // Hero navigation component
+import HeroLink from "./HeroLink.astro";
 ---
 
 <div class="border border-text pl-2 pr-6 py-8 h-auto md:h-64 bloom-border">
   <nav class="space-y-2 font-mono text-text">
-    <a href="/about" class="hero-link" data-section="about">about.......</a>
-    <a href="/projects" class="hero-link" data-section="projects">projects....</a>
-    <a href="/contact" class="hero-link" data-section="contact">contact.....</a>
+    <HeroLink
+      name="about"
+      displayName="about......."
+      isSelected={false}
+      dataSection="about"
+    />
+    <HeroLink
+      name="projects"
+      displayName="projects...."
+      isSelected={false}
+      dataSection="projects"
+    />
+    <HeroLink
+      name="contact"
+      displayName="contact....."
+      isSelected={false}
+      dataSection="contact"
+    />
   </nav>
   <div class="hidden md:flex justify-center pt-4">
     <div class="text-left">
@@ -17,31 +33,6 @@
   </div>
 </div>
 
-<style>
-  .hero-link {
-    display: block;
-    padding: 0.5rem 0.75rem;
-    text-decoration: none;
-    color: var(--color-text);
-    transition: all 0.2s ease;
-    /*TODO change pointer?*/
-    cursor: pointer;
-    white-space: pre;
-    filter: drop-shadow(0 0 4px var(--color-bloom));
-  }
-
-  /*.hero-link:hover {
-      opacity: 0.8;
-  }*/
-
-  .hero-link[data-state="selected"] {
-    background-color: var(--color-text);
-    color: var(--color-background);
-  }
-
-  
-</style>
-
 <script>
   // Terminal navigation keys
   const links = document.querySelectorAll(
@@ -50,28 +41,27 @@
   let currentIndex = -1;
   let hasInteracted = false;
 
-  const originalTexts = Array.from(links).map((link) =>
-    link.textContent.trim(),
-  );
-
-  // Initialize all links with two-space padding on page load
-  links.forEach((link, index) => {
-    link.textContent = "  " + originalTexts[index];
-    link.dataset.state = "default";
-  });
-
   function updateSelection(newIndex: number) {
+    // Update data-state on all links for CSS styling
     links.forEach((link, index) => {
-      link.dataset.state = "default";
-      link.textContent = "  " + originalTexts[index];
+      link.dataset.state = index === newIndex ? "selected" : "default";
+
+      // Update the prefix text based on state
+      const wrapper = link.querySelector(".hero-link-wrapper");
+      const prefix = link.querySelector(".hero-link-prefix");
+
+      if (index === newIndex) {
+        prefix.textContent = "> ";
+        wrapper?.setAttribute("data-state", "selected");
+      } else {
+        prefix.textContent = "\u00A0\u00A0";
+        wrapper?.setAttribute("data-state", "default");
+      }
     });
 
     if (newIndex >= 0 && newIndex < links.length) {
-      links[newIndex].dataset.state = "selected";
-      links[newIndex].textContent = "> " + originalTexts[newIndex];
       currentIndex = newIndex;
-      const sectionKey = (links[newIndex] as HTMLAnchorElement).dataset
-        .section!;
+      const sectionKey = links[newIndex].dataset.section!;
       (
         window as Window & { updatePreviewGlobal?: (key: string) => void }
       ).updatePreviewGlobal?.(sectionKey);
@@ -80,10 +70,14 @@
 
   function cancelSelection(): void {
     currentIndex = -1;
-
-    links.forEach((link, index) => {
+    links.forEach((link) => {
       link.dataset.state = "default";
-      link.textContent = "  " + originalTexts[index];
+
+      const wrapper = link.querySelector(".hero-link-wrapper");
+      const prefix = link.querySelector(".hero-link-prefix");
+
+      prefix.textContent = "\u00A0\u00A0";
+      wrapper?.setAttribute("data-state", "default");
     });
     (
       window as unknown as Window & {
@@ -92,6 +86,7 @@
     ).updatePreviewGlobal?.("initial");
   }
 
+  // Keyboard handlers
   document.addEventListener("keydown", (event) => {
     if (event.key === "ArrowUp") {
       event.preventDefault();
@@ -115,7 +110,7 @@
       }
     } else if (event.key === "Enter") {
       if (currentIndex >= 0 && currentIndex < links.length) {
-        (links[currentIndex] as HTMLAnchorElement).click();
+        links[currentIndex].click();
       }
     } else if (event.key === "Escape") {
       event.preventDefault();
@@ -123,26 +118,14 @@
     }
   });
 
+  // Mouse handlers
   links.forEach((link, index) => {
-    link.addEventListener("click", (event) => {
+    link.addEventListener("click", () => {
       hasInteracted = true;
       updateSelection(index);
     });
     link.addEventListener("mouseenter", () => {
       updateSelection(index);
-    });
-
-    link.addEventListener("mouseleave", () => {
-      currentIndex = -1;
-      links.forEach((link, i) => {
-        link.dataset.state = "default";
-        link.textContent = "  " + originalTexts[i];
-      });
-      (
-        window as unknown as Window & {
-          updatePreviewGlobal?: (key: string) => void;
-        }
-      ).updatePreviewGlobal?.("initial");
     });
   });
 </script>

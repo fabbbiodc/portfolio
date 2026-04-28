@@ -1727,12 +1727,281 @@ links.forEach((link, index) => {
 
 ---
 
+### Persistent Selection Behavior (Day 13) - IMPLEMENTED
+
+**What is Persistent Selection?**
+- User hovers over a link → shows selection styling (inverse highlight + `> ` prefix)
+- User moves mouse away → **selection styling STAYS**, doesn't clear
+- Arrow keys navigate from the last hovered link (not from initial position)
+- Escape key still clears selection completely
+- Keyboard/click actions override any hover point
+
+**Why This UX Pattern?**
+- Lets users explore sections by hovering
+- Once they find a section they like, they can arrow-key navigate from that point
+- No need to re-hover when using keyboard
+- More intuitive for exploring then navigating
+- Escape provides escape hatch to clear everything
+
+**Implementation Files:**
+- `src/components/Hero.astro`: State tracking, keyboard/click handlers
+- `src/components/HeroLink.astro`: Self-contained link component
+- Both use persistent `currentIndex` that persists across mouseleave
+
+**Key Implementation Detail:**
+- Removed `mouseleave` event listener that was calling `cancelSelection()`
+- Without mouseleave clearing, `currentIndex` naturally persists
+- `currentIndex` only changes on: arrow keys, click, or Escape
+- Hover shows visual feedback without changing `currentIndex`
+
+**State Variables:**
+```javascript
+let currentIndex = -1;         // Persistent keyboard/click selection
+let hoveredIndex = -1;         // Temporary hover state (reset on mouseleave)
+```
+
+**Behavior Table:**
+
+| Action | Visual | `currentIndex` | Result |
+|--------|--------|---|---|
+| Hover link | Inverse highlight | Unchanged | Preview updates, selection styling shown |
+| Mouseleave | Reverts to current | Unchanged | Visual reverts, preview reverts |
+| Arrow Down | Inverse highlight | Increments | Real selection moves, navigation ready |
+| Arrow Up | Inverse highlight | Decrements | Real selection moves, navigation ready |
+| Click | Inverse highlight | Set to index | Navigate + select |
+| Escape | Nothing | Reset to -1 | Clear all selection, show "initial" |
+
+**Interaction Example:**
+1. User hovers "projects" → sees it highlighted, preview updates, `currentIndex` still -1
+2. User moves mouse away → visual reverts to no selection (since `currentIndex` = -1)
+3. User presses Arrow Down → first link selected, `currentIndex` = 0
+4. User presses Arrow Down again → second link selected, `currentIndex` = 1
+5. User presses Enter → navigate to projects
+
+**Contrast with Previous Hover-as-Selection:**
+- Old: Hover showed temporary visual but didn't affect navigation
+- New: Hover shows visual AND affects keyboard navigation (navigation continues from that point)
+- Smoother workflow: explore by hovering, navigate with keyboard from explored point
+
+---
+
+### HeroLink Component (Day 13) - NEW COMPONENT
+
+**What is HeroLink?**
+A self-contained reusable link component that encapsulates all hero link styling and structure. Each link is a complete unit: HTML (`<a>` tag), styling (CSS), and props (interface).
+
+**File Location:**
+`src/components/HeroLink.astro`
+
+**Component Props:**
+```typescript
+interface Props {
+  name: string;           // "about", "projects", "contact" - used for href and data-section
+  displayName: string;    // "about.......", "projects....", "contact....." - displayed text with dots
+  isSelected: boolean;    // true = show inverse highlight and "> " prefix
+  dataSection: string;    // Usually same as name, for data-section attribute
+}
+```
+
+**Why Separate `name` and `displayName`?**
+- **Before (Day 12):** Used single prop for both href and display text, had to remove dots
+- **After (Day 13):** Separate concerns:
+  - `name`: Clean value for `href="/about"` and `data-section="about"`
+  - `displayName`: Display text with aesthetic trailing dots: "about......."
+- **Benefit:** URLs stay clean, display stays beautiful
+
+**Component Structure:**
+
+```astro
+---
+interface Props {
+  name: string;
+  displayName: string;
+  isSelected: boolean;
+  dataSection: string;
+}
+
+const { name, displayName, isSelected, dataSection } = Astro.props;
+---
+
+<a href={`/${name}`} class="hero-link" data-section={name}>
+  <span class="hero-link-wrapper" data-state={isSelected ? 'selected' : 'default'}>
+    <span class="hero-link-prefix">{isSelected ? '> ' : '\u00A0\u00A0'}</span>
+    <span class="hero-link-text">{displayName}</span>
+  </span>
+</a>
+
+<style>
+  /* All CSS contained in this component */
+  .hero-link { /* styling */ }
+  .hero-link-wrapper { /* wrapper styling */ }
+  .hero-link-prefix { /* prefix styling */ }
+  .hero-link-text { /* text styling */ }
+  .hero-link[data-state="selected"] { /* selected state */ }
+</style>
+```
+
+**HTML Structure Breakdown:**
+
+```
+<a>                               ← Navigation link
+  <span class="hero-link-wrapper">  ← Wrapper for state management
+    <span class="hero-link-prefix"> ← Prefix: "  " or "> " (fixed 2ch width)
+    <span class="hero-link-text">   ← Display text: "about......."
+```
+
+**CSS Details:**
+
+```css
+.hero-link {
+  display: block;                     /* Stack vertically */
+  padding: 0.5rem 0.75rem;           /* Breathing room */
+  text-decoration: none;             /* Remove underline */
+  color: var(--color-text);          /* Theme-aware */
+  transition: all 0.2s ease;         /* Smooth state changes */
+  cursor: pointer;                   /* Show clickability */
+  filter: drop-shadow(0 0 4px var(--color-bloom));  /* Bloom effect */
+  font-size: 1rem;                   /* Match body text (Day 13 fix) */
+}
+
+.hero-link-prefix {
+  display: inline-block;             /* Allows fixed width */
+  width: 2ch;                        /* Fixed monospace width */
+  font-family: monospace;            /* Aligned rendering */
+}
+
+.hero-link[data-state="selected"] {
+  background-color: var(--color-text);      /* Inverse highlight */
+  color: var(--color-background);           /* Inverse text */
+}
+```
+
+**Prefix Whitespace Handling (Day 13 Discovery):**
+
+**Problem:** Regular spaces `' '` were being collapsed during Astro template processing
+```javascript
+// Old attempt (didn't work):
+prefix.textContent = '  ' + displayName;  // Spaces collapsed to single space
+
+// New solution (works):
+prefix.textContent = '\u00A0\u00A0' + displayName;  // Unicode non-breaking spaces
+```
+
+**Solution Details:**
+- `\u00A0` is Unicode character U+00A0 (NO-BREAK SPACE)
+- Astro template engine preserves Unicode escapes
+- Final HTML shows as UTF-8 `c2 a0` (verified with hex dump)
+- Fixed 2ch width ensures alignment whether "  " or "> " prefix
+- Works in both initial render and JavaScript updates
+
+**Usage in Hero.astro:**
+
+```astro
+---
+import HeroLink from "./HeroLink.astro";
+---
+
+<div class="border border-text pl-2 pr-6 py-8 h-auto md:h-64">
+  <nav class="space-y-2 font-mono text-text">
+    <HeroLink
+      name="about"
+      displayName="about......."
+      isSelected={false}
+      dataSection="about"
+    />
+    <HeroLink
+      name="projects"
+      displayName="projects...."
+      isSelected={false}
+      dataSection="projects"
+    />
+    <HeroLink
+      name="contact"
+      displayName="contact....."
+      isSelected={false}
+      dataSection="contact"
+    />
+  </nav>
+</div>
+```
+
+**Key Features:**
+
+| Feature | Details |
+|---------|---------|
+| **Self-contained** | All HTML, CSS, props in one file |
+| **Encapsulation** | No CSS duplication, single source of truth |
+| **Reusable** | Can use same component for other link types |
+| **Theme-aware** | Uses CSS variables for automatic light/dark switching |
+| **Accessible** | Standard `<a>` element, semantic HTML |
+| **Monospace-friendly** | Fixed-width prefix prevents size shift |
+
+**Common Patterns for HeroLink:**
+
+**Getting current selected link:**
+```javascript
+const links = document.querySelectorAll('.hero-link');
+const selectedLink = links[currentIndex];  // from Hero.astro state
+```
+
+**Updating prefix dynamically:**
+```javascript
+const prefix = link.querySelector('.hero-link-prefix');
+prefix.textContent = '\u00A0\u00A0';  // Reset to spaces
+// or
+prefix.textContent = '> ';            // Show selection
+```
+
+**Checking if a link is selected:**
+```javascript
+const isSelected = link.dataset.state === 'selected';
+```
+
+**Architecture Improvements (Day 13):**
+
+**Before (Day 12):**
+- `<a>` tag in Hero.astro
+- CSS in Hero.astro (duplicate if used elsewhere)
+- Link text combined with dots
+- No clear component boundary
+
+**After (Day 13):**
+- `<a>` tag in HeroLink.astro (self-contained)
+- CSS in HeroLink.astro (single source of truth)
+- `displayName` prop for text with dots
+- Clear, reusable component
+- Better separation of concerns
+
+**Benefits:**
+- ✅ Hero.astro focuses on state management
+- ✅ HeroLink.astro focuses on rendering
+- ✅ No CSS duplication
+- ✅ Easy to modify link styling in one place
+- ✅ Reusable for other navigation uses
+- ✅ Clear prop interface documents what data each link needs
+
+**Future Enhancement:**
+Could create more link types by extending HeroLink pattern:
+- `ProjectLink` for project cards
+- `SocialLink` for social media
+- `FooterLink` for footer navigation
+- All would follow same component-based pattern
+
+---
+
 ### Common Debugging Patterns
 
 **Spacing Issues:**
 - Always check: Is `white-space: pre` (or similar) applied to monospace text?
 - Browser DevTools → Inspect → Computed styles to verify CSS is applied
 - Whitespace characters need explicit CSS to be preserved
+- Unicode escapes like `\u00A0` survive template processing better than regular spaces
+
+**Unicode Whitespace vs Regular Spaces:**
+- Regular space `' '`: May collapse in templates, hard to preserve
+- Non-breaking space `'\u00A0'`: Preserved in Unicode form, guaranteed to work
+- Use `\u00A0` for template-driven text that must preserve width
+- Use CSS `white-space: pre` for hardcoded whitespace in HTML
 
 **Hover State Problems:**
 - Verify media query max-width matches your breakpoint (768px for md breakpoint)
@@ -1743,6 +2012,12 @@ links.forEach((link, index) => {
 **Preview Sync Issues:**
 - Verify `updatePreviewGlobal()` is exported and accessible from other components
 - Check that both `updateHoverUI()` and `updateSelection()` call the preview update
+
+**Component Reusability Issues:**
+- If styling doesn't apply, verify component CSS isn't scoped too narrowly
+- Astro automatically scopes component styles; they won't leak out
+- Each component's `<style>` block is isolated by Astro
+- To share styles, put them in global CSS (src/styles/global.css)
 - Log which state is being passed: `console.log('Updating preview with index:', index)`
 
 **Theme Color Issues:**
