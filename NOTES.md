@@ -1114,7 +1114,7 @@ A theme system allows users to switch between different color schemes (typically
 
 **File: `src/styles/global.css`**
 ```css
-@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=VT323&display=swap");
 @import "./tokens.css";                    /* Import theme tokens */
 @import "tailwindcss";
 
@@ -1129,7 +1129,7 @@ A theme system allows users to switch between different color schemes (typically
 
 @layer base {
     body {
-        font-family: "IBM Plex Mono", monospace;
+        font-family: "VT323", monospace;
     }
     h1, h2, h3, h4, h5, h6 {
         font-family: "Archivo", sans-serif;
@@ -1360,7 +1360,7 @@ A hero component is a prominent section at the top of a page designed to draw at
 - `rounded` - Subtle rounded corners
 - `px-6 py-8` - Padding (horizontal 1.5rem, vertical 2rem)
 - `space-y-2` - Vertical spacing between links (0.5rem)
-- `font-mono` - Monospace font (IBM Plex Mono)
+- `font-mono` - Monospace font (VT323)
 - `text-text` - Theme-aware text color
 
 **CSS Styling:**

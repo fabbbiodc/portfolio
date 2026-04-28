@@ -99,7 +99,7 @@ const initialMessage = "> use arrow keys to navigate or click links";
     const section = (sections as Record<string, Section>)[sectionKey];
     if (!section) return;
 
-    const maxChars = 200;
+    const maxChars = 90;
     const { text: truncatedText } = truncateToCharCount(
       section.description,
       maxChars,

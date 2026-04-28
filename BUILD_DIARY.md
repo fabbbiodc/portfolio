@@ -19,7 +19,7 @@ This document serves as both:
 - Project bootstrap complete ✅
 - Tailwind CSS v4 setup complete ✅
 - Custom theme colors working via `@theme` in `src/styles/global.css` ✅
-- Fonts configured (Archivo + IBM Plex Mono) ✅
+- Fonts configured (Archivo + VT323) ✅
 - Navbar component created with responsive design ✅
 - Navbar integrated into homepage ✅
 - Logo link to homepage working ✅
@@ -85,7 +85,7 @@ This document serves as both:
 - **Styling:** Tailwind CSS enables fast iteration and enforces utility-first, responsive design
 - **Responsiveness:** Using Tailwind's default breakpoints (`sm`, `md`, `lg`, `xl`, `2xl`)
 - **Max width:** Core content does not exceed 1200px; using `max-w-300` (Tailwind v4 generated class for ~1200px)
-- **Fonts:** Archivo (headings), IBM Plex Mono (body + code)
+- **Fonts:** Archivo (headings), VT323 (body + code)
 - **Font import:** Google Fonts via CSS import
 - **Colors:** Custom theme via `@theme` in `src/styles/global.css`:
   - `background`: #f8f8f8 (off-white)
@@ -696,22 +696,72 @@ Fixed:
 
 ### Next Steps (Ready for Implementation)
 
-**Phase 3 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
+**Phase 4 (Pending):** Scroll-based auto-highlighting with IntersectionObserver
 - Add `data-section` attributes to page content sections
 - Create observer utility function
 - Auto-highlight hero link when section enters viewport
-- Keyboard/click selection can override auto-highlight
+- Keyboard/click/ESC selection can override auto-highlight
 
-**Phase 4 (Pending):** Mobile refinement and responsive testing
+**Phase 5 (Pending):** Mobile refinement and responsive testing
 - Test at multiple breakpoints
 - Verify touch interactions
 - Test accessibility features
 
-**Phase 5 (Pending):** Add real page content
+**Phase 6 (Pending):** Add real page content
 - Replace lorem ipsum in HeroPreview
 - Build substantial About page
 - Build Projects showcase
 - Build Contact information page
+
+---
+
+## Day 14: Font Switch to VT323 (✅ Complete)
+
+### Objectives
+- Switch monospace font from IBM Plex Mono to VT323
+- Update body, caption, and Tailwind font-mono utility
+- Fix HeroLink and Hero components to inherit global font
+- Document changes in BUILD_DIARY and NOTES
+
+### Session Flow & Changes
+
+**Change 1: Font Import in global.css**
+- Replaced IBM Plex Mono with VT323 in Google Fonts import
+- Added `--font-mono: "VT323", monospace` to Tailwind @theme
+
+**Change 2: Body and Caption Fonts**
+- Body font: `"VT323", monospace` with `font-size: 1.125rem`
+- Caption: `font-size: 0.875rem`
+
+**Change 3: HeroLink Font Inheritance**
+- Removed explicit `font-family: monospace` from component styles
+- Now inherits from global body font
+
+**Change 4: Tailwind font-mono Override**
+- Added `--font-mono: "VT323", monospace` to @theme
+- Hero.astro and HeroPreview.astro now use VT323 via `font-mono` class
+
+### Checklist
+- [x] Update font import to VT323
+- [x] Add --font-mono to @theme
+- [x] Update body font (1.125rem)
+- [x] Update caption font (0.875rem)
+- [x] Remove redundant font-family from HeroLink
+- [x] Verify Hero/HeroPreview use font-mono
+- [x] Update BUILD_DIARY.md
+- [x] Update NOTES.md
+
+### Completed This Session
+1. ✅ Switched from IBM Plex Mono to VT323
+2. ✅ Increased font sizes (body 1.125rem, caption 0.875rem)
+3. ✅ Fixed HeroLink to inherit global font
+4. ✅ Added font-mono override to Tailwind theme
+5. ✅ Updated documentation
+
+### Design Notes
+- VT323 is a retro pixel-style monospace font
+- Provides terminal aesthetic to match hero navigation
+- Fallback to system monospace if font fails to load
 
 ---
 
