@@ -3284,3 +3284,314 @@ Smooth 0.3s transition makes change feel polished
 
 **Last Updated:** Day 13 (Bloom effect system documented)
 **Status:** Bloom effect implemented on key components; ready for Phase 2 comprehensive expansion
+
+---
+
+## Scanlines Background Effect - Day 14
+
+### What are Scanlines?
+Scanlines are horizontal lines that create a retro CRT monitor effect. This implementation adds animated scanlines as a global background that appears on all pages, enhancing the old-screen aesthetic.
+
+### Implementation Architecture
+
+**Three-Part System:**
+
+1. **Scanlines CSS** (in `src/styles/global.css`)
+2. **Applied to Body** (in `src/layouts/Layout.astro`)
+3. **Theme-Aware Colors** (automatic light/dark adaptation)
+
+### CSS Structure
+
+**File: `src/styles/global.css`**
+
+```css
+.scanlines {
+  overflow: hidden;
+  position: relative;
+}
+
+.scanlines::before,
+.scanlines::after {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;  /* Doesn't block clicks */
+}
+
+/* Moving 1px line */
+.scanlines::before {
+  height: 1px;
+  z-index: 2147483649;
+  opacity: 0.5;
+  animation: scanline 8s linear infinite;
+}
+
+/* Static stripe pattern */
+.scanlines::after {
+  z-index: 2147483648;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.12) 51%
+  );
+  background-size: 100% 4px;
+  animation: scanlines 1s steps(60) infinite;
+}
+
+/* Animations */
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+```
+
+### How It Works
+
+**The Two Layers:**
+
+1. **`::before` - Moving Line:**
+   - Height: 1px (very thin)
+   - Animation: 8 seconds to travel from top to bottom
+   - Infinite loop
+   - Creates the "one line moving down" effect
+
+2. **`::after` - Static Pattern:**
+   - Uses `linear-gradient` with `background-size: 100% 4px`
+   - Animation cycles every 1 second
+   - Creates horizontal stripe pattern
+   - All lines animate together (not individually)
+
+### Theme-Aware Colors
+
+**Dark Theme:**
+```css
+:root[data-theme="dark"] .scanlines::before {
+  background: rgba(0, 0, 0, 0.4);  /* Black on dark bg */
+}
+
+:root[data-theme="dark"] .scanlines::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.12) 51%
+  );
+}
+```
+
+**Light Theme:**
+```css
+:root[data-theme="light"] .scanlines::before {
+  background: rgba(0, 0, 0, 0.12);  /* Dark on light bg */
+}
+
+:root[data-theme="light"] .scanlines::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.06) 51%
+  );
+}
+```
+
+**Why Inverted Colors?**
+- Dark mode: Dark scanlines visible on dark background
+- Light mode: Dark scanlines on light background (white would be invisible!)
+
+### Applying Scanlines to All Pages
+
+**File: `src/layouts/Layout.astro` (Line 49)**
+```astro
+<body class="bg-background scanlines">
+```
+
+This applies scanlines to every page that uses the Layout component.
+
+### Key CSS Properties Explained
+
+| Property | Value | Purpose |
+|----------|-------|---------|
+| `position: fixed` | | Stays in viewport while scrolling |
+| `width: 100vw` | | Full viewport width |
+| `height: 100vh` | | Full viewport height |
+| `pointer-events: none` | | Click-through, doesn't block interactions |
+| `z-index: 2147483649` | Very high | Ensures scanlines appear above content |
+| `animation: scanline 8s linear infinite` | | Continuous movement |
+
+### Animation Parameters
+
+**Moving Line (`scanline`):**
+- **Duration:** 8 seconds (slow, subtle)
+- **Easing:** `linear` (constant speed)
+- **Direction:** Top to bottom (`translateY(0)` → `translateY(100vh)`)
+- **Loop:** Infinite
+
+**Stripe Pattern (`scanlines`):**
+- **Duration:** 1 second (fast, continuous shimmer)
+- **Easing:** `steps(60)` (discrete jumps, not smooth)
+- **Movement:** Background position from 0 to 4px
+- **Loop:** Infinite
+
+### Troubleshooting
+
+**Problem: Only one big line visible**
+- ✅ Check: Using `linear-gradient` not `repeating-linear-gradient`
+- ✅ Verify: `animation: scanlines` is applied to `::after`
+- ✅ Check: `background-size: 100% 4px` is set
+
+**Problem: Scanlines not visible in light mode**
+- ✅ Solution: Use DARK scanlines on light background
+- ✅ White scanlines on light = invisible!
+
+**Problem: Scanlines appear on top of content**
+- ✅ Current: z-index very high (2147483648)
+- ✅ To move behind: Change to negative or lower z-index values
+- ✅ Be aware: Negative z-index may cause stacking context issues
+
+### Customization Guide
+
+**To Change Animation Speed:**
+```css
+/* Faster moving line */
+animation: scanline 4s linear infinite;
+
+/* Faster pattern shimmer */
+animation: scanlines 0.5s steps(60) infinite;
+```
+
+**To Make Lines Thicker/Thinner:**
+```css
+/* Thicker pattern */
+background-size: 100% 8px;  /* was 4px */
+
+/* Change gradient breakpoints */
+linear-gradient(
+  to bottom,
+  transparent 50%,
+  rgba(0, 0, 0, 0.12) 51%
+  /* 51% creates thicker dark line */
+);
+```
+
+**To Make More/Less Visible:**
+```css
+/* More visible */
+rgba(0, 0, 0, 0.2)  /* was 0.12 */
+
+/* Less visible */
+rgba(0, 0, 0, 0.05)  /* was 0.12 */
+```
+
+### Performance Considerations
+
+- `position: fixed` - Minimal repaints during scroll
+- CSS animations - GPU accelerated
+- No JavaScript - Pure CSS
+- `pointer-events: none` - Doesn't block interactions
+- Very high z-index - Avoids layout conflicts
+
+### Future Enhancements
+
+- Adjust z-index to position behind content
+- Different line colors (not just black)
+- Varying line thickness
+- Multiple animation speeds
+- Combine with bloom effect for full CRT aesthetic
+
+---
+
+## Bloom Consistency Audit - Day 14
+
+### What Changed in Day 14
+
+The original bloom implementation (Day 13) was applied to key components, but after implementation, discovered **inconsistent usage** across the codebase:
+
+### Audit Results
+
+**Elements WITH Bloom (10 instances):**
+- Navbar: Logo, links, mobile menu
+- Hero: Container border and links
+- HeroPreview: Content, border, link
+- ThemeToggle: Button
+
+**Elements Missing Bloom (8 instances):**
+- Page headings (h1 in about, projects, contact)
+- Projects page subheadings (h2, h3)
+- Projects page list items
+- Hamburger menu icon
+- Theme toggle icons (sun/moon)
+- Mobile menu divider
+
+### Implementation Applied
+
+**Page Headings:**
+```astro
+<!-- before -->
+<h1 class="text-brand">Title</h1>
+
+<!-- after -->
+<h1 class="text-brand bloom-text">Title</h1>
+```
+
+**Icons:**
+```astro
+<!-- before -->
+<Bars3Icon class="w-6 h-6 text-brand" />
+
+<!-- after -->
+<Bars3Icon class="w-6 h-6 text-brand bloom-text" />
+```
+
+**Bordered Elements:**
+```astro
+<!-- before -->
+<li class="border border-text p-4">
+
+<!-- after -->
+<li class="border border-text p-4 bloom-border">
+```
+
+### Files Modified
+
+1. `src/pages/about.astro` - h1 bloom-text
+2. `src/pages/projects.astro` - h1, h2, h3 bloom-text + li bloom-border
+3. `src/pages/contact.astro` - h1 bloom-text
+4. `src/components/Navbar.astro` - Icons bloom-text + divider bloom-border
+5. `src/components/ThemeToggle.astro` - Icons bloom-text
+6. `src/components/HeroLink.astro` - Converted to using bloom-text class
+
+### HeroLink Consistency Fix
+
+**Before:**
+```css
+.hero-link {
+  filter: drop-shadow(0 0 4px var(--color-bloom));  /* Inline filter */
+}
+```
+
+**After:**
+```astro
+<a href="..." class="hero-link bloom-text">
+```
+And removed inline filter from component CSS.
+
+**Benefit:** Clean, unified implementation using utility classes.
+
+### Quick Reference
+
+| Element Type | Class to Use |
+|--------------|-------------|
+| Text elements (links, headings) | `bloom-text` |
+| Bordered containers | `bloom-border` |
+| Both | `bloom-text bloom-border` |
+
+---
+
+### Last Updated: Day 14
+**Status:** Scanlines implemented globally, Bloom consistency audit complete, all elements now have bloom applied appropriately

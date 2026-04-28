@@ -1755,4 +1755,246 @@ Changes:
 
 ---
 
+## Day 14: Scanlines Background & Bloom Consistency Audit (✅ Complete)
+
+### Objectives
+- Implement animated scanlines background effect for all pages
+- Audit and fix inconsistent bloom application across codebase
+- Ensure all brand-colored elements have bloom effect
+- Convert HeroLink from inline filter to bloom-text class for consistency
+
+### Session Overview
+
+This session had two main parts: adding the retro CRT scanlines as a global background and making bloom effects consistent across all elements.
+
+---
+
+## Part A: Scanlines Background Implementation
+
+### Problem Discovered
+After initial implementation, only one "fat line" was visible instead of many small scanlines. The pattern wasn't working.
+
+### Root Causes Identified
+1. **Wrong gradient type:** Using `repeating-linear-gradient` without proper animation
+2. **Missing animation**: The `::after` element wasn't animating its background-position
+3. **Opacity issues**
+
+### Solution Applied
+
+Using the user's original code as reference, implemented proper animated scanlines:
+
+**Key Components:**
+- `position: fixed` - Stays in viewport
+- `::before` - 1px moving line (travels from top to bottom over 8 seconds)
+- `::after` - Static stripe pattern with animation cycling background-position
+- Theme-aware colors (dark on light background, subtle on dark background)
+
+**Implementation in `src/styles/global.css`:**
+
+```css
+.scanlines {
+  overflow: hidden;
+  position: relative;
+}
+
+.scanlines::before,
+.scanlines::after {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* Moving line */
+.scanlines::before {
+  height: 1px;
+  z-index: 2147483649;
+  opacity: 0.5;
+  animation: scanline 8s linear infinite;
+}
+
+/* Animated pattern */
+.scanlines::after {
+  z-index: 2147483648;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.12) 51%
+  );
+  background-size: 100% 4px;
+  animation: scanlines 1s steps(60) infinite;
+}
+
+/* Animations */
+@keyframes scanline {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes scanlines {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+```
+
+### Theme-Aware Colors
+
+**Dark Theme:**
+- Moving line: `rgba(0, 0, 0, 0.4)` (black on dark background - visible)
+- Stripe pattern: `rgba(0, 0, 0, 0.12)` (subtle black overlay)
+
+**Light Theme:**
+- Moving line: `rgba(0, 0, 0, 0.12)` (dark on light background - visible)
+- Stripe pattern: `rgba(0, 0, 0, 0.06)` (very subtle dark overlay)
+
+### Applied To
+
+- Applied to `<body>` element in `src/layouts/Layout.astro`
+- Affects all pages (index, about, projects, contact)
+- Both themes (light/dark) work correctly
+
+### Troubleshooting History
+
+**Issue 1: One big fat line visible**
+- Initial `repeating-linear-gradient` approach didn't animate properly
+- Switched to `linear-gradient` with `background-size` and separate animation
+
+**Issue 2: Not visible in light mode**
+- Initially used white scanlines on light background (invisible!)
+- Fixed by using dark scanlines in light mode (opposite of intuition)
+
+**Issue 3: Upper half lighter than lower**
+- The gradient pattern was creating bands
+- Fixed by using repeating animation that cycles properly
+
+---
+
+## Part B: Bloom Consistency Audit
+
+### Audit Findings
+
+After implementing scanlines, user noted "one big fat line" which was actually the animated line working - different from the scanlines pattern issue. But during this, discovered bloom wasn't consistently applied across the codebase.
+
+### Elements WITH Bloom (10 instances - Already Working)
+- Navbar logo, links, mobile menu
+- Hero container & links (with inline filter)
+- Hero preview box & content
+- Theme toggle button
+
+### Elements MISSING Bloom (8 instances)
+1. **Projects page list items** - Have borders, no bloom
+2. **All page headings** (h1 in about/projects/contact) - Have text-brand, no bloom-text
+3. **Projects page subheadings** (h2, h3) - Should have bloom-text
+4. Hamburger menu icon (Navbar)
+5. Theme icons (sun/moon in ThemeToggle)
+6. Mobile menu divider line
+
+### Implementation Applied
+
+All elements listed above now have bloom applied:
+
+**Page Headings:**
+- `src/pages/about.astro` - h1: Added `bloom-text`
+- `src/pages/projects.astro` - h1, h2, h3: Added `bloom-text`
+- `src/pages/contact.astro` - h1: Added `bloom-text`
+
+**Projects Page:**
+- `src/pages/projects.astro` - li elements: Added `bloom-border`
+
+**Icons:**
+- `src/components/Navbar.astro` - Bars3Icon, XMarkIcon: Added `bloom-text`
+- `src/components/ThemeToggle.astro` - SunIcon, MoonIcon: Added `bloom-text`
+
+**Mobile Menu:**
+- `src/components/Navbar.astro` - Divider: Added `bloom-border`
+
+**HeroLink Consistency:**
+- `src/components/HeroLink.astro` - Removed inline `filter: drop-shadow()` CSS
+- `src/components/Hero.astro` - HeroLink now uses `bloom-text` class via prop
+- Result: Cleaner code, unified bloom implementation
+
+### Files Modified
+
+1. **src/styles/global.css** - Scanlines CSS + bloom classes
+2. **src/pages/about.astro** - Added bloom-text to h1
+3. **src/pages/projects.astro** - Added bloom-text to h1, h2, h3 + bloom-border to li
+4. **src/pages/contact.astro** - Added bloom-text to h1
+5. **src/components/Navbar.astro** - Added bloom-text to icons + bloom-border to divider
+6. **src/components/ThemeToggle.astro** - Added bloom-text to sun/moon icons
+7. **src/components/HeroLink.astro** - Removed inline filter, added bloom-text class
+8. **src/layouts/Layout.astro** - Applied scanlines class to body
+
+---
+
+## Summary of Changes
+
+### Scanlines Implementation
+- ✅ Animated moving line (8s cycle, top to bottom)
+- ✅ Animated static pattern (1s cycle, background-position)
+- ✅ Theme-aware colors (dark on light, subtle on dark)
+- ✅ Fixed position (stays in viewport)
+- ✅ Doesn't block interactions (pointer-events: none)
+
+### Bloom Consistency
+- ✅ Audit completed (10 working, 8 missing, all fixed)
+- ✅ All page headings now have bloom-text
+- ✅ All bordered elements now have bloom-border
+- ✅ All icons now have bloom-text
+- ✅ Mobile menu divider has bloom-border
+- ✅ HeroLink uses bloom-text class (removed inline filter)
+
+### Build Status
+- ✅ `npm run build` passes with no errors
+- ✅ All 4 pages build successfully
+- ✅ Scanlines visible in both light and dark themes
+- ✅ Bloom visible on all target elements
+
+### Next Steps (Future Session Ideas)
+
+1. **Z-index adjustment**: Currently scanlines sit on top of content (z-index: 2147483648). Move to background if needed using negative values
+2. **Scanlines tweaking**: Animation speed, opacity, line thickness can all be adjusted in global.css
+3. **Performance testing**: Verify smooth animations on various devices
+4. **Accessibility**: Ensure text remains readable with scanlines overlay
+
+---
+
+## Quick Reference: Bloom Classes
+
+| Class | CSS | Use Case |
+|-------|-----|----------|
+| `bloom-text` | `filter: drop-shadow(0 0 4px var(--color-bloom))` | Text elements |
+| `bloom-border` | `filter: drop-shadow(0 0 4px var(--color-bloom))` | Borders, containers |
+
+## Quick Reference: Scanlines Classes
+
+| Selector | Purpose |
+|----------|---------|
+| `.scanlines` | Container class on body |
+| `.scanlines::before` | Moving 1px line animation |
+| `.scanlines::after` | Static striped pattern with animation |
+
+---
+
+### Completed This Session
+
+**Part A - Scanlines:**
+1. ✅ Analyzed user's original code reference
+2. ✅ Implemented scanlines CSS with proper animations
+3. ✅ Fixed multiple issues (one line, light mode visibility, pattern banding)
+4. ✅ Applied to body in Layout.astro
+5. ✅ Theme-aware colors implemented
+6. ✅ Build passes
+
+**Part B - Bloom Audit:**
+1. ✅ Comprehensive audit of all bloom usage
+2. ✅ Added bloom to all page headings
+3. ✅ Added bloom to all icons
+4. ✅ Added bloom to mobile menu divider
+5. ✅ Fixed HeroLink consistency (removed inline filter)
+6. ✅ Build passes with all bloom classes present
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._
