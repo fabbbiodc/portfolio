@@ -10,19 +10,19 @@ const allProjects = [
 ---
 
 <Layout title="Projects | My Portfolio">
-  <h1 class="text-3xl font-bold text-brand mb-6">My Projects</h1>
+  <h1 class="text-3xl font-bold text-brand mb-6 bloom-text">My Projects</h1>
   {
     allProjects.map((group) => (
       <section class="mb-8">
-        <h2 class="text-2xl font-semibold text-text mb-4">{group.category}</h2>
+        <h2 class="text-2xl font-semibold text-text mb-4 bloom-text">{group.category}</h2>
 
         {group.items.length === 0 ? (
           <p class="text-text opacity-70">No projects yet.</p>
         ) : (
           <ul class="space-y-4">
             {group.items.map((project) => (
-              <li class="border border-text p-4 rounded">
-                <h3 class="text-xl font-medium text-brand">{project.id}</h3>
+              <li class="border border-text p-4 rounded bloom-border">
+                <h3 class="text-xl font-medium text-brand bloom-text">{project.id}</h3>
                 <p class="text-text">Project placeholder</p>
               </li>
             ))}

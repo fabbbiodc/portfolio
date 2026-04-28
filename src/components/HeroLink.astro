@@ -9,7 +9,7 @@ interface Props {
 const { name, displayName, isSelected, dataSection } = Astro.props;
 ---
 
-<a href={`/${name}`} class="hero-link" data-section={name}>
+<a href={`/${name}`} class="hero-link bloom-text" data-section={name}>
   <span class="hero-link-wrapper" data-state={isSelected ? 'selected' : 'default'}>
     <span class="hero-link-prefix">{isSelected ? '> ' : '\u00A0\u00A0'}</span>
     <span class="hero-link-text">{displayName}</span>
@@ -24,7 +24,6 @@ const { name, displayName, isSelected, dataSection } = Astro.props;
     color: var(--color-text);
     transition: all 0.2s ease;
     cursor: pointer;
-    filter: drop-shadow(0 0 4px var(--color-bloom));
     font-size: 1rem;
   }
 
