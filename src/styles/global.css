@@ -50,3 +50,80 @@
     background-color 0.3s ease,
     color 0.3s ease;
 }
+
+/* Scanlines effect - theme-aware and fully animated */
+.scanlines {
+  overflow: hidden;
+  position: relative;
+}
+
+.scanlines::before,
+.scanlines::after {
+  display: block;
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Animated scanline that moves vertically */
+.scanlines::before {
+  height: 1px;
+  z-index: 2147483649;
+  opacity: 0.5;
+  animation: scanline 8s linear infinite;
+}
+
+/* Dark theme */
+:root[data-theme="dark"] .scanlines::before {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] .scanlines::after {
+  z-index: 2147483648;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.12) 51%
+  );
+  background-size: 100% 4px;
+  animation: scanlines 1s steps(60) infinite;
+}
+
+/* Light theme */
+:root[data-theme="light"] .scanlines::before {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .scanlines::after {
+  z-index: 2147483648;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(0, 0, 0, 0.06) 51%
+  );
+  background-size: 100% 4px;
+  animation: scanlines 1s steps(60) infinite;
+}
+
+/* Animations */
+@keyframes scanline {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes scanlines {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 4px;
+  }
+}
