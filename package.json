@@ -12,15 +12,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@pixi/filter-pixelate": "^5.1.1",
     "@tailwindcss/vite": "^4.2.4",
     "astro": "^6.1.8",
     "heroicons": "^2.2.0",
-    "pixi-filters": "^6.1.5",
-    "pixi.js": "^8.18.1",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "three": "^0.184.0"
   },
   "devDependencies": {
+    "@types/three": "^0.184.0",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.9.3"
   }

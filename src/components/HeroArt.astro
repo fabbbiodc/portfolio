@@ -1,43 +1,86 @@
 ---
-// Hero animation and title
+// Hero animation with three.js
 ---
 
 <canvas
   id="hero-animation"
-  class="w-full h-full -z-10 opacity-80 pointer-events-none"
-></canvas>
+  class="w-full h-full -z-10 opacity-80 pointer-events-none"></canvas>
 
 <script>
-  import { Application, Assets } from "pixi.js";
-  import { AsciiFilter } from "pixi-filters";
-  import { GifSprite } from "pixi.js/gif";
+  import { undefined } from "astro:schema";
+  import * as THREE from "three";
+  import { GLTFLoader } from "three/examples/jsm/Addons.js";
 
-  async function init() {
-    const canvas = document.getElementById("hero-animation") as HTMLCanvasElement;
-    if (!canvas) return;
+  function init() {
+    const canvas = document.getElementById(
+      "hero-animation",
+    ) as HTMLCanvasElement;
+    if (!canvas) {
+      console.error("Canvas not found!");
+      return;
+    }
 
-    const app = new Application();
-    await app.init({
-      canvas: canvas,
-      resizeTo: window,
-      backgroundAlpha: 0,
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      1000,
+    );
+    camera.position.z = 200;
+    camera.position.x = -50;
+    camera.position.y = -10;
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
     });
 
-    const source = await Assets.load("/assets/clouds.gif");
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 5);
+    scene.add(directionalLight);
 
-    const animatedGif = new GifSprite(source);
+    const loader = new GLTFLoader();
+    let model: THREE.Group;
 
-    animatedGif.anchor.set(0.5);
-    animatedGif.x = app.screen.width / 2;
-    animatedGif.y = app.screen.height / 2;
+    loader.load("/models/eye.glb", (gltf) => {
+      model = gltf.scene;
+      scene.add(model);
+      animate();
+    });
 
-    const asciiFilter = new AsciiFilter({ size: 8 });
-    animatedGif.filters = [asciiFilter];
+    function animate() {
+      requestAnimationFrame(animate);
 
-    app.stage.addChild(animatedGif);
+      model.rotation.x += 0.005;
+      model.rotation.y += 0.008;
 
-    animatedGif.play();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    window.addEventListener("resize", onWindowResize);
+
+    // animate();
   }
 
-  init();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 </script>
