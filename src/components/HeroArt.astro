@@ -21,6 +21,7 @@
     }
 
     const scene = new THREE.Scene();
+    scene.background = null;
 
     const camera = new THREE.PerspectiveCamera(
       75,
@@ -41,7 +42,7 @@
     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(window.devicePixelRatio);
-    
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -51,6 +52,27 @@
     const loader = new GLTFLoader();
     let model: THREE.Group;
 
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    
+    document.addEventListener("mousemove", (event) => {
+      // Get canvas position relative to viewport
+      const rect = canvas.getBoundingClientRect();
+      const canvasCenterX = rect.left + rect.width / 2;
+      const canvasCenterY = rect.top + rect.height / 2;
+
+      // Calculate offset from canvas center
+      const offsetX = event.clientX - canvasCenterX;
+      const offsetY = event.clientY - canvasCenterY;
+
+      // Scale by canvas size for precision (smaller sensitivity)
+      const sensitivity = 0.003; // Adjust for more/less sensitivity
+      targetX = offsetX * sensitivity;
+      targetY = offsetY * sensitivity;
+    });
+
     loader.load("/models/eye.glb", (gltf) => {
       model = gltf.scene;
       scene.add(model);
@@ -59,10 +81,19 @@
 
     function animate() {
       requestAnimationFrame(animate);
+      if (model) {
 
-      model.rotation.x += 0.005;
-      model.rotation.y += 0.008;
+        const easing = 0.1; 
+        currentX += (targetX - currentX) * easing;
+        currentY += (targetY - currentY) * easing;
+        const maxRotationY = Math.PI * 0.25; 
+        const maxRotationX = Math.PI * 0.25; 
+        const clampedX = Math.max(-maxRotationX, Math.min(maxRotationX, currentX));
+        const clampedY = Math.max(-maxRotationY, Math.min(maxRotationY, currentY));
 
+        model.rotation.x = clampedY;
+        model.rotation.y = clampedX;
+      }
       renderer.render(scene, camera);
     }
 
@@ -74,8 +105,6 @@
       renderer.setSize(width, height);
     }
     window.addEventListener("resize", onWindowResize);
-
-    // animate();
   }
 
   if (document.readyState === "loading") {
