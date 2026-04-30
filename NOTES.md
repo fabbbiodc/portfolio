@@ -1321,6 +1321,317 @@ This creates smooth color transitions when theme changes, improving UX.
 
 ---
 
+## Three.js - 3D Graphics Library
+
+### What is Three.js?
+Three.js is a JavaScript library that simplifies 3D graphics rendering using WebGL. It provides abstractions for scenes, cameras, geometry, materials, and lighting, making 3D web development much more accessible.
+
+### Core Concepts
+
+**Scene** - Container for all 3D objects
+```javascript
+const scene = new THREE.Scene();
+scene.background = null;  // Transparent background
+```
+
+**Camera** - Defines viewpoint
+```javascript
+const camera = new THREE.PerspectiveCamera(
+  75,           // Field of view (degrees)
+  width/height, // Aspect ratio
+  0.1,          // Near clipping plane
+  1000          // Far clipping plane
+);
+camera.position.z = 2.5;  // Move back to see object
+```
+
+**Renderer** - Draws scene to canvas
+```javascript
+const renderer = new THREE.WebGLRenderer({
+  canvas,      // HTML canvas element
+  antialias: true,
+  alpha: true  // Transparent background support
+});
+renderer.setSize(width, height);
+renderer.setClearColor(0x000000, 0);  // Transparent clear
+```
+
+### Geometry & Materials
+
+**Geometry** - Defines shape
+```javascript
+const geometry = new THREE.BoxGeometry(2, 2, 2);  // Width, height, depth
+```
+
+**Material** - Defines appearance
+```javascript
+const material = new THREE.MeshBasicMaterial({
+  color: 0x00ff88,      // Green
+  wireframe: true       // Show edges only
+});
+```
+
+**Mesh** - Combines geometry + material
+```javascript
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+```
+
+### Lighting
+
+**Ambient Light** - Even illumination everywhere
+```javascript
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+```
+
+**Directional Light** - Like sun rays from specific direction
+```javascript
+const directional = new THREE.DirectionalLight(0xffffff, 0.8);
+directional.position.set(5, 10, 5);  // Direction: right, up, forward
+scene.add(directional);
+```
+
+### Animation Loop
+
+```javascript
+function animate() {
+  requestAnimationFrame(animate);  // Recursive call for 60fps
+  
+  // Update properties
+  mesh.rotation.x += 0.01;
+  mesh.rotation.y += 0.01;
+  
+  renderer.render(scene, camera);  // Draw frame
+}
+
+animate();
+```
+
+### Loading 3D Models (.glb/.gltf)
+
+**GLTFLoader** loads pre-made 3D models
+```javascript
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+const loader = new GLTFLoader();
+loader.load(
+  '/path/to/model.glb',           // URL
+  (gltf) => {                      // Success
+    const model = gltf.scene;
+    scene.add(model);
+  },
+  (progress) => {                  // Loading progress
+    console.log(progress.loaded / progress.total * 100 + '%');
+  },
+  (error) => {                     // Error
+    console.error(error);
+  }
+);
+```
+
+### Auto-Centering Models
+
+Models often have offsets in their internal coordinates. Use Box3 to center them:
+
+```javascript
+const box = new THREE.Box3().setFromObject(model);
+const center = box.getCenter(new THREE.Vector3());
+model.position.sub(center);  // Move so center is at origin
+```
+
+### Camera Positioning
+
+Adjust camera distance to frame model properly:
+```javascript
+// Calculate camera Z to fit model in frame
+const vFOV = camera.fov * Math.PI / 180;  // Convert to radians
+const modelHeight = 2.4;                   // Estimated model size
+const padding = 1.25;                      // 1.25 = 80% fill
+
+camera.position.z = (modelHeight * padding) / (2 * Math.tan(vFOV / 2));
+```
+
+### Rotating Objects to Face Direction
+
+**Method 1: Direct Rotation**
+```javascript
+const rotationX = 0.1;  // Radians
+const rotationY = 0.2;
+mesh.rotation.x = rotationX;
+mesh.rotation.y = rotationY;
+```
+
+**Method 2: Look At (Easier)**
+```javascript
+mesh.lookAt(x, y, z);  // Points mesh towards (x, y, z)
+```
+
+### Common Properties
+
+**Position:**
+```javascript
+mesh.position.set(x, y, z);
+mesh.position.x += 1;
+```
+
+**Rotation (in radians):**
+```javascript
+mesh.rotation.x = Math.PI / 2;  // 90 degrees
+```
+
+**Scale:**
+```javascript
+mesh.scale.set(2, 2, 2);  // 2x size
+```
+
+### Transparency & Backgrounds
+
+**Transparent Background:**
+```javascript
+// When creating renderer
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+// When rendering
+renderer.setClearColor(0x000000, 0);  // Last param = alpha
+
+// In scene
+scene.background = null;
+```
+
+**Transparent Materials:**
+```javascript
+const material = new THREE.MeshBasicMaterial({
+  color: 0xff0000,
+  transparent: true,
+  opacity: 0.5  // 0 = invisible, 1 = opaque
+});
+```
+
+### Cursor Tracking Example
+
+```javascript
+let targetX = 0;
+let targetY = 0;
+let currentX = 0;
+let currentY = 0;
+
+document.addEventListener('mousemove', (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  
+  const offsetX = event.clientX - centerX;
+  const offsetY = event.clientY - centerY;
+  
+  const sensitivity = 0.003;
+  targetX = offsetX * sensitivity;
+  targetY = offsetY * sensitivity;
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  
+  // Smooth easing (lerp)
+  const easing = 0.1;
+  currentX += (targetX - currentX) * easing;
+  currentY += (targetY - currentY) * easing;
+  
+  // Clamp to prevent extreme angles
+  const maxRot = Math.PI * 0.3;
+  const clampedX = Math.max(-maxRot, Math.min(maxRot, currentX));
+  const clampedY = Math.max(-maxRot, Math.min(maxRot, currentY));
+  
+  model.rotation.x = clampedY;
+  model.rotation.y = clampedX;
+  
+  renderer.render(scene, camera);
+}
+```
+
+### Responsive Canvas
+
+Handle window resize:
+```javascript
+function onWindowResize() {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+window.addEventListener('resize', onWindowResize);
+```
+
+### Performance Tips
+
+1. **Use appropriate LOD** - Reduce polygon count for distant objects
+2. **Use canvas.clientWidth** - Don't hardcode sizes (responsive)
+3. **Clamp rotation** - Avoid extreme angles that look wrong
+4. **Use lerp for smooth motion** - Don't jump instantly
+5. **Cache references** - Don't query DOM on every frame
+6. **Use requestAnimationFrame** - Syncs with monitor refresh rate
+
+### Import Paths
+
+**Main library:**
+```javascript
+import * as THREE from 'three';
+```
+
+**Loaders and addons:**
+```javascript
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+```
+
+### File Formats
+
+**Recommended: .glb (binary GLTF)**
+- Single file (includes geometry, materials, textures)
+- Smaller file size than .gltf
+- Better for distribution
+
+**Alternative: .gltf + .bin + textures**
+- .gltf: JSON metadata
+- .bin: Binary geometry data
+- texture files: Separate image files
+- More complex setup, better for versioning
+
+Both use GLTFLoader:
+```javascript
+loader.load('model.glb', ...)  // Works for both
+loader.load('model.gltf', ...)
+```
+
+### Debugging
+
+**Check model loaded:**
+```javascript
+loader.load('model.glb', (gltf) => {
+  console.log('Model:', gltf.scene);
+  console.log('Children:', gltf.scene.children);
+  console.log('Bounds:', new THREE.Box3().setFromObject(gltf.scene));
+});
+```
+
+**Visualize axes (temporary):**
+```javascript
+const axesHelper = new THREE.AxesHelper(5);  // Red=X, Green=Y, Blue=Z
+scene.add(axesHelper);
+```
+
+**Check rendering:**
+```javascript
+// Verify renderer is drawing
+renderer.render(scene, camera);
+console.log('Frame rendered');
+```
+
+---
+
 ## Hero Navigation Component
 
 ### What is a Hero Component?

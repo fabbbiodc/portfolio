@@ -2047,4 +2047,290 @@ All elements listed above now have bloom applied:
 
 ---
 
+## Day 15: Replace PixiJS with Three.js Hero Scene (✅ Complete)
+
+### Objectives
+- Remove all PixiJS dependencies (pixi.js, pixi-filters, @pixi/filter-pixelate)
+- Create a basic three.js rotating cube in HeroArt.astro
+- Load a .glb model (eye) instead of cube
+- Implement cursor tracking to make eye follow mouse
+- Add proper lighting and transparent background
+- Document three.js implementation in NOTES.md
+
+### Session Flow & Implementation
+
+**Phase 1: Dependency Cleanup**
+- Removed three pixi.js packages from package.json
+- Added `three` package and `@types/three` for TypeScript support
+- Ran `npm install` to update dependencies
+
+**Phase 2: Initial Three.js Setup**
+- Created basic scene with camera and renderer
+- Added cube geometry with wireframe material
+- Implemented animation loop with rotation
+- Built initial cube that rotates on X/Y axes
+- Problem: Canvas height was 0 (no visible output)
+- Solution: Fixed HeroSection wrapper to add explicit height class (`h-72`)
+
+**Phase 3: GLTFLoader Integration**
+- Switched from cube to .glb model loading
+- Installed GLTFLoader from three.js examples
+- Implemented loader with progress and error callbacks
+- Fixed canvas centering using Box3 to calculate model bounds
+- Issue: Model auto-centering by removing calculated center offset
+
+**Phase 4: Lighting System**
+- Added ambient light (0.6 intensity) for general illumination
+- Added directional light (0.8 intensity) for depth and shadows
+- Result: Model properly lit and visible
+
+**Phase 5: Transparent Background**
+- Set scene.background to null
+- Set renderer.setClearColor with alpha: 0
+- Result: Background transparent, only model visible
+
+**Phase 6: Cursor Following (Advanced Feature)**
+- Implemented mouse tracking with canvas-relative positioning
+- Calculated cursor offset from canvas center
+- Applied sensitivity scaling (0.003) for precise control
+- Implemented smooth easing (lerp at 0.1) for natural motion
+- Added rotation clamping to prevent model looking backwards
+  - Horizontal (Y): 63 degrees max
+  - Vertical (X): 45 degrees max
+- Result: Eye tracks cursor precisely, iris always visible
+
+**Phase 7: TypeScript Fixes**
+- Issue 1: `import { undefined }` from astro:schema (invalid)
+  - Solution: Removed bad import
+- Issue 2: GLTFLoader import path incorrect
+  - Solution: Updated to `three/examples/jsm/loaders/GLTFLoader.js`
+- Issue 3: Model type undefined error
+  - Solution: Changed `let model: THREE.Group` to `let model: any = null`
+- Issue 4: Model.rotation type error
+  - Solution: Added null check before accessing rotation properties
+- Issue 5: Animation starting before model loads
+  - Solution: Moved animate() call inside loader success callback
+
+### Checklist - Day 15
+
+**Dependencies:**
+- [x] Remove pixi.js from package.json
+- [x] Remove pixi-filters from package.json
+- [x] Remove @pixi/filter-pixelate from package.json
+- [x] Add three to package.json
+- [x] Add @types/three to devDependencies
+- [x] Run npm install
+
+**Initial Three.js Setup:**
+- [x] Create Scene, Camera, Renderer
+- [x] Add basic cube with rotation animation
+- [x] Test canvas rendering
+- [x] Fix HeroSection height (add h-72 class)
+
+**GLTFLoader Integration:**
+- [x] Import GLTFLoader
+- [x] Create loader and load .glb file
+- [x] Handle loading progress callback
+- [x] Handle error callback
+- [x] Auto-center model using Box3
+- [x] Move animate() call inside loader callback
+
+**Lighting & Appearance:**
+- [x] Add ambient light (0.6 intensity)
+- [x] Add directional light (0.8 intensity from (5, 10, 5))
+- [x] Set scene background to null (transparent)
+- [x] Set renderer clear color with alpha: 0
+
+**Cursor Following:**
+- [x] Implement mouse tracking
+- [x] Calculate canvas-relative cursor position
+- [x] Apply sensitivity scaling (0.003)
+- [x] Implement smooth easing (lerp at 0.1)
+- [x] Clamp rotation (horizontal 63°, vertical 45°)
+- [x] Test eye following at various angles
+
+**TypeScript & Fixes:**
+- [x] Remove invalid import { undefined }
+- [x] Fix GLTFLoader import path
+- [x] Fix model type error (use `any = null`)
+- [x] Add null checks for model access
+- [x] Move animate() inside loader callback
+- [x] Build verification - no errors
+
+### Implementation Details
+
+**File: src/components/HeroArt.astro**
+
+Structure:
+```astro
+---
+// Hero animation with three.js eye that follows cursor
+---
+
+<canvas id="hero-animation" class="w-full h-full ..."></canvas>
+
+<script>
+  import * as THREE from "three";
+  import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+  
+  function init() {
+    // 1. Get canvas and verify
+    // 2. Create scene, camera, renderer
+    // 3. Add lighting
+    // 4. Setup mouse tracking
+    // 5. Load .glb model
+    // 6. Animation loop
+    // 7. Handle resize
+  }
+  
+  // Initialize on load
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+</script>
+```
+
+**Key Functions:**
+1. **Mouse Tracking Listener** - Normalizes cursor to [-1, 1] range
+2. **calculateMaxHeight** - Applies sensitivity scaling to cursor position
+3. **Rotation Clamping** - Limits model rotation to keep iris visible
+4. **Smooth Easing** - Lerp-based smooth following (0.1 easing factor)
+
+**Camera Positioning:**
+- Distance: 2.5 units (positions model center in viewport)
+- Aspect ratio: Dynamic based on canvas size
+- FOV: 75 degrees
+
+**Model Centering:**
+```javascript
+const box = new THREE.Box3().setFromObject(model);
+const center = box.getCenter(new THREE.Vector3());
+model.position.sub(center);
+```
+
+### Testing Summary
+
+**✅ Three.js Setup:**
+- Scene renders ✓
+- Camera positioned correctly ✓
+- Renderer captures to canvas ✓
+- Model centered in viewport ✓
+
+**✅ Lighting:**
+- Model properly illuminated ✓
+- Shadows/depth visible ✓
+- No dark spots ✓
+
+**✅ Transparent Background:**
+- Canvas background is transparent ✓
+- Only model visible (no white/black box) ✓
+- Works with page background ✓
+
+**✅ Cursor Following:**
+- Eye tracks horizontal cursor movement ✓
+- Eye tracks vertical cursor movement ✓
+- Smooth easing applied (no snapping) ✓
+- Iris remains visible at all angles ✓
+- Rotation clamped correctly (45° vertical, 63° horizontal) ✓
+
+**✅ Build & Errors:**
+- Build passes with no errors ✓
+- No TypeScript errors ✓
+- All imports resolve correctly ✓
+- Animation runs smoothly ✓
+
+### Design Decisions
+
+**Why Three.js over PixiJS?**
+- Three.js: Better for 3D models (.glb), native 3D math
+- PixiJS: Better for 2D graphics/filters
+- Use case: 3D eye model with cursor tracking = Three.js win
+
+**Why Box3 for Auto-Centering?**
+- Handles any model size automatically
+- Works with complex geometries
+- No manual adjustment needed
+
+**Why Sensitivity Scaling?**
+- Makes cursor tracking precise (not twitchy)
+- Scales with canvas size responsively
+- 0.003 value found empirically to feel natural
+
+**Why Rotation Clamping?**
+- Keeps iris visible (important for eye model)
+- Prevents unnatural backwards-looking rotation
+- 45° vertical is enough for natural eye rotation
+- 63° horizontal covers full left-right range
+
+### Files Modified
+
+1. **package.json**
+   - Removed: pixi.js, pixi-filters, @pixi/filter-pixelate
+   - Added: three, @types/three
+
+2. **src/components/HeroArt.astro**
+   - Complete rewrite from PixiJS to Three.js
+   - Removed all PixiJS imports
+   - Added Three.js scene, camera, renderer
+   - Added GLTFLoader for .glb model loading
+   - Implemented cursor tracking and rotation clamping
+   - Added lighting system
+
+3. **src/components/HeroSection.astro**
+   - Added `h-72` class to HeroArt wrapper for fixed height
+
+### Completed This Session
+
+1. ✅ Removed all PixiJS dependencies from package.json
+2. ✅ Installed three.js and TypeScript definitions
+3. ✅ Created Three.js scene with proper camera/renderer setup
+4. ✅ Loaded .glb eye model with auto-centering
+5. ✅ Implemented lighting system (ambient + directional)
+6. ✅ Made background transparent
+7. ✅ Implemented cursor tracking with:
+   - Canvas-relative positioning
+   - Sensitivity scaling
+   - Smooth easing/lerp
+   - Rotation clamping
+8. ✅ Fixed all TypeScript errors
+9. ✅ Build passes with no errors
+10. ✅ Tested eye tracking at various angles and positions
+
+### Known Issues & Future Enhancements
+
+**Current Behavior:**
+- Eye follows cursor when mouse is over hero section
+- Eye frozen when mouse leaves canvas area
+- Smooth easing makes following feel natural but slightly delayed
+
+**Future Enhancements (Pending):**
+- Add animation when user doesn't interact (blinking, looking around)
+- Store mouse position globally to follow even when off canvas
+- Add camera movement/rotation for interactive 3D experience
+- Support different eye models (user could swap .glb file)
+- Add subtle bloom/glow to eye (matches design system)
+
+### Next Steps (Ready for Implementation)
+
+1. **Enhance Cursor Tracking:**
+   - Track cursor position even off-canvas
+   - Add looking-away animation when idle
+
+2. **Add Interactions:**
+   - Click on eye for easter egg
+   - Keyboard shortcuts for rotation
+
+3. **Performance Optimization:**
+   - Profile performance on mobile
+   - Consider LOD (level of detail) for complex models
+
+4. **Visual Enhancements:**
+   - Add bloom effect to match design system
+   - Consider eye animation (blinking, pupil dilation)
+   - Test with different lighting setups
+
+---
+
 _Keep adding new dated sections below for each future session, with specific notes, steps carried out, and any questions or insights._
