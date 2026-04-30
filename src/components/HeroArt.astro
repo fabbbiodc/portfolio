@@ -44,10 +44,10 @@ import { length } from "astro:schema";
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
     scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(5, 10, 5);
+    directionalLight.position.set(5, 10, 2);
     scene.add(directionalLight);
 
     const loader = new GLTFLoader();
