@@ -32,7 +32,8 @@ import { length } from "astro:schema";
       1000,
     );
 
-    camera.position.set(0, 0, 180);
+    camera.position.set(0, 0, 5
+    );
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -79,7 +80,7 @@ import { length } from "astro:schema";
     const renderPixelatedPass = new RenderPixelatedPass(8, scene, camera);
     composer.addPass(renderPixelatedPass);
     
-    loader.load("/models/eye.glb", (gltf) => {
+    loader.load("/models/lowpoly_eye_02.glb", (gltf) => {
       model = gltf.scene;
       
       // Auto-center model by computing its bounding box
