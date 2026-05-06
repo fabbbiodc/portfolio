@@ -35,15 +35,15 @@
 
     camera.position.set(0, 0, 2);
 
-    const renderer = new THREE.WebGLRenderer({
+    const mainRenderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
       alpha: true,
     });
 
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    mainRenderer.setClearColor(0x000000, 0);
+    mainRenderer.setPixelRatio(window.devicePixelRatio);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 3);
     scene.add(ambientLight);
@@ -59,34 +59,34 @@
     let currentX = 0;
     let currentY = 0;
 
-    document.addEventListener("mousemove", (event) => {
-      // Get canvas position relative to viewport
-      const rect = canvas.getBoundingClientRect();
-      const canvasCenterX = rect.left + rect.width / 2;
-      const canvasCenterY = rect.top + rect.height / 2;
+    // document.addEventListener("mousemove", (event) => {
+    //   // Get canvas position relative to viewport
+    //   const rect = canvas.getBoundingClientRect();
+    //   const canvasCenterX = rect.left + rect.width / 2;
+    //   const canvasCenterY = rect.top + rect.height / 2;
 
-      // Calculate offset from canvas center
-      const offsetX = event.clientX - canvasCenterX;
-      const offsetY = event.clientY - canvasCenterY;
+    //   // Calculate offset from canvas center
+    //   const offsetX = event.clientX - canvasCenterX;
+    //   const offsetY = event.clientY - canvasCenterY;
 
-      // Scale by canvas size for precision (smaller sensitivity)
-      const sensitivity = 0.003; // Adjust for more/less sensitivity
-      targetX = offsetX * sensitivity;
-      targetY = offsetY * sensitivity;
-    });
+    //   // Scale by canvas size for precision (smaller sensitivity)
+    //   const sensitivity = 0.003; // Adjust for more/less sensitivity
+    //   targetX = offsetX * sensitivity;
+    //   targetY = offsetY * sensitivity;
+    // });
 
-    const composer = new EffectComposer(renderer);
+    const composer = new EffectComposer(mainRenderer);
 
     const renderPixelatedPass = new RenderPixelatedPass(6, scene, camera);
     composer.addPass(renderPixelatedPass);
 
-    loader.load("/models/lowpoly_eye_02.glb", (gltf) => {
+    loader.load("/models/monitor.glb", (gltf) => {
       // Create a group to wrap the model
       modelGroup = new THREE.Group();
       const loadedModel = gltf.scene;
 
       // Rotate model 90 degrees to face the viewer
-      loadedModel.rotation.x = Math.PI / 2;
+      // loadedModel.rotation.x = Math.PI / 2;
 
       // Add loaded model as child to the group
       modelGroup.add(loadedModel);
@@ -147,7 +147,7 @@
       const height = canvas.clientHeight;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      mainRenderer.setSize(width, height);
       composer.setSize(width, height);
     }
     window.addEventListener("resize", onWindowResize);
