@@ -92,7 +92,7 @@
     let previousMouseX = 0;
     let previousMouseY = 0;
 
-    let eyeModel;
+    let eyeModel: THREE.Group | undefined;
     const eyeLoader = new GLTFLoader();
     eyeLoader.load("/models/eye.glb", function (gltf) {
       eyeModel = gltf.scene;
@@ -179,8 +179,6 @@
     );
     composer.addPass(renderPixelatedPass);
 
-    let controls: OrbitControls;
-
     monitorLoader.load("/models/monitor.glb", (gltf) => {
       // Create a group to wrap the model
       monitorGroup = new THREE.Group();
@@ -220,8 +218,9 @@
           map: renderTarget.texture,
         });
       }
+
       // // Wireframe effect
-      // loadedModel.traverse((child) => {
+      // monitor.traverse((child) => {
       //   if (child instanceof THREE.Mesh) {
       //     const edges = new THREE.EdgesGeometry(child.geometry);
       //     const lineMaterial = new THREE.LineBasicMaterial({
