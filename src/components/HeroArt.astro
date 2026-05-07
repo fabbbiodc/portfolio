@@ -2,9 +2,7 @@
 // Hero animation with three.js
 ---
 
-<canvas
-  id="hero-animation"
-  class="w-full h-full -z-10 opacity-80"></canvas>
+<canvas id="hero-animation" class="w-full h-full -z-10 opacity-80"></canvas>
 
 <script>
   import * as THREE from "three";
@@ -19,7 +17,7 @@
     const canvas = document.getElementById(
       "hero-animation",
     ) as HTMLCanvasElement;
-     if (!canvas) {
+    if (!canvas) {
       console.error("Canvas not found!");
       return;
     }
@@ -69,6 +67,13 @@
     const screenDirectionalLight = new THREE.DirectionalLight(0xffffff, 1);
     screenDirectionalLight.position.set(5, 5, 5);
     screenScene.add(screenDirectionalLight);
+
+    // Debug: Add a test box to screenScene in case eye hasn't loaded yet
+    const testBox = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+    );
+    screenScene.add(testBox);
 
     // Loaders
     const monitorLoader = new GLTFLoader();
@@ -142,8 +147,14 @@
 
         const maxRotationX = Math.PI * 0.25;
         const maxRotationY = Math.PI * 0.25;
-        monitorTargetRotationX = Math.max(-maxRotationX, Math.min(maxRotationX, monitorTargetRotationX));
-        monitorTargetRotationY = Math.max(-maxRotationY, Math.min(maxRotationY, monitorTargetRotationY));
+        monitorTargetRotationX = Math.max(
+          -maxRotationX,
+          Math.min(maxRotationX, monitorTargetRotationX),
+        );
+        monitorTargetRotationY = Math.max(
+          -maxRotationY,
+          Math.min(maxRotationY, monitorTargetRotationY),
+        );
 
         previousMouseX = event.clientX;
         previousMouseY = event.clientY;
@@ -169,15 +180,21 @@
       isRotatingMonitor = false;
     });
 
-    // Pixelation composer
-    const composer = new EffectComposer(mainRenderer);
+    // Composers
+    const mainComposer = new EffectComposer(mainRenderer);
 
-    const renderPixelatedPass = new RenderPixelatedPass(
-      1,
-      mainScene,
-      mainCamera,
+    const screenComposer = new EffectComposer(mainRenderer, renderTarget);
+    const screenPixelPass = new RenderPixelatedPass(
+      4,
+      screenScene,
+      screenCamera,
     );
-    composer.addPass(renderPixelatedPass);
+    screenComposer.addPass(screenPixelPass);
+
+    // Ensure render target size is set
+    renderTarget.setSize(512, 512);
+    screenComposer.setSize(512, 512);
+    screenComposer.renderToScreen = false;
 
     monitorLoader.load("/models/monitor.glb", (gltf) => {
       // Create a group to wrap the model
@@ -190,9 +207,9 @@
       // Add loaded model as child to the group
       monitorGroup.add(monitor);
 
-      screenMesh = monitor.getObjectByName(
-        "Cylinder003_Material004_0",
-      ) as THREE.Mesh | undefined;
+      screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
+        | THREE.Mesh
+        | undefined;
       console.log(screenMesh?.type);
 
       if (screenMesh) {
@@ -206,8 +223,10 @@
           const x = positionAttribute.getX(i);
           const y = positionAttribute.getY(i);
 
-          const u = (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
-          const v = (y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y);
+          const u =
+            (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
+          const v =
+            (y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y);
 
           uvAttribute.setXY(i, u, v);
         }
@@ -217,6 +236,7 @@
         screenMesh.material = new THREE.MeshBasicMaterial({
           map: renderTarget.texture,
         });
+        screenMesh.material.needsUpdate = true;
       }
 
       // // Wireframe effect
@@ -249,12 +269,14 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      
+
       // Update monitor rotation with easing
       if (monitorGroup) {
         const easing = 0.1;
-        monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * easing;
-        monitorCurrentRotationY += (monitorTargetRotationY - monitorCurrentRotationY) * easing;
+        monitorCurrentRotationX +=
+          (monitorTargetRotationX - monitorCurrentRotationX) * easing;
+        monitorCurrentRotationY +=
+          (monitorTargetRotationY - monitorCurrentRotationY) * easing;
         monitorGroup.rotation.x = monitorCurrentRotationX;
         monitorGroup.rotation.y = monitorCurrentRotationY;
       }
@@ -262,27 +284,31 @@
       // Update eye rotation with easing
       if (eyeModel) {
         const easing = 0.1;
-        eyeCurrentRotationX += (eyeTargetRotationX - eyeCurrentRotationX) * easing;
-        eyeCurrentRotationY += (eyeTargetRotationY - eyeCurrentRotationY) * easing;
-        
+        eyeCurrentRotationX +=
+          (eyeTargetRotationX - eyeCurrentRotationX) * easing;
+        eyeCurrentRotationY +=
+          (eyeTargetRotationY - eyeCurrentRotationY) * easing;
+
         // Clamp rotations to prevent eye from looking behind the screen
         const clampedRotationX = Math.max(
           -maxEyeRotationX,
-          Math.min(maxEyeRotationX, eyeCurrentRotationX)
+          Math.min(maxEyeRotationX, eyeCurrentRotationX),
         );
         const clampedRotationY = Math.max(
           -maxEyeRotationY,
-          Math.min(maxEyeRotationY, eyeCurrentRotationY)
+          Math.min(maxEyeRotationY, eyeCurrentRotationY),
         );
-        
+
         eyeModel.rotation.x = clampedRotationX;
         eyeModel.rotation.y = clampedRotationY;
       }
 
-      mainRenderer.setRenderTarget(renderTarget);
-      mainRenderer.render(screenScene, screenCamera);
+      screenComposer.render();
+      // mainRenderer.setRenderTarget(renderTarget);
+      // mainRenderer.render(screenScene, screenCamera);
       mainRenderer.setRenderTarget(null);
-      composer.render();
+      // mainComposer.render();
+      mainRenderer.render(mainScene, mainCamera);
     }
 
     function onWindowResize() {
@@ -291,7 +317,8 @@
       mainCamera.aspect = width / height;
       mainCamera.updateProjectionMatrix();
       mainRenderer.setSize(width, height);
-      composer.setSize(width, height);
+      mainComposer.setSize(width, height);
+      screenComposer.setSize(512, 512);
     }
     window.addEventListener("resize", onWindowResize);
   }
