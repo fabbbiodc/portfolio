@@ -18,7 +18,7 @@
     const canvas = document.getElementById(
       "hero-animation",
     ) as HTMLCanvasElement;
-    if (!canvas) {
+     if (!canvas) {
       console.error("Canvas not found!");
       return;
     }
@@ -73,51 +73,111 @@
     const monitorLoader = new GLTFLoader();
     let monitorGroup: THREE.Group | undefined;
 
+    // Globals for screen mesh, eye tracking, and monitor rotation
+    let screenMesh: THREE.Mesh | undefined;
+    let screenBox: THREE.Box3 | null = null;
+    let screenFrustumWidth = 0;
+    let screenFrustumHeight = 0;
+    let isRotatingMonitor = false;
+    let previousMouseX = 0;
+    let previousMouseY = 0;
+    let monitorTargetRotationY = 0;
+    let monitorTargetRotationX = 0;
+    let monitorCurrentRotationY = 0;
+    let monitorCurrentRotationX = 0;
+
     let eyeModel;
     const eyeLoader = new GLTFLoader();
     eyeLoader.load("/models/eye.glb", function (gltf) {
       eyeModel = gltf.scene;
       const eyeBox = new THREE.Box3().setFromObject(eyeModel);
       const eyeCenter = eyeBox.getCenter(new THREE.Vector3());
-      
+
       eyeModel.position.sub(eyeCenter);
       screenScene.add(eyeModel);
 
       const size = new THREE.Vector3();
       eyeBox.getSize(size);
       const maxDim = Math.max(size.x, size.y, size.z);
-      
-      screenCamera.position.set(0, 0, maxDim * 1.5); 
-      screenCamera.lookAt(0, 0, 0); 
+
+      screenCamera.position.set(0, 0, maxDim * 1.5);
+      screenCamera.lookAt(0, 0, 0);
+
+      // Compute screen scene frustum size at z=0 for eye positioning
+      const distance = screenCamera.position.z;
+      const vFov = THREE.MathUtils.degToRad(screenCamera.fov);
+      screenFrustumHeight = 2 * distance * Math.tan(vFov / 2);
+      screenFrustumWidth = screenFrustumHeight * screenCamera.aspect;
     });
 
-    // Mouse tracking
-    // let targetX = 0;
-    // let targetY = 0;
-    // let currentX = 0;
-    // let currentY = 0;
+    // Mouse event handlers for monitor rotation and eye tracking
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
 
-    // document.addEventListener("mousemove", (event) => {
-    //   // Get canvas position relative to viewport
-    //   const rect = canvas.getBoundingClientRect();
-    //   const canvasCenterX = rect.left + rect.width / 2;
-    //   const canvasCenterY = rect.top + rect.height / 2;
+    document.addEventListener("mousedown", (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, mainCamera);
 
-    //   // Calculate offset from canvas center
-    //   const offsetX = event.clientX - canvasCenterX;
-    //   const offsetY = event.clientY - canvasCenterY;
+      if (monitorGroup) {
+        const intersects = raycaster.intersectObject(monitorGroup, true);
+        if (intersects.length > 0) {
+          isRotatingMonitor = true;
+          previousMouseX = event.clientX;
+          previousMouseY = event.clientY;
+          event.preventDefault();
+        }
+      }
+    });
 
-    //   // Scale by canvas size for precision (smaller sensitivity)
-    //   const sensitivity = 0.003; // Adjust for more/less sensitivity
-    //   targetX = offsetX * sensitivity;
-    //   targetY = offsetY * sensitivity;
-    // });
+    document.addEventListener("mousemove", (event) => {
+      // --- Eye tracking (always active) ---
+      if (eyeModel && screenMesh && screenBox && screenFrustumWidth > 0) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, mainCamera);
+
+        const intersects = raycaster.intersectObject(screenMesh);
+        if (intersects.length > 0) {
+          const hitPoint = intersects[0].point.clone();
+          const localPoint = screenMesh.worldToLocal(hitPoint);
+          const u = (localPoint.x - screenBox.min.x) / (screenBox.max.x - screenBox.min.x);
+          const v = (localPoint.y - screenBox.min.y) / (screenBox.max.y - screenBox.min.y);
+          const clampedU = Math.max(0, Math.min(1, u));
+          const clampedV = Math.max(0, Math.min(1, v));
+          eyeModel.position.x = (clampedU - 0.5) * screenFrustumWidth;
+          eyeModel.position.y = (clampedV - 0.5) * screenFrustumHeight;
+        }
+      }
+
+      // --- Monitor rotation (only when rotating) ---
+      if (isRotatingMonitor && monitorGroup) {
+        const deltaX = event.clientX - previousMouseX;
+        const deltaY = event.clientY - previousMouseY;
+        const rotationSensitivity = 0.005;
+
+        monitorTargetRotationY += deltaX * rotationSensitivity;
+        monitorTargetRotationX += deltaY * rotationSensitivity;
+
+        const maxRotationX = Math.PI * 0.25;
+        const maxRotationY = Math.PI * 0.25;
+        monitorTargetRotationX = Math.max(-maxRotationX, Math.min(maxRotationX, monitorTargetRotationX));
+        monitorTargetRotationY = Math.max(-maxRotationY, Math.min(maxRotationY, monitorTargetRotationY));
+
+        previousMouseX = event.clientX;
+        previousMouseY = event.clientY;
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      isRotatingMonitor = false;
+    });
 
     // Pixelation composer
     const composer = new EffectComposer(mainRenderer);
 
     const renderPixelatedPass = new RenderPixelatedPass(
-      4,
+      1,
       mainScene,
       mainCamera,
     );
@@ -134,12 +194,15 @@
       // Add loaded model as child to the group
       monitorGroup.add(monitor);
 
-      let screenMesh = monitor.getObjectByName("Cylinder003_Material004_0");
+      screenMesh = monitor.getObjectByName(
+        "Cylinder003_Material004_0",
+      ) as THREE.Mesh | undefined;
+      console.log(screenMesh?.type);
 
       if (screenMesh) {
         screenMesh.geometry.computeBoundingBox();
-        const screenBox = screenMesh.geometry.boundingBox;
-
+        screenBox = screenMesh.geometry.boundingBox;
+        if (!screenBox) return;
         const positionAttribute = screenMesh.geometry.attributes.position;
         const uvAttribute = screenMesh.geometry.attributes.uv;
 
@@ -190,21 +253,11 @@
     function animate() {
       requestAnimationFrame(animate);
       if (monitorGroup) {
-        // const easing = 0.1;
-        // // currentX += (targetX - currentX) * easing;
-        // // currentY += (targetY - currentY) * easing;
-        // const maxRotationY = Math.PI * 0.25;
-        // const maxRotationX = Math.PI * 0.25;
-        // const clampedX = Math.max(
-        //   -maxRotationX,
-        //   Math.min(maxRotationX, currentX),
-        // );
-        // const clampedY = Math.max(
-        //   -maxRotationY,
-        //   Math.min(maxRotationY, currentY),
-        // );
-        // monitorGroup.rotation.x = clampedY;
-        // monitorGroup.rotation.y = clampedX;
+        const easing = 0.1;
+        monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * easing;
+        monitorCurrentRotationY += (monitorTargetRotationY - monitorCurrentRotationY) * easing;
+        monitorGroup.rotation.x = monitorCurrentRotationX;
+        monitorGroup.rotation.y = monitorCurrentRotationY;
       }
       mainRenderer.setRenderTarget(renderTarget);
       mainRenderer.render(screenScene, screenCamera);
