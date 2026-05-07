@@ -83,6 +83,15 @@
     const maxEyeRotationX = Math.PI * 0.25;
     const maxEyeRotationY = Math.PI * 0.25;
 
+    // Monitor rotation tracking
+    let monitorTargetRotationX = 0;
+    let monitorTargetRotationY = 0;
+    let monitorCurrentRotationX = 0;
+    let monitorCurrentRotationY = 0;
+    let isRotatingMonitor = false;
+    let previousMouseX = 0;
+    let previousMouseY = 0;
+
     let eyeModel;
     const eyeLoader = new GLTFLoader();
     eyeLoader.load("/models/eye.glb", function (gltf) {
@@ -101,8 +110,46 @@
       screenCamera.lookAt(0, 0, 0);
     });
 
-    // Mouse event handlers for eye rotation tracking
+    // Mouse event handlers for eye rotation tracking and monitor rotation
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+
+    document.addEventListener("mousedown", (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, mainCamera);
+
+      if (monitorGroup) {
+        const intersects = raycaster.intersectObject(monitorGroup, true);
+        if (intersects.length > 0) {
+          isRotatingMonitor = true;
+          previousMouseX = event.clientX;
+          previousMouseY = event.clientY;
+          event.preventDefault();
+        }
+      }
+    });
+
     document.addEventListener("mousemove", (event) => {
+      // --- Monitor rotation (when dragging) ---
+      if (isRotatingMonitor && monitorGroup) {
+        const deltaX = event.clientX - previousMouseX;
+        const deltaY = event.clientY - previousMouseY;
+        const rotationSensitivity = 0.005;
+
+        monitorTargetRotationY += deltaX * rotationSensitivity;
+        monitorTargetRotationX += deltaY * rotationSensitivity;
+
+        const maxRotationX = Math.PI * 0.25;
+        const maxRotationY = Math.PI * 0.25;
+        monitorTargetRotationX = Math.max(-maxRotationX, Math.min(maxRotationX, monitorTargetRotationX));
+        monitorTargetRotationY = Math.max(-maxRotationY, Math.min(maxRotationY, monitorTargetRotationY));
+
+        previousMouseX = event.clientX;
+        previousMouseY = event.clientY;
+      }
+
+      // --- Eye rotation tracking (always active) ---
       // Get canvas position relative to viewport
       const rect = canvas.getBoundingClientRect();
       const canvasCenterX = rect.left + rect.width / 2;
@@ -116,6 +163,10 @@
       const sensitivity = 0.003;
       eyeTargetRotationX = offsetY * sensitivity;
       eyeTargetRotationY = -offsetX * sensitivity;
+    });
+
+    document.addEventListener("mouseup", () => {
+      isRotatingMonitor = false;
     });
 
     // Pixelation composer
@@ -194,26 +245,19 @@
 
       mainScene.add(monitorGroup);
       console.log("Model loaded and centered in group");
-
-      // Initialize OrbitControls after monitor is loaded
-      controls = new OrbitControls(mainCamera, canvas);
-      controls.enableZoom = false;
-      controls.enablePan = false;
-      controls.rotateSpeed = 0.8;
-      controls.autoRotate = false;
-      controls.target.copy(monitorGroup.position);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-
       animate();
     });
 
     function animate() {
       requestAnimationFrame(animate);
       
-      // Update OrbitControls
-      if (controls) {
-        controls.update();
+      // Update monitor rotation with easing
+      if (monitorGroup) {
+        const easing = 0.1;
+        monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * easing;
+        monitorCurrentRotationY += (monitorTargetRotationY - monitorCurrentRotationY) * easing;
+        monitorGroup.rotation.x = monitorCurrentRotationX;
+        monitorGroup.rotation.y = monitorCurrentRotationY;
       }
 
       // Update eye rotation with easing
