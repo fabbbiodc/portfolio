@@ -160,20 +160,20 @@
         previousMouseY = event.clientY;
       }
 
-      // --- Eye rotation tracking (always active) ---
-      // Get canvas position relative to viewport
-      const rect = canvas.getBoundingClientRect();
-      const canvasCenterX = rect.left + rect.width / 2;
-      const canvasCenterY = rect.top + rect.height / 2;
+       // --- Eye rotation tracking (always active) ---
+       // Get canvas position relative to viewport
+       const rect = canvas.getBoundingClientRect();
+       const canvasCenterX = rect.left + rect.width / 2;
+       const canvasCenterY = rect.top + rect.height / 2;
 
-      // Calculate offset from canvas center
-      const offsetX = event.clientX - canvasCenterX;
-      const offsetY = event.clientY - canvasCenterY;
+       // Calculate offset from canvas center
+       const offsetX = event.clientX - canvasCenterX;
+       const offsetY = event.clientY - canvasCenterY;
 
-      // Scale by canvas size for precision
-      const sensitivity = 0.003;
-      eyeTargetRotationX = offsetY * sensitivity;
-      eyeTargetRotationY = -offsetX * sensitivity;
+       // Scale by canvas size for precision
+       const sensitivity = 0.003;
+       eyeTargetRotationX = offsetY * sensitivity;
+       eyeTargetRotationY = -offsetX * sensitivity;
     });
 
     document.addEventListener("mouseup", () => {
@@ -281,29 +281,45 @@
         monitorGroup.rotation.y = monitorCurrentRotationY;
       }
 
-      // Update eye rotation with easing
-      if (eyeModel) {
-        const easing = 0.1;
-        eyeCurrentRotationX +=
-          (eyeTargetRotationX - eyeCurrentRotationX) * easing;
-        eyeCurrentRotationY +=
-          (eyeTargetRotationY - eyeCurrentRotationY) * easing;
+       // Update eye rotation with easing
+       if (eyeModel) {
+         const easing = 0.1;
+         eyeCurrentRotationX +=
+           (eyeTargetRotationX - eyeCurrentRotationX) * easing;
+         eyeCurrentRotationY +=
+           (eyeTargetRotationY - eyeCurrentRotationY) * easing;
 
-        // Clamp rotations to prevent eye from looking behind the screen
-        const clampedRotationX = Math.max(
-          -maxEyeRotationX,
-          Math.min(maxEyeRotationX, eyeCurrentRotationX),
-        );
-        const clampedRotationY = Math.max(
-          -maxEyeRotationY,
-          Math.min(maxEyeRotationY, eyeCurrentRotationY),
-        );
+         // Clamp rotations to prevent eye from looking behind the screen
+         const clampedRotationX = Math.max(
+           -maxEyeRotationX,
+           Math.min(maxEyeRotationX, eyeCurrentRotationX),
+         );
+         const clampedRotationY = Math.max(
+           -maxEyeRotationY,
+           Math.min(maxEyeRotationY, eyeCurrentRotationY),
+         );
 
-        eyeModel.rotation.x = clampedRotationX;
-        eyeModel.rotation.y = clampedRotationY;
-      }
+         // Calculate eye rotation starting from monitor rotation
+         if (monitorGroup) {
+           const eyeQuat = new THREE.Quaternion();
+           eyeQuat.setFromEuler(new THREE.Euler(clampedRotationX, clampedRotationY, 0, 'YXZ'));
+           
+           const monitorQuat = new THREE.Quaternion();
+           monitorQuat.setFromEuler(new THREE.Euler(monitorCurrentRotationX, monitorCurrentRotationY, 0, 'YXZ'));
+           
+           // Apply monitor rotation to eye rotation
+           const finalQuat = monitorQuat.clone().multiply(eyeQuat);
+           const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, 'YXZ');
+           
+           eyeModel.rotation.x = finalEuler.x;
+           eyeModel.rotation.y = finalEuler.y;
+         } else {
+           eyeModel.rotation.x = clampedRotationX;
+           eyeModel.rotation.y = clampedRotationY;
+         }
+       }
 
-      screenComposer.render();
+       screenComposer.render();
       // mainRenderer.setRenderTarget(renderTarget);
       // mainRenderer.render(screenScene, screenCamera);
       mainRenderer.setRenderTarget(null);

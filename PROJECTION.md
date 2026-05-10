@@ -311,17 +311,19 @@ if (monitorGroup) {
 
 ### Overview
 
-The eye model rotates to "look at" the user's mouse position, **but it accounts for the monitor's current rotation and screen position**.
+The eye model rotates to "look at" the user's mouse position, **accounting for the monitor's current rotation in world space** to maintain accurate tracking regardless of monitor orientation.
 
 ### Mathematical Approach
 
 **The Challenge:**
-The eye is rendered in `screenSpace` (the small 512x512 offscreen render), but the user's mouse position is in `screenSpace` on the canvas. We need to convert mouse coordinates to the eye's local coordinate system, accounting for:
-1. Canvas size vs render target size
-2. Monitor position in 3D space
-3. Monitor rotation (which changes the screen's orientation)
+The eye is rendered in `screenSpace` (the small 512x512 offscreen render), but when the monitor rotates, the screen's orientation in world space changes. We need to ensure the eye always looks at the cursor on the screen by:
+1. Calculating the eye's desired rotation based on cursor position (viewport space)
+2. Applying the monitor's rotation transform to this target rotation
+3. Combining these rotations correctly using quaternion mathematics
 
-**Current Implementation (Simple):**
+### Implementation: Quaternion-Based Rotation Composition
+
+**Step 1: Calculate Eye Target Rotation from Mouse Position**
 ```js
 // Get canvas position relative to viewport
 const rect = canvas.getBoundingClientRect();
@@ -332,7 +334,7 @@ const canvasCenterY = rect.top + rect.height / 2;
 const offsetX = event.clientX - canvasCenterX;
 const offsetY = event.clientY - canvasCenterY;
 
-// Scale by sensitivity
+// Scale by sensitivity to get target rotation
 const sensitivity = 0.003;
 eyeTargetRotationX = offsetY * sensitivity;
 eyeTargetRotationY = -offsetX * sensitivity;
@@ -341,11 +343,11 @@ eyeTargetRotationY = -offsetX * sensitivity;
 **What This Does:**
 - Finds the center of the canvas on the screen
 - Measures how far the mouse is from that center
-- Converts distance to rotation angles
+- Converts distance to rotation angles in viewport space
 - X offset → Y rotation (horizontal look)
 - Y offset → X rotation (vertical look)
 
-### Animation Loop: Eye Rotation
+### Animation Loop: Eye Rotation with Monitor Compensation
 
 ```js
 if (eyeModel) {
@@ -363,8 +365,34 @@ if (eyeModel) {
     Math.min(maxEyeRotationY, eyeCurrentRotationY)
   );
 
-  eyeModel.rotation.x = clampedRotationX;
-  eyeModel.rotation.y = clampedRotationY;
+  // Apply the eye rotation directly in world space,
+  // accounting for the monitor's rotation
+  if (monitorGroup) {
+    // The eye should track the cursor in world space
+    // We need to rotate it by the monitor's rotation to maintain the illusion
+    
+    // 1. Create quaternion from eye's viewport-space rotation
+    const eyeQuat = new THREE.Quaternion();
+    eyeQuat.setFromEuler(new THREE.Euler(clampedRotationX, clampedRotationY, 0, 'YXZ'));
+    
+    // 2. Create quaternion from monitor's current world-space rotation
+    const monitorQuat = new THREE.Quaternion();
+    monitorQuat.setFromEuler(new THREE.Euler(monitorCurrentRotationX, monitorCurrentRotationY, 0, 'YXZ'));
+    
+    // 3. Apply monitor rotation to eye rotation
+    // This transforms the eye's local rotation into world space
+    const finalQuat = monitorQuat.clone().multiply(eyeQuat);
+    
+    // 4. Convert back to Euler angles and apply
+    const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, 'YXZ');
+    
+    eyeModel.rotation.x = finalEuler.x;
+    eyeModel.rotation.y = finalEuler.y;
+  } else {
+    // Fallback if monitor not loaded
+    eyeModel.rotation.x = clampedRotationX;
+    eyeModel.rotation.y = clampedRotationY;
+  }
 }
 ```
 
@@ -379,33 +407,43 @@ if (eyeModel) {
    - `maxEyeRotationY = Math.PI * 0.25` (±45°)
    - Prevents eye from rotating unnaturally far
 
-### Future Enhancement: Monitor Rotation Compensation
+3. **Quaternion Math (The Fix)**
+   - Quaternions represent rotations as 4D vectors: `(x, y, z, w)`
+   - Multiplying quaternions combines rotations correctly without gimbal lock
+   - `monitorQuat.multiply(eyeQuat)` means: "First rotate eye by eyeQuat, then by monitorQuat"
+   - Result: eye tracks cursor accurately regardless of monitor rotation
 
-**The Current Limitation:**
-Eye rotation is in screen-space only. When the monitor rotates, the screen's actual position in 3D changes, but the eye always rotates the same way regardless of monitor orientation.
+### Why Quaternions?
 
-**What Should Happen (Advanced):**
-When monitor rotates, the eye tracking should account for:
-1. Monitor's world-space orientation
-2. Screen mesh's transformed position
-3. Mouse position in screen-space relative to the rotated screen
-
-**Implementation would require:**
+**Euler Angles Problem:**
 ```js
-// Get monitor's transformation matrix
-const monitorMatrix = monitorGroup.matrixWorld;
-
-// Get screen mesh's world position
-const screenWorldPos = screenMesh.getWorldPosition(new THREE.Vector3());
-
-// Project mouse position onto screen plane in world space
-// Convert world space to eye's local space
-// Calculate eye rotation based on local coordinates
-
-// This is complex but provides realistic "eye follows cursor" behavior
+// WRONG - doesn't handle compound rotations correctly
+eyeModel.rotation.x = clampedRotationX + monitorCurrentRotationX;
+eyeModel.rotation.y = clampedRotationY + monitorCurrentRotationY;
 ```
+Rotations don't add like vectors in 3D space. Simple addition causes gimbal lock and incorrect results.
 
-For now, the simple canvas-center-based tracking provides a satisfactory effect even when the monitor rotates.
+**Quaternion Solution:**
+```js
+// CORRECT - handles compound rotations smoothly
+const eyeQuat = new THREE.Quaternion().setFromEuler(eyeEuler);
+const monitorQuat = new THREE.Quaternion().setFromEuler(monitorEuler);
+const finalQuat = monitorQuat.clone().multiply(eyeQuat);
+```
+Quaternion multiplication correctly combines rotations in all three axes without gimbal lock.
+
+### How It Works: The Tracking Effect
+
+When the monitor is straight (rotation = 0):
+- Monitor quaternion is identity (no rotation)
+- Eye quaternion is applied directly
+- Result: Normal viewport-relative eye tracking
+
+When the monitor rotates (e.g., tilted 30°):
+- Eye still looks at cursor based on viewport position
+- Monitor's rotation is applied to this eye rotation
+- Eye appears to track the cursor on the rotated screen
+- User sees the eye following their mouse regardless of monitor orientation
 
 ---
 
@@ -670,22 +708,23 @@ src/components/
 
 ## 12. Future Enhancements
 
-1. **Advanced Eye Tracking**
-   - Account for monitor rotation in eye gaze calculation
-   - Use screen mesh position/orientation for accurate targeting
-
-2. **Additional Effects**
+1. **Additional Effects**
    - Chromatic aberration on pixelated screen
    - Screen glow/bloom effect
    - CRT scan lines overlay
 
-3. **Interaction**
+2. **Interaction**
    - Click areas on screen for navigation
    - Multiple content types projected (video, particles, etc.)
 
-4. **Performance**
+3. **Performance**
    - Lower renderTarget size for lower-end devices
    - Selective rendering based on visibility
+
+4. **Advanced Features**
+   - Eye pupil dilation/constriction based on brightness
+   - Blinking animation
+   - Parallax effect for screen depth
 
 ---
 
