@@ -51,10 +51,10 @@ import HeroLink from "./HeroLink.astro";
       const prefix = link.querySelector(".hero-link-prefix");
 
       if (index === newIndex) {
-        prefix.textContent = "> ";
+       if (prefix) prefix.textContent = "> ";
         wrapper?.setAttribute("data-state", "selected");
       } else {
-        prefix.textContent = "\u00A0\u00A0";
+        if (prefix) prefix.textContent = "\u00A0\u00A0";
         wrapper?.setAttribute("data-state", "default");
       }
     });
@@ -76,7 +76,7 @@ import HeroLink from "./HeroLink.astro";
       const wrapper = link.querySelector(".hero-link-wrapper");
       const prefix = link.querySelector(".hero-link-prefix");
 
-      prefix.textContent = "\u00A0\u00A0";
+      if (prefix) prefix.textContent = "\u00A0\u00A0";
       wrapper?.setAttribute("data-state", "default");
     });
     (
