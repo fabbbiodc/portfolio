@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { EffectComposer } from "three/examples/jsm/Addons.js";
-import { RenderPixelatedPass } from "three/examples/jsm/Addons.js";
+import { EffectComposer, RenderPass, EffectPass, ScanlineEffect, PixelationEffect, BlendFunction } from "postprocessing";
 
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
@@ -11,7 +10,7 @@ const MONITOR_MAX_ROTATION_Y = Math.PI * 0.25;
 const MONITOR_ROTATION_SENSITIVITY = 0.005;
 const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 512;
-const PIXEL_SIZE = 8;
+const PIXEL_SIZE = 4;
 
 function init() {
   const canvas = document.getElementById("hero-animation") as HTMLCanvasElement;
@@ -19,6 +18,8 @@ function init() {
     console.error("[HeroAnimation] Canvas element not found");
     return;
   }
+
+  const clock = new THREE.Clock();
 
   const mainScene = new THREE.Scene();
   mainScene.background = null;
@@ -45,8 +46,6 @@ function init() {
   mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
   mainRenderer.setClearColor(0x000000, 0);
   mainRenderer.setPixelRatio(window.devicePixelRatio);
-
-  const renderTarget = new THREE.WebGLRenderTarget(RENDER_TARGET_SIZE, RENDER_TARGET_SIZE);
 
   const mainAmbientLight = new THREE.AmbientLight(0xffffff, 3);
   mainScene.add(mainAmbientLight);
@@ -111,7 +110,7 @@ function init() {
     }
 
     uvAttribute.needsUpdate = true;
-    screenMesh.material = new THREE.MeshBasicMaterial({ map: renderTarget.texture });
+    screenMesh.material = new THREE.MeshBasicMaterial({ map: screenComposer.outputBuffer.texture });
     screenMesh.material.needsUpdate = true;
   }
 
@@ -200,12 +199,23 @@ function init() {
     });
   }
 
-  const screenComposer = new EffectComposer(mainRenderer, renderTarget);
-  const screenPixelPass = new RenderPixelatedPass(PIXEL_SIZE, screenScene, screenCamera);
-  screenComposer.addPass(screenPixelPass);
-  renderTarget.setSize(RENDER_TARGET_SIZE, RENDER_TARGET_SIZE);
+  const screenComposer = new EffectComposer(mainRenderer);
+  screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
   screenComposer.setSize(RENDER_TARGET_SIZE, RENDER_TARGET_SIZE);
-  screenComposer.renderToScreen = false;
+
+  const renderPass = new RenderPass(screenScene, screenCamera);
+  const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
+  
+  const scanlineEffect = new ScanlineEffect({
+    blendFunction: BlendFunction.OVERLAY,
+    density: 1.25,
+  });
+  scanlineEffect.blendMode.opacity.value = 0.4;
+  scanlineEffect.scrollSpeed = 0.03;
+
+  const effectPass = new EffectPass(screenCamera, pixelationEffect, scanlineEffect);
+  screenComposer.addPass(renderPass);
+  screenComposer.addPass(effectPass);
 
   function updateMonitorRotation() {
     if (!monitorGroup) return;
@@ -254,7 +264,8 @@ function init() {
     requestAnimationFrame(animate);
     updateMonitorRotation();
     updateEyeRotation();
-    screenComposer.render();
+    const delta = clock.getDelta();
+    screenComposer.render(delta); // Passes time to animate the scanlines
     mainRenderer.setRenderTarget(null);
     mainRenderer.render(mainScene, mainCamera);
   }
