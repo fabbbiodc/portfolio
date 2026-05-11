@@ -8,6 +8,7 @@ import {
   ScanlineEffect,
   PixelationEffect,
   BlendFunction,
+  GlitchEffect,
 } from "postprocessing";
 
 const EASING = 0.1;
@@ -112,8 +113,10 @@ function init() {
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
       const y = positionAttribute.getY(i);
-      const u = (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
-      const v = 1 - ((y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y));
+      const u =
+        (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
+      const v =
+        1 - (y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y);
       uvAttribute.setXY(i, u, v);
     }
 
@@ -137,7 +140,7 @@ function init() {
   function loadMonitorModel() {
     const monitorLoader = new GLTFLoader();
     monitorLoader.load("/models/monitor.glb", (gltf) => {
-    // monitorLoader.load("/models/monitor2.glb", (gltf) => {
+      // monitorLoader.load("/models/monitor2.glb", (gltf) => {
       monitorGroup = new THREE.Group();
       const monitor = gltf.scene;
       monitor.scale.set(3, 3, 3);
@@ -261,10 +264,17 @@ function init() {
   scanlineEffect.blendMode.opacity.value = 0.4;
   scanlineEffect.scrollSpeed = 0.03;
 
+  const glitchEffect = new GlitchEffect({
+    duration: new THREE.Vector2(.3, .2),
+    delay: new THREE.Vector2(5, 10),
+    // delay: new THREE.Vector2(1, 3),
+  });
+
   const effectPass = new EffectPass(
     screenCamera,
     pixelationEffect,
     scanlineEffect,
+    glitchEffect,
   );
   screenComposer.addPass(renderPass);
   screenComposer.addPass(effectPass);
