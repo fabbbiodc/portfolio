@@ -19,8 +19,6 @@ function init() {
     return;
   }
 
-  const clock = new THREE.Clock();
-
   const mainScene = new THREE.Scene();
   mainScene.background = null;
 
@@ -192,16 +190,26 @@ function init() {
     window.addEventListener("resize", () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      mainCamera.aspect = width / height;
+      const newAspect = width / height;
+      
+      mainCamera.aspect = newAspect;
       mainCamera.updateProjectionMatrix();
       mainRenderer.setSize(width, height);
-      screenComposer.setSize(RENDER_TARGET_SIZE, RENDER_TARGET_SIZE);
+      
+      // Update composer with correct aspect ratio
+      const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
+      screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
     });
   }
 
+  const canvasAspect = canvas.clientWidth / canvas.clientHeight;
+  
   const screenComposer = new EffectComposer(mainRenderer);
   screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
-  screenComposer.setSize(RENDER_TARGET_SIZE, RENDER_TARGET_SIZE);
+  
+  // Calculate composer size with proper aspect ratio
+  const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
+  screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
 
   const renderPass = new RenderPass(screenScene, screenCamera);
   const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
@@ -264,8 +272,7 @@ function init() {
     requestAnimationFrame(animate);
     updateMonitorRotation();
     updateEyeRotation();
-    const delta = clock.getDelta();
-    screenComposer.render(delta); // Passes time to animate the scanlines
+    screenComposer.render(); // Uses postprocessing's built-in timer
     mainRenderer.setRenderTarget(null);
     mainRenderer.render(mainScene, mainCamera);
   }
