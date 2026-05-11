@@ -27,8 +27,8 @@ function init() {
   }
 
   const mainScene = new THREE.Scene();
-  mainScene.background = new THREE.Color(0x000000);
-  // mainScene.background = null;
+  // mainScene.background = new THREE.Color(0x000000);
+  mainScene.background = null;
 
   const screenScene = new THREE.Scene();
   screenScene.background = new THREE.Color(0x000000);
@@ -39,7 +39,7 @@ function init() {
     0.1,
     1000,
   );
-  mainCamera.position.set(0.3, 0, 5);
+  mainCamera.position.set(0, 0, 5);
 
   const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
   screenCamera.position.set(3, 2, 1);
@@ -107,15 +107,24 @@ function init() {
     const positionAttribute = screenMesh.geometry.attributes.position;
     const uvAttribute = screenMesh.geometry.attributes.uv;
 
+    // monitor.glp uv setup
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
       const y = positionAttribute.getY(i);
-      const u =
-        (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
-      const v =
-        (y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y);
+      const u = (x - boundingBox.min.x) / (boundingBox.max.x - boundingBox.min.x);
+      const v = 1 - ((y - boundingBox.min.y) / (boundingBox.max.y - boundingBox.min.y));
       uvAttribute.setXY(i, u, v);
     }
+
+    // // monitor2.glb uv setup
+    // const minU = 1.0;
+    // const maxU = 2.0;
+    // for (let i = 0; i < uvAttribute.count; i++) {
+    //   const u = uvAttribute.getX(i);
+    //   const v = uvAttribute.getY(i);
+    //   const normalizedU = (u - minU) / (maxU - minU); // Maps [1, 2] → [0, 1]
+    //   uvAttribute.setXY(i, normalizedU, v);
+    // }
 
     uvAttribute.needsUpdate = true;
     screenMesh.material = new THREE.MeshBasicMaterial({
@@ -127,7 +136,7 @@ function init() {
   function loadMonitorModel() {
     const monitorLoader = new GLTFLoader();
     monitorLoader.load("/models/monitor.glb", (gltf) => {
-      // monitorLoader.load("/models/monitor2.glb", (gltf) => {
+    // monitorLoader.load("/models/monitor2.glb", (gltf) => {
       monitorGroup = new THREE.Group();
       const monitor = gltf.scene;
       monitor.scale.set(3, 3, 3);
@@ -141,7 +150,7 @@ function init() {
       // screenMesh = monitor.getObjectByName("TV_CCTV_02_MI_TV_CTTV_Screen_0") as
       //   | THREE.Mesh
       //   | undefined;
-      
+
       setupScreenMeshTexture();
 
       const monitorBox = new THREE.Box3().setFromObject(monitor);
@@ -199,7 +208,8 @@ function init() {
       const offsetX = event.clientX - canvasCenterX;
       const offsetY = event.clientY - canvasCenterY;
 
-      eyeTargetRotationX = offsetY * EYE_TRACKING_SENSITIVITY;
+      // invert if using monitor2.glb
+      eyeTargetRotationX = -offsetY * EYE_TRACKING_SENSITIVITY;
       eyeTargetRotationY = -offsetX * EYE_TRACKING_SENSITIVITY;
     });
 
