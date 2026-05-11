@@ -2,9 +2,13 @@
 
 ## Overview
 
-The HeroArt component demonstrates a complex Three.js scene featuring a 3D monitor displaying a pixelated projection of an eye model. The system combines multiple rendering techniques, camera systems, and interactive controls to create an engaging visual experience.
+The HeroArt component demonstrates a complex Three.js scene featuring a 3D
+monitor displaying a pixelated projection of an eye model. The system combines
+multiple rendering techniques, camera systems, and interactive controls to
+create an engaging visual experience.
 
 **Key Features:**
+
 - Dual-scene rendering with post-processing effects
 - Interactive monitor rotation with mouse controls
 - Eye-tracking that adapts to monitor orientation
@@ -56,27 +60,36 @@ The HeroArt component demonstrates a complex Three.js scene featuring a 3D monit
 ### Why Two Scenes?
 
 This architecture allows us to:
-1. **Render content in isolation** - The eye model only appears in the screenScene
-2. **Apply selective effects** - Pixelation applies only to the screen content, not the monitor itself
-3. **Use different cameras** - Each scene can have independent camera angles and aspect ratios
-4. **Optimize rendering** - One scene renders to a small texture (512x512), the other to full canvas
+
+1. **Render content in isolation** - The eye model only appears in the
+   screenScene
+2. **Apply selective effects** - Pixelation applies only to the screen
+   content, not the monitor itself
+3. **Use different cameras** - Each scene can have independent camera angles
+   and aspect ratios
+4. **Optimize rendering** - One scene renders to a small texture (512x512),
+   the other to full canvas
 
 ### Scene Configuration
 
 **mainScene:**
+
 ```js
 const mainScene = new THREE.Scene();
-mainScene.background = null;  // Transparent, shows 3D effect
+mainScene.background = null; // Transparent, shows 3D effect
 ```
+
 - Contains the 3D monitor model and its rotations
 - Rendered to the full canvas at full resolution
 - No post-processing effects applied
 
 **screenScene:**
+
 ```js
 const screenScene = new THREE.Scene();
-screenScene.background = new THREE.Color(0x000000);  // Black background
+screenScene.background = new THREE.Color(0x000000); // Black background
 ```
+
 - Contains the eye model and any projected content
 - Rendered offscreen to a 512x512 texture (renderTarget)
 - Post-processing pixelation effect applied before texture creation
@@ -93,10 +106,10 @@ Each frame executes in this precise order:
 function animate() {
   // 1. Update transformations (monitor rotation, eye tracking)
   // ... rotation updates ...
-  
+
   // 2. Render pixelated screen content to texture
   screenComposer.render();
-  
+
   // 3. Render main scene with textured monitor to canvas
   mainRenderer.setRenderTarget(null);
   mainRenderer.render(mainScene, mainCamera);
@@ -106,25 +119,28 @@ function animate() {
 ### screenComposer (Offscreen Pipeline)
 
 **Setup:**
+
 ```js
 const renderTarget = new THREE.WebGLRenderTarget(512, 512);
 
 const screenComposer = new EffectComposer(mainRenderer, renderTarget);
-screenComposer.renderToScreen = false;  // Critical: output only to renderTarget
+screenComposer.renderToScreen = false; // Critical: output only to renderTarget
 
 const screenPixelPass = new RenderPixelatedPass(
-  4,                    // pixel size (block size)
-  screenScene,          // scene to pixelate
-  screenCamera          // camera for rendering
+  4, // pixel size (block size)
+  screenScene, // scene to pixelate
+  screenCamera, // camera for rendering
 );
 screenComposer.addPass(screenPixelPass);
 ```
 
-**Key Point:** `renderToScreen = false` prevents the composer from outputting to the canvas. Instead, it writes to the provided `renderTarget`.
+**Key Point:** `renderToScreen = false` prevents the composer from outputting
+to the canvas. Instead, it writes to the provided `renderTarget`.
 
 **Rendering Process:**
+
 ```
-screenScene (eye + lights) 
+screenScene (eye + lights)
     ↓
 screenCamera (orthogonal to screen, FOV=75°, 1:1 aspect)
     ↓
@@ -138,6 +154,7 @@ renderTarget.texture (512x512 pixelated output)
 ### Main Renderer (Onscreen Pipeline)
 
 **Setup:**
+
 ```js
 const mainRenderer = new THREE.WebGLRenderer({
   canvas,
@@ -146,17 +163,19 @@ const mainRenderer = new THREE.WebGLRenderer({
 });
 
 mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
-mainRenderer.setClearColor(0x000000, 0);  // Transparent black
+mainRenderer.setClearColor(0x000000, 0); // Transparent black
 mainRenderer.setPixelRatio(window.devicePixelRatio);
 ```
 
 **Rendering:**
+
 ```js
-mainRenderer.setRenderTarget(null);  // Output to canvas
+mainRenderer.setRenderTarget(null); // Output to canvas
 mainRenderer.render(mainScene, mainCamera);
 ```
 
-This renders the monitor model, which has a material that displays `renderTarget.texture` on its screen mesh.
+This renders the monitor model, which has a material that displays
+`renderTarget.texture` on its screen mesh.
 
 ---
 
@@ -164,9 +183,11 @@ This renders the monitor model, which has a material that displays `renderTarget
 
 ### What is RenderPixelatedPass?
 
-A post-processing pass from Three.js that blocks pixels into larger squares, creating a retro/pixelated effect.
+A post-processing pass from Three.js that blocks pixels into larger squares,
+creating a retro/pixelated effect.
 
 **Parameters:**
+
 - `pixelSize: 4` - Each pixel becomes a 4x4 block
 - `scene: screenScene` - The scene to apply effect to
 - `camera: screenCamera` - Camera for rendering the scene
@@ -181,6 +202,7 @@ vec3 color = texture(sampler, pixelatedCoord / resolution).rgb;
 ```
 
 Instead of sampling each pixel individually, it:
+
 1. Divides coordinates by pixel size (4)
 2. Floors the result (creates blocks)
 3. Multiplies by pixel size (snaps to grid)
@@ -189,6 +211,7 @@ Instead of sampling each pixel individually, it:
 ### In Our System
 
 The pixelation effect **only affects the renderTarget texture** because:
+
 1. `screenComposer` applies the effect to `screenScene`
 2. The effect output goes to `renderTarget` (not canvas)
 3. The monitor model then displays this pixelated texture
@@ -241,10 +264,16 @@ document.addEventListener("mousemove", (event) => {
     monitorTargetRotationX += deltaY * rotationSensitivity;
 
     // Clamp rotations to prevent over-rotation
-    const maxRotationX = Math.PI * 0.25;  // ±45°
+    const maxRotationX = Math.PI * 0.25; // ±45°
     const maxRotationY = Math.PI * 0.25;
-    monitorTargetRotationX = Math.max(-maxRotationX, Math.min(maxRotationX, monitorTargetRotationX));
-    monitorTargetRotationY = Math.max(-maxRotationY, Math.min(maxRotationY, monitorTargetRotationY));
+    monitorTargetRotationX = Math.max(
+      -maxRotationX,
+      Math.min(maxRotationX, monitorTargetRotationX),
+    );
+    monitorTargetRotationY = Math.max(
+      -maxRotationY,
+      Math.min(maxRotationY, monitorTargetRotationY),
+    );
 
     previousMouseX = event.clientX;
     previousMouseY = event.clientY;
@@ -259,8 +288,10 @@ document.addEventListener("mouseup", () => {
 // Animation: smooth easing to target rotation
 if (monitorGroup) {
   const easing = 0.1;
-  monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * easing;
-  monitorCurrentRotationY += (monitorTargetRotationY - monitorCurrentRotationY) * easing;
+  monitorCurrentRotationX +=
+    (monitorTargetRotationX - monitorCurrentRotationX) * easing;
+  monitorCurrentRotationY +=
+    (monitorTargetRotationY - monitorCurrentRotationY) * easing;
   monitorGroup.rotation.x = monitorCurrentRotationX;
   monitorGroup.rotation.y = monitorCurrentRotationY;
 }
@@ -269,38 +300,50 @@ if (monitorGroup) {
 **Key Concepts:**
 
 1. **Raycasting for Hit Detection**
+
    ```js
    const raycaster = new THREE.Raycaster();
    raycaster.setFromCamera(mouse, mainCamera);
    const intersects = raycaster.intersectObject(monitorGroup, true);
    ```
+
    - Converts 2D mouse position to 3D ray from camera
    - Tests if ray intersects with monitor geometry
    - Only start rotation if intersection detected
 
 2. **Delta-Based Rotation**
+
    ```js
    const deltaX = event.clientX - previousMouseX;
    const deltaY = event.clientY - previousMouseY;
    monitorTargetRotationY += deltaX * rotationSensitivity;
    monitorTargetRotationX += deltaY * rotationSensitivity;
    ```
+
    - Horizontal mouse movement → Y-axis rotation (pan)
    - Vertical mouse movement → X-axis rotation (tilt)
    - Multiplied by sensitivity factor (0.005)
 
 3. **Rotation Clamping**
+
    ```js
-   const maxRotationX = Math.PI * 0.25;  // 45 degrees
-   monitorTargetRotationX = Math.max(-maxRotationX, Math.min(maxRotationX, monitorTargetRotationX));
+   const maxRotationX = Math.PI * 0.25; // 45 degrees
+   monitorTargetRotationX = Math.max(
+     -maxRotationX,
+     Math.min(maxRotationX, monitorTargetRotationX),
+   );
    ```
+
    - Prevents monitor from rotating too far
    - ±45° maximum on each axis
 
 4. **Smooth Easing**
+
    ```js
-   monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * easing;
+   monitorCurrentRotationX +=
+     (monitorTargetRotationX - monitorCurrentRotationX) * easing;
    ```
+
    - Creates smooth animation toward target rotation
    - `easing = 0.1` means 10% of distance per frame
    - Prevents jittery, instant rotation
@@ -311,19 +354,26 @@ if (monitorGroup) {
 
 ### Overview
 
-The eye model rotates to "look at" the user's mouse position, **accounting for the monitor's current rotation in world space** to maintain accurate tracking regardless of monitor orientation.
+The eye model rotates to "look at" the user's mouse position, **accounting for
+the monitor's current rotation in world space** to maintain accurate tracking
+regardless of monitor orientation.
 
 ### Mathematical Approach
 
 **The Challenge:**
-The eye is rendered in `screenSpace` (the small 512x512 offscreen render), but when the monitor rotates, the screen's orientation in world space changes. We need to ensure the eye always looks at the cursor on the screen by:
-1. Calculating the eye's desired rotation based on cursor position (viewport space)
+The eye is rendered in `screenSpace` (the small 512x512 offscreen render), but
+when the monitor rotates, the screen's orientation in world space changes. We
+need to ensure the eye always looks at the cursor on the screen by:
+
+1. Calculating the eye's desired rotation based on cursor position
+   (viewport space)
 2. Applying the monitor's rotation transform to this target rotation
 3. Combining these rotations correctly using quaternion mathematics
 
 ### Implementation: Quaternion-Based Rotation Composition
 
 **Step 1: Calculate Eye Target Rotation from Mouse Position**
+
 ```js
 // Get canvas position relative to viewport
 const rect = canvas.getBoundingClientRect();
@@ -341,6 +391,7 @@ eyeTargetRotationY = -offsetX * sensitivity;
 ```
 
 **What This Does:**
+
 - Finds the center of the canvas on the screen
 - Measures how far the mouse is from that center
 - Converts distance to rotation angles in viewport space
@@ -358,11 +409,11 @@ if (eyeModel) {
   // Clamp to prevent looking behind
   const clampedRotationX = Math.max(
     -maxEyeRotationX,
-    Math.min(maxEyeRotationX, eyeCurrentRotationX)
+    Math.min(maxEyeRotationX, eyeCurrentRotationX),
   );
   const clampedRotationY = Math.max(
     -maxEyeRotationY,
-    Math.min(maxEyeRotationY, eyeCurrentRotationY)
+    Math.min(maxEyeRotationY, eyeCurrentRotationY),
   );
 
   // Apply the eye rotation directly in world space,
@@ -370,22 +421,31 @@ if (eyeModel) {
   if (monitorGroup) {
     // The eye should track the cursor in world space
     // We need to rotate it by the monitor's rotation to maintain the illusion
-    
+
     // 1. Create quaternion from eye's viewport-space rotation
     const eyeQuat = new THREE.Quaternion();
-    eyeQuat.setFromEuler(new THREE.Euler(clampedRotationX, clampedRotationY, 0, 'YXZ'));
-    
+    eyeQuat.setFromEuler(
+      new THREE.Euler(clampedRotationX, clampedRotationY, 0, "YXZ"),
+    );
+
     // 2. Create quaternion from monitor's current world-space rotation
     const monitorQuat = new THREE.Quaternion();
-    monitorQuat.setFromEuler(new THREE.Euler(monitorCurrentRotationX, monitorCurrentRotationY, 0, 'YXZ'));
-    
+    monitorQuat.setFromEuler(
+      new THREE.Euler(
+        monitorCurrentRotationX,
+        monitorCurrentRotationY,
+        0,
+        "YXZ",
+      ),
+    );
+
     // 3. Apply monitor rotation to eye rotation
     // This transforms the eye's local rotation into world space
     const finalQuat = monitorQuat.clone().multiply(eyeQuat);
-    
+
     // 4. Convert back to Euler angles and apply
-    const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, 'YXZ');
-    
+    const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, "YXZ");
+
     eyeModel.rotation.x = finalEuler.x;
     eyeModel.rotation.y = finalEuler.y;
   } else {
@@ -410,36 +470,45 @@ if (eyeModel) {
 3. **Quaternion Math (The Fix)**
    - Quaternions represent rotations as 4D vectors: `(x, y, z, w)`
    - Multiplying quaternions combines rotations correctly without gimbal lock
-   - `monitorQuat.multiply(eyeQuat)` means: "First rotate eye by eyeQuat, then by monitorQuat"
+   - `monitorQuat.multiply(eyeQuat)` means: "First rotate eye by eyeQuat,
+     then by monitorQuat"
    - Result: eye tracks cursor accurately regardless of monitor rotation
 
 ### Why Quaternions?
 
 **Euler Angles Problem:**
+
 ```js
 // WRONG - doesn't handle compound rotations correctly
 eyeModel.rotation.x = clampedRotationX + monitorCurrentRotationX;
 eyeModel.rotation.y = clampedRotationY + monitorCurrentRotationY;
 ```
-Rotations don't add like vectors in 3D space. Simple addition causes gimbal lock and incorrect results.
+
+Rotations don't add like vectors in 3D space. Simple addition causes gimbal lock
+and incorrect results.
 
 **Quaternion Solution:**
+
 ```js
 // CORRECT - handles compound rotations smoothly
 const eyeQuat = new THREE.Quaternion().setFromEuler(eyeEuler);
 const monitorQuat = new THREE.Quaternion().setFromEuler(monitorEuler);
 const finalQuat = monitorQuat.clone().multiply(eyeQuat);
 ```
-Quaternion multiplication correctly combines rotations in all three axes without gimbal lock.
+
+Quaternion multiplication correctly combines rotations in all three axes without
+gimbal lock.
 
 ### How It Works: The Tracking Effect
 
 When the monitor is straight (rotation = 0):
+
 - Monitor quaternion is identity (no rotation)
 - Eye quaternion is applied directly
 - Result: Normal viewport-relative eye tracking
 
 When the monitor rotates (e.g., tilted 30°):
+
 - Eye still looks at cursor based on viewport position
 - Monitor's rotation is applied to this eye rotation
 - Eye appears to track the cursor on the rotated screen
@@ -454,18 +523,20 @@ When the monitor rotates (e.g., tilted 30°):
 **Purpose:** Renders the full 3D scene with the monitor model
 
 **Setup:**
+
 ```js
 const mainCamera = new THREE.PerspectiveCamera(
-  75,                                    // FOV (degrees)
-  canvas.clientWidth / canvas.clientHeight,  // aspect ratio
-  0.1,                                   // near clipping plane
-  1000                                   // far clipping plane
+  75, // FOV (degrees)
+  canvas.clientWidth / canvas.clientHeight, // aspect ratio
+  0.1, // near clipping plane
+  1000, // far clipping plane
 );
 
-mainCamera.position.set(0, 0, 2);  // Positioned in front of monitor
+mainCamera.position.set(0, 0, 2); // Positioned in front of monitor
 ```
 
 **Properties:**
+
 - **FOV = 75°**: Wide enough to see entire monitor and surroundings
 - **Aspect Ratio**: Matches canvas dimensions (keeps proportions)
 - **Position (0, 0, 2)**: Centered in front of the monitor at distance 2
@@ -475,16 +546,18 @@ mainCamera.position.set(0, 0, 2);  // Positioned in front of monitor
 **Purpose:** Renders the eye model in the offscreen render target
 
 **Setup:**
+
 ```js
 const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-screenCamera.position.set(3, 2, 1);  // Initial position
+screenCamera.position.set(3, 2, 1); // Initial position
 ```
 
 **Dynamic Update (when eye loads):**
+
 ```js
 const eyeBox = new THREE.Box3().setFromObject(eyeModel);
 const eyeCenter = eyeBox.getCenter(new THREE.Vector3());
-eyeModel.position.sub(eyeCenter);  // Center eye at origin
+eyeModel.position.sub(eyeCenter); // Center eye at origin
 
 const size = new THREE.Vector3();
 eyeBox.getSize(size);
@@ -496,13 +569,16 @@ screenCamera.lookAt(0, 0, 0);
 ```
 
 **Properties:**
+
 - **FOV = 75°**: Same as main camera for consistency
 - **Aspect Ratio = 1**: Square (matches 512x512 renderTarget)
 - **Position**: Dynamically set based on eye model size
 - **LookAt**: Focused on eye center (0, 0, 0)
 
 **Why Dynamic?**
-The eye model might be different sizes. By measuring its bounding box, we automatically position the camera at the perfect distance to frame the entire eye.
+The eye model might be different sizes. By measuring its bounding box, we
+automatically position the camera at the perfect distance to frame the entire
+eye.
 
 ---
 
@@ -510,11 +586,13 @@ The eye model might be different sizes. By measuring its bounding box, we automa
 
 ### The Challenge
 
-Three.js rendered content needs to appear on the monitor's screen. The solution: map a WebGLRenderTarget's texture as a material.
+Three.js rendered content needs to appear on the monitor's screen. The solution:
+map a WebGLRenderTarget's texture as a material.
 
 ### Implementation
 
 **Geometry Analysis:**
+
 ```js
 screenMesh.geometry.computeBoundingBox();
 const boundingBox = screenMesh.geometry.boundingBox;
@@ -523,6 +601,7 @@ const uvAttribute = screenMesh.geometry.attributes.uv;
 ```
 
 **UV Mapping (Critical):**
+
 ```js
 for (let i = 0; i < positionAttribute.count; i++) {
   const x = positionAttribute.getX(i);
@@ -538,23 +617,26 @@ uvAttribute.needsUpdate = true;
 ```
 
 **What This Does:**
+
 1. Gets bounding box of screen mesh (min/max coordinates)
 2. For each vertex, normalizes its position to 0-1 range
 3. Sets UV coordinates based on normalized position
 4. Marks UV attribute as modified so Three.js updates the GPU data
 
-**Result:** The screen mesh is perfectly UV-mapped to the 512x512 renderTarget texture
+**Result:** The screen mesh is perfectly UV-mapped to the 512x512 renderTarget
+texture
 
 ### Material Assignment
 
 ```js
 screenMesh.material = new THREE.MeshBasicMaterial({
-  map: renderTarget.texture,  // Use rendered content as texture
+  map: renderTarget.texture, // Use rendered content as texture
 });
 screenMesh.material.needsUpdate = true;
 ```
 
 **Why MeshBasicMaterial?**
+
 - No lighting calculations needed (rendered content already has lighting)
 - Displays texture directly without shading
 - Lightweight and fast
@@ -566,10 +648,13 @@ screenMesh.material.needsUpdate = true;
 ### Frame-by-Frame Execution
 
 **Step 1: Update Transformations**
+
 ```js
 // Monitor rotation (with easing)
-monitorCurrentRotationX += (monitorTargetRotationX - monitorCurrentRotationX) * 0.1;
-monitorCurrentRotationY += (monitorTargetRotationY - monitorCurrentRotationY) * 0.1;
+monitorCurrentRotationX +=
+  (monitorTargetRotationX - monitorCurrentRotationX) * 0.1;
+monitorCurrentRotationY +=
+  (monitorTargetRotationY - monitorCurrentRotationY) * 0.1;
 monitorGroup.rotation.x = monitorCurrentRotationX;
 monitorGroup.rotation.y = monitorCurrentRotationY;
 
@@ -581,6 +666,7 @@ eyeModel.rotation.y = clamp(eyeCurrentRotationY, -maxRotY, maxRotY);
 ```
 
 **Step 2: Render Pixelated Screen Content**
+
 ```js
 // Tell screenComposer to render screenScene with pixelation effect
 screenComposer.render();
@@ -593,8 +679,9 @@ screenComposer.render();
 ```
 
 **Step 3: Render Main Scene to Canvas**
+
 ```js
-mainRenderer.setRenderTarget(null);  // Output to canvas
+mainRenderer.setRenderTarget(null); // Output to canvas
 mainRenderer.render(mainScene, mainCamera);
 
 // Internally:
@@ -607,6 +694,7 @@ mainRenderer.render(mainScene, mainCamera);
 ### Mathematical Transformations
 
 **Monitor Rotation Matrix:**
+
 ```
 Rx (rotation around X-axis):
 [1    0         0      0]
@@ -624,18 +712,21 @@ Combined: Ry * Rx * vertex_position
 ```
 
 **Eye Rotation (applied in screenSpace):**
+
 ```
 Same Rx and Ry matrices, but applied to eyeModel in screenScene
 Eye is always in screenSpace, so rotation is relative to screen camera
 ```
 
 **Projection (screenCamera):**
+
 ```
 ndc = projection_matrix * view_matrix * eye_position
 screen_pixel = (ndc + 1) * 0.5 * renderTarget.width
 ```
 
 **Texture Mapping:**
+
 ```
 pixel_color = renderTarget.texture[uv * renderTarget.size]
 ```
@@ -694,15 +785,15 @@ src/components/
 
 ## 11. Key Takeaways
 
-| Concept | Implementation | Why |
-|---------|-----------------|-----|
-| Dual Scenes | mainScene (monitor) + screenScene (eye) | Separate rendering pipelines, selective effects |
-| Dual Composers | screenComposer (pixelated) + mainRenderer | Pixelation only on screen content |
-| Offset Rendering | 512x512 renderTarget for screen | Performance + pixelation effect clarity |
-| Easing | 0.1 factor for smooth animations | Prevents jittery, instant movement |
-| Raycasting | Hit detection on mouse down | Efficient interaction detection |
-| Dynamic Camera | Position based on model size | Automatic framing of content |
-| UV Mapping | Normalized coordinates to 0-1 | Proper texture display on mesh |
+| Concept          | Implementation                            | Why                                             |
+| ---------------- | ----------------------------------------- | ----------------------------------------------- |
+| Dual Scenes      | mainScene (monitor) + screenScene (eye)   | Separate rendering pipelines, selective effects |
+| Dual Composers   | screenComposer (pixelated) + mainRenderer | Pixelation only on screen content               |
+| Offset Rendering | 512x512 renderTarget for screen           | Performance + pixelation effect clarity         |
+| Easing           | 0.1 factor for smooth animations          | Prevents jittery, instant movement              |
+| Raycasting       | Hit detection on mouse down               | Efficient interaction detection                 |
+| Dynamic Camera   | Position based on model size              | Automatic framing of content                    |
+| UV Mapping       | Normalized coordinates to 0-1             | Proper texture display on mesh                  |
 
 ---
 
