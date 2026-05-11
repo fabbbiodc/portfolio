@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import {
   EffectComposer,
   RenderPass,
@@ -159,6 +160,15 @@ function init() {
 
       mainScene.add(monitorGroup);
       animate();
+    });
+  }
+
+  function loadHDRBackground() {
+    const hdrLoader = new HDRLoader();
+    hdrLoader.load("/models/bunker.hdr", (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      screenScene.background = texture;
+      screenScene.environment = texture;
     });
   }
 
@@ -322,6 +332,7 @@ function init() {
 
   loadEyeModel();
   loadMonitorModel();
+  loadHDRBackground();
   setupEventListeners();
 }
 
