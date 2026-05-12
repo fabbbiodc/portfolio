@@ -22,7 +22,7 @@ const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
 
 // device detection
-function isMobile(): boolean{
+function mobileDetection(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   return /mobile|android|iphone|ipad|ipod|blackberry|webos/.test(userAgent);
 }
@@ -33,6 +33,12 @@ function init() {
     console.error("[HeroAnimation] Canvas element not found");
     return;
   }
+
+  const isMobile = mobileDetection();
+
+  let lastFrameTime = Date.now();
+  const targetFPS = isMobile ? 30 : 60;
+  const targetFrameTime = 1000 / targetFPS;
 
   const mainScene = new THREE.Scene();
   mainScene.background = null;
@@ -54,23 +60,32 @@ function init() {
 
   const mainRenderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !isMobile(),
+    antialias: !isMobile,
     alpha: true,
   });
-  
+
   mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
   mainRenderer.setClearColor(0x000000, 0);
-  mainRenderer.setPixelRatio(window.devicePixelRatio);
+
+  if (isMobile) {
+    mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  } else {
+    mainRenderer.setPixelRatio(window.devicePixelRatio);
+  }
   mainRenderer.shadowMap.enabled = true;
-  mainRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  mainRenderer.shadowMap.type = isMobile
+    ? THREE.PCFShadowMap
+    : THREE.PCFSoftShadowMap;
 
   const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
   mainScene.add(mainAmbientLight);
   const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
   mainDirectionalLight.position.set(5, 10, 2);
   mainDirectionalLight.castShadow = true;
-  mainDirectionalLight.shadow.mapSize.width = 1024;
-  mainDirectionalLight.shadow.mapSize.height = 1024;
+
+  const shadowMapSize = isMobile ? 512 : 1024;
+  mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
+  mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
   mainDirectionalLight.shadow.camera.near = 0.5;
   mainDirectionalLight.shadow.camera.far = 50;
 
@@ -79,7 +94,7 @@ function init() {
   mainDirectionalLight.shadow.camera.top = 10;
   mainDirectionalLight.shadow.camera.bottom = -10;
   mainDirectionalLight.shadow.bias = -0.001;
-  mainDirectionalLight.shadow.radius = 10;
+  mainDirectionalLight.shadow.radius = isMobile ? 2 : 10;
 
   mainScene.add(mainDirectionalLight);
 
@@ -406,11 +421,19 @@ function init() {
 
   function animate() {
     requestAnimationFrame(animate);
-    updateMonitorRotation();
-    updateEyeRotation();
-    screenComposer.render(); // Uses postprocessing's built-in timer
-    mainRenderer.setRenderTarget(null);
-    mainRenderer.render(mainScene, mainCamera);
+
+    const now = Date.now();
+    const elapsed = now - lastFrameTime;
+
+    if (elapsed >= targetFrameTime) {
+      lastFrameTime = now;
+
+      updateMonitorRotation();
+      updateEyeRotation();
+      screenComposer.render();
+      mainRenderer.setRenderTarget(null);
+      mainRenderer.render(mainScene, mainCamera);
+    }
   }
 
   loadEyeModel();
