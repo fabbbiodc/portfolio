@@ -200,7 +200,7 @@ function init() {
       const bottomY = centeredBox.min.y;
 
       const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
+      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
       const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       shadowPlane.rotation.x = -Math.PI / 2;
       shadowPlane.position.y = bottomY;
@@ -224,6 +224,7 @@ function init() {
 
     if (isMobile && screenMesh) {
       new THREE.Box3().setFromObject(screenMesh).getCenter(center);
+      center.y -= size.y * 0.25;
     } else {
       box.getCenter(center);
     }
@@ -235,9 +236,9 @@ function init() {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const tolerance = isMobile ? 1 : 0.8;
+    const scaling = isMobile ? 1.1 : 0.8;
 
-    mainCamera.position.z = Math.max(distByHeight, distByWidth) / tolerance;
+    mainCamera.position.z = Math.max(distByHeight, distByWidth) / scaling;
     mainCamera.lookAt(center);
     mainCamera.updateProjectionMatrix();
   }
