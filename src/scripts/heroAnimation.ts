@@ -375,6 +375,9 @@ function init() {
       }
     } else {
       // non ios devices
+      if (permissionOverlay) {
+        permissionOverlay.classList.add("hidden");
+      }
       window.addEventListener("deviceorientation", handleOrientation);
     }
   }
