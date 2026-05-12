@@ -46,13 +46,16 @@ function init() {
   const screenScene = new THREE.Scene();
   screenScene.background = new THREE.Color(0x000000);
 
+  const aspect = canvas.clientWidth / canvas.clientHeight;
   const mainCamera = new THREE.PerspectiveCamera(
     30,
-    canvas.clientWidth / canvas.clientHeight,
+    aspect,
     0.1,
     1000,
   );
-  mainCamera.position.set(2, 0, 5);
+  const cameraBaseZ = 5;
+  const distanceScale = Math.min(2, (16 / 9) / aspect);
+  mainCamera.position.set(2, 0, cameraBaseZ * Math.max(1, distanceScale));
   mainCamera.lookAt(0, 0, 0);
 
   const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -276,12 +279,14 @@ function init() {
       const newAspect = width / height;
 
       mainCamera.aspect = newAspect;
+      mainCamera.position.z = 5 * Math.max(1, Math.min(2, (16 / 9) / newAspect));
       mainCamera.updateProjectionMatrix();
       mainRenderer.setSize(width, height);
 
       // Update composer with correct aspect ratio
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
       screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
+      mainRenderer.setSize(width, height);
     });
 
     // mobile tilt tracking
@@ -340,7 +345,9 @@ function init() {
     }
   }
 
-  const canvasAspect = canvas.clientWidth / canvas.clientHeight;
+  const canvasWidth = canvas.clientWidth;
+  const canvasHeight = canvas.clientHeight;
+  const canvasAspect = canvasWidth / canvasHeight;
 
   const screenComposer = new EffectComposer(mainRenderer);
   screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
@@ -348,6 +355,7 @@ function init() {
   // Calculate composer size with proper aspect ratio
   const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
   screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
+  mainRenderer.setSize(canvasWidth, canvasHeight);
 
   const renderPass = new RenderPass(screenScene, screenCamera);
   const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
