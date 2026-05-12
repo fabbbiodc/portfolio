@@ -1,5 +1,4 @@
 ---
-import Navbar from "../components/Navbar.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -15,40 +14,9 @@ const { title } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-
-    <script is:inline>
-      (function () {
-        // Theme detection
-        const saved = localStorage.getItem("theme-preference");
-        const theme = saved || "light";
-        document.documentElement.setAttribute("data-theme", theme);
-
-        // Theme icons init
-        const sunIcons = document.querySelectorAll("#sun-icon");
-        const moonIcons = document.querySelectorAll("#moon-icon");
-
-        if (theme === "light") {
-          sunIcons.forEach((icon) => icon.classList.remove("hidden"));
-          moonIcons.forEach((icon) => icon.classList.add("hidden"));
-        } else {
-          sunIcons.forEach((icon) => icon.classList.add("hidden"));
-          moonIcons.forEach((icon) => icon.classList.remove("hidden"));
-        }
-
-        // Hero links init
-        // const heroLinks = document.querySelectorAll(".hero-link");
-        // heroLinks.forEach((link) => {
-        //   const originalText = link.textContent.trim();
-        //   link.textContent = "  " + originalText;
-        //   link.setAttribute("data-state", "default");
-        //   link.setAttribute("data-original-text", originalText);
-        // });
-      })();
-    </script>
   </head>
-  <body class="bg-background scanlines py-4  border-text bloom-border">
-    <Navbar />
-    <main class="max-w-300 mx-auto  px-4 py-10">
+  <body>
+    <main>
       <slot />
     </main>
   </body>
