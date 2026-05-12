@@ -10,6 +10,7 @@ import {
   BlendFunction,
   GlitchEffect,
 } from "postprocessing";
+import { isMemberName } from "typescript";
 
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
@@ -46,16 +47,18 @@ function init() {
   const screenScene = new THREE.Scene();
   screenScene.background = new THREE.Color(0x000000);
 
-  const aspect = canvas.clientWidth / canvas.clientHeight;
   const mainCamera = new THREE.PerspectiveCamera(
     30,
-    aspect,
+    canvas.clientWidth / canvas.clientHeight,
     0.1,
     1000,
   );
-  const cameraBaseZ = 5;
-  const distanceScale = Math.min(2, (16 / 9) / aspect);
-  mainCamera.position.set(2, 0, cameraBaseZ * Math.max(1, distanceScale));
+
+  if (isMobile) {
+    mainCamera.position.set(0, 0, 5);
+  } else {
+  mainCamera.position.set(2, 0, 5)
+  }
   mainCamera.lookAt(0, 0, 0);
 
   const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -205,8 +208,33 @@ function init() {
       mainScene.add(shadowPlane);
 
       mainScene.add(monitorGroup);
+      frameCameraOnMonitor();
       animate();
     });
+  }
+
+  function frameCameraOnMonitor() {
+    if (!monitorGroup) return;
+
+    monitorGroup.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(monitorGroup);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    const fovRad = mainCamera.fov * Math.PI / 180;
+    const halfFov = fovRad / 2;
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+
+    const distByHeight = size.y / (2 * Math.tan(halfFov));
+    const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
+
+    const tolerance = isMobile ? 1 : 0.8;
+
+    mainCamera.position.z = Math.max(distByHeight, distByWidth) / tolerance;
+    mainCamera.lookAt(center);
+    mainCamera.updateProjectionMatrix();
   }
 
   function loadHDRBackground() {
@@ -279,8 +307,8 @@ function init() {
       const newAspect = width / height;
 
       mainCamera.aspect = newAspect;
-      mainCamera.position.z = 5 * Math.max(1, Math.min(2, (16 / 9) / newAspect));
       mainCamera.updateProjectionMatrix();
+      frameCameraOnMonitor();
       mainRenderer.setSize(width, height);
 
       // Update composer with correct aspect ratio
