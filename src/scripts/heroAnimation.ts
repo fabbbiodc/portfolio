@@ -54,11 +54,26 @@ function init() {
   mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
   mainRenderer.setClearColor(0x000000, 0);
   mainRenderer.setPixelRatio(window.devicePixelRatio);
+  mainRenderer.shadowMap.enabled = true;
+  mainRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const mainAmbientLight = new THREE.AmbientLight(0xffffff, 3);
   mainScene.add(mainAmbientLight);
   const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
   mainDirectionalLight.position.set(5, 10, 2);
+  mainDirectionalLight.castShadow = true;
+  mainDirectionalLight.shadow.mapSize.width = 1024;
+  mainDirectionalLight.shadow.mapSize.height = 1024;
+  mainDirectionalLight.shadow.camera.near = 0.5;
+  mainDirectionalLight.shadow.camera.far = 50;
+
+  mainDirectionalLight.shadow.camera.left = -10;
+  mainDirectionalLight.shadow.camera.right = 10;
+  mainDirectionalLight.shadow.camera.top = 10;
+  mainDirectionalLight.shadow.camera.bottom = -10;
+  mainDirectionalLight.shadow.bias = -0.001;
+  mainDirectionalLight.shadow.radius = 8;
+
   mainScene.add(mainDirectionalLight);
 
   const screenAmbientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -145,6 +160,13 @@ function init() {
       const monitor = gltf.scene;
       monitor.scale.set(3, 3, 3);
 
+      monitor.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+
       monitorGroup.add(monitor);
 
       screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
@@ -161,6 +183,17 @@ function init() {
       const center = monitorBox.getCenter(new THREE.Vector3());
       monitor.position.sub(center);
 
+      const centeredBox = new THREE.Box3().setFromObject(monitor);
+      const bottomY = centeredBox.min.y;
+
+      const planeGeometry = new THREE.PlaneGeometry(50, 50);
+      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
+      const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+      shadowPlane.rotation.x = -Math.PI / 2;
+      shadowPlane.position.y = bottomY;
+      shadowPlane.receiveShadow = true;
+      mainScene.add(shadowPlane);
+      
       mainScene.add(monitorGroup);
       animate();
     });
@@ -265,7 +298,7 @@ function init() {
   scanlineEffect.scrollSpeed = 0.03;
 
   const glitchEffect = new GlitchEffect({
-    duration: new THREE.Vector2(.3, .2),
+    duration: new THREE.Vector2(0.3, 0.2),
     delay: new THREE.Vector2(5, 10),
     // delay: new THREE.Vector2(1, 3),
   });
@@ -281,12 +314,12 @@ function init() {
 
   function updateMonitorRotation() {
     if (!monitorGroup) return;
-    monitorCurrentRotationX +=
-      (monitorTargetRotationX - monitorCurrentRotationX) * EASING;
-    monitorCurrentRotationY +=
-      (monitorTargetRotationY - monitorCurrentRotationY) * EASING;
-    monitorGroup.rotation.x = monitorCurrentRotationX;
-    monitorGroup.rotation.y = monitorCurrentRotationY;
+    // monitorCurrentRotationX +=
+    //   (monitorTargetRotationX - monitorCurrentRotationX) * EASING;
+    // monitorCurrentRotationY +=
+    //   (monitorTargetRotationY - monitorCurrentRotationY) * EASING;
+    // monitorGroup.rotation.x = monitorCurrentRotationX;
+    // monitorGroup.rotation.y = monitorCurrentRotationY;
   }
 
   function updateEyeRotation() {
