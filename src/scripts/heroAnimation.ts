@@ -10,7 +10,6 @@ import {
   BlendFunction,
   GlitchEffect,
 } from "postprocessing";
-import { isMemberName } from "typescript";
 
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
@@ -86,7 +85,8 @@ function init() {
   const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
   mainScene.add(mainAmbientLight);
   const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
-  mainDirectionalLight.position.set(5, 10, 2);
+  mainDirectionalLight.position.set(0, 10, 0);
+  // mainDirectionalLight.position.set(5, 10, 2);
   mainDirectionalLight.castShadow = true;
 
   const shadowMapSize = isMobile ? 512 : 1024;
@@ -221,7 +221,12 @@ function init() {
     const size = new THREE.Vector3();
     box.getSize(size);
     const center = new THREE.Vector3();
-    box.getCenter(center);
+
+    if (isMobile && screenMesh) {
+      new THREE.Box3().setFromObject(screenMesh).getCenter(center);
+    } else {
+      box.getCenter(center);
+    }
 
     const fovRad = mainCamera.fov * Math.PI / 180;
     const halfFov = fovRad / 2;
