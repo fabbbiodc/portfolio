@@ -21,6 +21,12 @@ const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
 
+// device detection
+function isMobile(): boolean{
+  const userAgent = navigator.userAgent.toLowerCase();
+  return /mobile|android|iphone|ipad|ipod|blackberry|webos/.test(userAgent);
+}
+
 function init() {
   const canvas = document.getElementById("hero-animation") as HTMLCanvasElement;
   if (!canvas) {
@@ -29,7 +35,6 @@ function init() {
   }
 
   const mainScene = new THREE.Scene();
-  // mainScene.background = new THREE.Color(0x000000);
   mainScene.background = null;
 
   const screenScene = new THREE.Scene();
@@ -49,9 +54,10 @@ function init() {
 
   const mainRenderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: !isMobile(),
     alpha: true,
   });
+  
   mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
   mainRenderer.setClearColor(0x000000, 0);
   mainRenderer.setPixelRatio(window.devicePixelRatio);
@@ -136,16 +142,6 @@ function init() {
       uvAttribute.setXY(i, u, v);
     }
 
-    // // monitor2.glb uv setup
-    // const minU = 1.0;
-    // const maxU = 2.0;
-    // for (let i = 0; i < uvAttribute.count; i++) {
-    //   const u = uvAttribute.getX(i);
-    //   const v = uvAttribute.getY(i);
-    //   const normalizedU = (u - minU) / (maxU - minU); // Maps [1, 2] → [0, 1]
-    //   uvAttribute.setXY(i, normalizedU, v);
-    // }
-
     uvAttribute.needsUpdate = true;
     screenMesh.material = new THREE.MeshBasicMaterial({
       map: screenComposer.outputBuffer.texture,
@@ -156,7 +152,6 @@ function init() {
   function loadMonitorModel() {
     const monitorLoader = new GLTFLoader();
     monitorLoader.load("/models/monitor.glb", (gltf) => {
-      // monitorLoader.load("/models/monitor2.glb", (gltf) => {
       monitorGroup = new THREE.Group();
       const monitor = gltf.scene;
       monitor.scale.set(3, 3, 3);
@@ -173,10 +168,6 @@ function init() {
       screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
         | THREE.Mesh
         | undefined;
-
-      // screenMesh = monitor.getObjectByName("TV_CCTV_02_MI_TV_CTTV_Screen_0") as
-      //   | THREE.Mesh
-      //   | undefined;
 
       setupScreenMeshTexture();
 
@@ -277,6 +268,61 @@ function init() {
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
       screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
     });
+
+    // mobile tilt tracking
+    const permissionOverlay = document.getElementById(
+      "tilt-permission-overlay",
+    );
+    const enableTiltBtn = document.getElementById("enable-tilt-btn");
+
+    function handleOrientation(event: DeviceOrientationEvent) {
+      if (event.beta === null || event.gamma === null) return;
+
+      // optimized for device held at 45 degrees
+      let normalizedGamma = -(event.gamma / 45);
+      let normalizedBeta = -((event.beta - 45) / 45);
+
+      // // ortogonal orientation
+      // let normalizedGamma = event.gamma / 45;
+      // let normalizedBeta = event.beta / 45;
+
+      // Clamp the values to keep it within the -1.0 to 1.0 range
+      normalizedGamma = Math.max(-1, Math.min(1, normalizedGamma));
+      normalizedBeta = Math.max(-1, Math.min(1, normalizedBeta));
+
+      // INVERT the rotations by making them negative
+      // This counteracts the phone's tilt so the eye stays locked in the same real-world direction
+      eyeTargetRotationY = -normalizedGamma * EYE_MAX_ROTATION_Y;
+      eyeTargetRotationX = -normalizedBeta * EYE_MAX_ROTATION_X;
+    }
+
+    // Check if the device uses iOS 13+ permission API
+    if (
+      typeof (DeviceOrientationEvent as any).requestPermission === "function"
+    ) {
+      // permission for ios devices
+      if (permissionOverlay && enableTiltBtn) {
+        permissionOverlay.classList.remove("hidden"); // Show the overlay
+
+        enableTiltBtn.addEventListener("click", () => {
+          (DeviceOrientationEvent as any)
+            .requestPermission()
+            .then((permissionState: string) => {
+              if (permissionState === "granted") {
+                window.addEventListener("deviceorientation", handleOrientation);
+                permissionOverlay.classList.add("hidden");
+              } else {
+                console.warn("Device orientation permission denied");
+                enableTiltBtn.innerText = "Permission Denied";
+              }
+            })
+            .catch(console.error);
+        });
+      }
+    } else {
+      // non ios devices
+      window.addEventListener("deviceorientation", handleOrientation);
+    }
   }
 
   const canvasAspect = canvas.clientWidth / canvas.clientHeight;
@@ -301,7 +347,6 @@ function init() {
   const glitchEffect = new GlitchEffect({
     duration: new THREE.Vector2(0.3, 0.2),
     delay: new THREE.Vector2(5, 10),
-    // delay: new THREE.Vector2(1, 3),
   });
 
   const effectPass = new EffectPass(
@@ -315,12 +360,6 @@ function init() {
 
   function updateMonitorRotation() {
     if (!monitorGroup) return;
-    // monitorCurrentRotationX +=
-    //   (monitorTargetRotationX - monitorCurrentRotationX) * EASING;
-    // monitorCurrentRotationY +=
-    //   (monitorTargetRotationY - monitorCurrentRotationY) * EASING;
-    // monitorGroup.rotation.x = monitorCurrentRotationX;
-    // monitorGroup.rotation.y = monitorCurrentRotationY;
   }
 
   function updateEyeRotation() {
@@ -385,19 +424,3 @@ if (document.readyState === "loading") {
 } else {
   init();
 }
-
-// Wireframe effect
-// monitor.traverse((child) => {
-//   if (child instanceof THREE.Mesh) {
-//     const edges = new THREE.EdgesGeometry(child.geometry);
-//     const lineMaterial = new THREE.LineBasicMaterial({
-//       color: child.material.color || 0xffffff,
-//       // color: 0xff00ff,
-//     });
-//     const line = new THREE.LineSegments(edges, lineMaterial);
-//     child.add(line);
-//
-//     child.material.transparent = true;
-//     child.material.opacity = 0.5;
-//   }
-// });
