@@ -41,7 +41,8 @@ function init() {
     0.1,
     1000,
   );
-  mainCamera.position.set(0, 0, 5);
+  mainCamera.position.set(2, 0, 5);
+  mainCamera.lookAt(0, 0, 0);
 
   const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
   screenCamera.position.set(3, 2, 1);
@@ -57,7 +58,7 @@ function init() {
   mainRenderer.shadowMap.enabled = true;
   mainRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const mainAmbientLight = new THREE.AmbientLight(0xffffff, 3);
+  const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
   mainScene.add(mainAmbientLight);
   const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
   mainDirectionalLight.position.set(5, 10, 2);
@@ -72,7 +73,7 @@ function init() {
   mainDirectionalLight.shadow.camera.top = 10;
   mainDirectionalLight.shadow.camera.bottom = -10;
   mainDirectionalLight.shadow.bias = -0.001;
-  mainDirectionalLight.shadow.radius = 8;
+  mainDirectionalLight.shadow.radius = 10;
 
   mainScene.add(mainDirectionalLight);
 
@@ -193,7 +194,7 @@ function init() {
       shadowPlane.position.y = bottomY;
       shadowPlane.receiveShadow = true;
       mainScene.add(shadowPlane);
-      
+
       mainScene.add(monitorGroup);
       animate();
     });
