@@ -342,7 +342,6 @@ class HeroAnimation {
     } else {
       this.mainCamera.position.set(2, 0, zDist);
 
-      // Center via screen-space projected bounding box
       const corners = [
         new THREE.Vector3(box.min.x, box.min.y, box.min.z),
         new THREE.Vector3(box.max.x, box.min.y, box.min.z),
@@ -377,6 +376,7 @@ class HeroAnimation {
       const lookTarget = this.mainCamera.position
         .clone()
         .add(dir.multiplyScalar(distToCenter));
+      lookTarget.y += size.y * 0.05;
       this.mainCamera.lookAt(lookTarget);
     }
 
