@@ -471,10 +471,12 @@ class HeroAnimation {
     });
 
     window.addEventListener("resize", () => {
-      const width = this.canvas.clientWidth;
-      const height = this.canvas.clientHeight;
+      const parent = this.canvas.parentElement;
+      if (!parent) return;
+
+      const width = parent.clientWidth;
+      const height = parent.clientHeight;
       const newAspect = width / height;
-      console.log("RESIZE ", width, height); // DBG
 
       this.mainCamera.aspect = newAspect;
       this.mainCamera.updateProjectionMatrix();
