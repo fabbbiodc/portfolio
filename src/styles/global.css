@@ -16,5 +16,20 @@
   body {
     font-family: "VT323", monospace;
     font-size: 1.125rem;
+    background-color: #111827;
+    background-image:
+      linear-gradient(to right, #E6FF0020 1px, transparent 1px),
+      linear-gradient(to bottom, #E6FF0020 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+@layer components {
+  .grid-bg {
+    background-color: #2a2a2a;
+    background-image:
+      linear-gradient(to right, #d0d0d080 1px, transparent 1px),
+      linear-gradient(to bottom, #d0d0d080 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 }

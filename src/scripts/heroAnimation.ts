@@ -121,6 +121,7 @@ class HeroAnimation {
       canvas: this.canvas,
       antialias: !this.isMobile,
       alpha: true,
+      premultipliedAlpha: false,
     });
 
     this.mainRenderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
@@ -188,8 +189,9 @@ class HeroAnimation {
 
     const renderPassMain = new RenderPass(this.mainScene, this.mainCamera);
     const bloomEffect = new BloomEffect({
-      intensity: 0.15,
-      luminanceThreshold: 0.01,
+      intensity: 0.4,
+      luminanceThreshold: 0.1,
+      blendFunction: BlendFunction.ADD,
     });
 
     const effectPassMain = new EffectPass(this.mainCamera, bloomEffect);
