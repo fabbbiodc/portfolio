@@ -1,3 +1,4 @@
+// imports
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -12,6 +13,7 @@ import {
   BloomEffect,
 } from "postprocessing";
 
+// constants
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
 const EYE_MAX_ROTATION_Y = Math.PI * 0.25;
@@ -22,142 +24,231 @@ const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
 
-// device detection
+// helpers
 function mobileDetection(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   return /mobile|android|iphone|ipad|ipod|blackberry|webos/.test(userAgent);
 }
 
-function init() {
-  const canvas = document.getElementById("hero-animation") as HTMLCanvasElement;
-  if (!canvas) {
-    console.error("[HeroAnimation] Canvas element not found");
-    return;
+class HeroAnimation {
+  // --- Canvas & FPS ---
+  private canvas: HTMLCanvasElement;
+  private isMobile: boolean;
+  private lastFrameTime: number;
+  private targetFrameTime: number;
+
+  // --- Scenes & Cameras ---
+  private mainScene!: THREE.Scene;
+  private screenScene!: THREE.Scene;
+  private mainCamera!: THREE.PerspectiveCamera;
+  private screenCamera!: THREE.PerspectiveCamera;
+
+  // --- Renderer ---
+  private mainRenderer!: THREE.WebGLRenderer;
+
+  // --- State ---
+  private screenMesh: THREE.Mesh | undefined;
+  private eyeModel: THREE.Group | undefined;
+  private monitorGroup: THREE.Group | undefined;
+  private eyeTargetRotationX = 0;
+  private eyeTargetRotationY = 0;
+  private eyeCurrentRotationX = 0;
+  private eyeCurrentRotationY = 0;
+  private monitorTargetRotationX = 0;
+  private monitorTargetRotationY = 0;
+  private monitorCurrentRotationX = 0;
+  private monitorCurrentRotationY = 0;
+  private isRotatingMonitor = false;
+  private previousMouseX = 0;
+  private previousMouseY = 0;
+
+  // --- Post-processing ---
+  private screenComposer!: EffectComposer;
+  private mainComposer!: EffectComposer;
+
+  constructor(canvasId: string) {
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
+    if (!canvas) {
+      throw new Error(`[HeroAnimation] Canvas element #${canvasId} not found`);
+    }
+    this.canvas = canvas;
+    this.isMobile = mobileDetection();
+    this.lastFrameTime = Date.now();
+    this.targetFrameTime = 1000 / (this.isMobile ? 30 : 60);
+
+    this.setupScenesAndCameras();
+    this.setupRenderer();
+    this.setupLights();
+    this.setupPostProcessing();
   }
 
-  const isMobile = mobileDetection();
-
-  let lastFrameTime = Date.now();
-  const targetFPS = isMobile ? 30 : 60;
-  const targetFrameTime = 1000 / targetFPS;
-
-  const mainScene = new THREE.Scene();
-  mainScene.background = null;
-
-  const screenScene = new THREE.Scene();
-  screenScene.background = new THREE.Color(0x000000);
-
-  const mainCamera = new THREE.PerspectiveCamera(
-    30,
-    canvas.clientWidth / canvas.clientHeight,
-    0.1,
-    1000,
-  );
-
-  if (isMobile) {
-    mainCamera.position.set(0, 0, 5);
-  } else {
-    mainCamera.position.set(2, 0, 5);
+  start() {
+    this.loadEyeModel();
+    this.loadMonitorModel();
+    this.loadHDRBackground();
+    this.setupEventHandlers();
   }
-  mainCamera.lookAt(0, 0, 0);
 
-  const screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-  screenCamera.position.set(3, 2, 1);
+  // --- Setup ---
 
-  const mainRenderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: !isMobile,
-    alpha: true,
-  });
+  private setupScenesAndCameras() {
+    this.mainScene = new THREE.Scene();
+    this.mainScene.background = null;
 
-  mainRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  mainRenderer.setClearColor(0x000000, 0);
+    this.screenScene = new THREE.Scene();
+    this.screenScene.background = new THREE.Color(0x000000);
 
-  if (isMobile) {
-    mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  } else {
-    mainRenderer.setPixelRatio(window.devicePixelRatio);
+    this.mainCamera = new THREE.PerspectiveCamera(
+      30,
+      this.canvas.clientWidth / this.canvas.clientHeight,
+      0.1,
+      1000,
+    );
+
+    if (this.isMobile) {
+      this.mainCamera.position.set(0, 0, 5);
+    } else {
+      this.mainCamera.position.set(2, 0, 5);
+    }
+    this.mainCamera.lookAt(0, 0, 0);
+
+    this.screenCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    this.screenCamera.position.set(3, 2, 1);
   }
-  mainRenderer.shadowMap.enabled = true;
-  mainRenderer.shadowMap.type = isMobile
-    ? THREE.PCFShadowMap
-    : THREE.PCFSoftShadowMap;
 
-  const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
-  mainScene.add(mainAmbientLight);
-  const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
-  mainDirectionalLight.position.set(0, 10, 0);
-  // mainDirectionalLight.position.set(5, 10, 2);
-  mainDirectionalLight.castShadow = true;
+  private setupRenderer() {
+    this.mainRenderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: !this.isMobile,
+      alpha: true,
+    });
 
-  const extraDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
-  extraDirectionalLight.position.set(5, 10, 2);
-  mainScene.add(extraDirectionalLight);
+    this.mainRenderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.mainRenderer.setClearColor(0x000000, 0);
 
-  const shadowMapSize = isMobile ? 512 : 1024;
-  mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
-  mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
-  mainDirectionalLight.shadow.camera.near = 0.5;
-  mainDirectionalLight.shadow.camera.far = 50;
+    if (this.isMobile) {
+      this.mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    } else {
+      this.mainRenderer.setPixelRatio(window.devicePixelRatio);
+    }
+    this.mainRenderer.shadowMap.enabled = true;
+    this.mainRenderer.shadowMap.type = this.isMobile
+      ? THREE.PCFShadowMap
+      : THREE.PCFSoftShadowMap;
+  }
 
-  mainDirectionalLight.shadow.camera.left = -10;
-  mainDirectionalLight.shadow.camera.right = 10;
-  mainDirectionalLight.shadow.camera.top = 10;
-  mainDirectionalLight.shadow.camera.bottom = -10;
-  mainDirectionalLight.shadow.bias = -0.001;
-  mainDirectionalLight.shadow.radius = isMobile ? 2 : 10;
+  private setupLights() {
+    const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
+    this.mainScene.add(mainAmbientLight);
+    const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    mainDirectionalLight.position.set(0, 10, 0);
+    // mainDirectionalLight.position.set(5, 10, 2);
+    mainDirectionalLight.castShadow = true;
 
-  mainScene.add(mainDirectionalLight);
+    const extraDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    extraDirectionalLight.position.set(5, 10, 2);
+    this.mainScene.add(extraDirectionalLight);
 
-  const screenAmbientLight = new THREE.AmbientLight(0xffffff, 1);
-  screenScene.add(screenAmbientLight);
-  const screenDirectionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  screenDirectionalLight.position.set(5, 5, 5);
-  screenScene.add(screenDirectionalLight);
+    const shadowMapSize = this.isMobile ? 512 : 1024;
+    mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
+    mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
+    mainDirectionalLight.shadow.camera.near = 0.5;
+    mainDirectionalLight.shadow.camera.far = 50;
 
-  let screenMesh: THREE.Mesh | undefined;
-  let eyeModel: THREE.Group | undefined;
-  let monitorGroup: THREE.Group | undefined;
+    mainDirectionalLight.shadow.camera.left = -10;
+    mainDirectionalLight.shadow.camera.right = 10;
+    mainDirectionalLight.shadow.camera.top = 10;
+    mainDirectionalLight.shadow.camera.bottom = -10;
+    mainDirectionalLight.shadow.bias = -0.001;
+    mainDirectionalLight.shadow.radius = this.isMobile ? 2 : 10;
 
-  let eyeTargetRotationX = 0;
-  let eyeTargetRotationY = 0;
-  let eyeCurrentRotationX = 0;
-  let eyeCurrentRotationY = 0;
+    this.mainScene.add(mainDirectionalLight);
 
-  let monitorTargetRotationX = 0;
-  let monitorTargetRotationY = 0;
-  let monitorCurrentRotationX = 0;
-  let monitorCurrentRotationY = 0;
-  let isRotatingMonitor = false;
-  let previousMouseX = 0;
-  let previousMouseY = 0;
+    const screenAmbientLight = new THREE.AmbientLight(0xffffff, 1);
+    this.screenScene.add(screenAmbientLight);
+    const screenDirectionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    screenDirectionalLight.position.set(5, 5, 5);
+    this.screenScene.add(screenDirectionalLight);
+  }
 
-  function loadEyeModel() {
+  private setupPostProcessing() {
+    const canvasWidth = this.canvas.clientWidth;
+    const canvasHeight = this.canvas.clientHeight;
+    const canvasAspect = canvasWidth / canvasHeight;
+
+    this.screenComposer = new EffectComposer(this.mainRenderer);
+    this.screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
+
+    this.mainComposer = new EffectComposer(this.mainRenderer);
+
+    // Calculate composer size with proper aspect ratio
+    const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
+    this.screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
+    this.mainRenderer.setSize(canvasWidth, canvasHeight);
+
+    const renderPassMain = new RenderPass(this.mainScene, this.mainCamera);
+    const bloomEffect = new BloomEffect({
+      intensity: 0.15,
+      luminanceThreshold: 0.01,
+    });
+
+    const effectPassMain = new EffectPass(this.mainCamera, bloomEffect);
+    this.mainComposer.addPass(renderPassMain);
+    this.mainComposer.addPass(effectPassMain);
+
+    const renderPassScreen = new RenderPass(this.screenScene, this.screenCamera);
+    const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
+
+    const scanlineEffect = new ScanlineEffect({
+      blendFunction: BlendFunction.OVERLAY,
+      density: 1.25,
+    });
+    scanlineEffect.blendMode.opacity.value = 0.4;
+    scanlineEffect.scrollSpeed = 0.03;
+
+    const glitchEffect = new GlitchEffect({
+      duration: new THREE.Vector2(0.3, 0.2),
+      delay: new THREE.Vector2(5, 10),
+    });
+
+    const effectPassScreen = new EffectPass(
+      this.screenCamera,
+      pixelationEffect,
+      scanlineEffect,
+      glitchEffect,
+    );
+    this.screenComposer.addPass(renderPassScreen);
+    this.screenComposer.addPass(effectPassScreen);
+  }
+
+  // --- Models ---
+
+  private loadEyeModel() {
     const eyeLoader = new GLTFLoader();
     eyeLoader.load("/models/eye.glb", (gltf) => {
-      eyeModel = gltf.scene;
-      const eyeBox = new THREE.Box3().setFromObject(eyeModel);
+      this.eyeModel = gltf.scene;
+      const eyeBox = new THREE.Box3().setFromObject(this.eyeModel);
       const eyeCenter = eyeBox.getCenter(new THREE.Vector3());
-      eyeModel.position.sub(eyeCenter);
-      screenScene.add(eyeModel);
+      this.eyeModel.position.sub(eyeCenter);
+      this.screenScene.add(this.eyeModel);
 
       const size = new THREE.Vector3();
       eyeBox.getSize(size);
       const maxDim = Math.max(size.x, size.y, size.z);
-      screenCamera.position.set(0, 0, maxDim * 1);
-      screenCamera.lookAt(0, 0, 0);
+      this.screenCamera.position.set(0, 0, maxDim * 1);
+      this.screenCamera.lookAt(0, 0, 0);
     });
   }
 
-  function setupScreenMeshTexture() {
-    if (!screenMesh) return;
-    screenMesh.geometry.computeBoundingBox();
-    if (!screenMesh.geometry.boundingBox) return;
-    const boundingBox = screenMesh.geometry.boundingBox;
-    const positionAttribute = screenMesh.geometry.attributes.position;
-    const uvAttribute = screenMesh.geometry.attributes.uv;
+  private setupScreenMeshTexture() {
+    if (!this.screenMesh) return;
+    this.screenMesh.geometry.computeBoundingBox();
+    if (!this.screenMesh.geometry.boundingBox) return;
+    const boundingBox = this.screenMesh.geometry.boundingBox;
+    const positionAttribute = this.screenMesh.geometry.attributes.position;
+    const uvAttribute = this.screenMesh.geometry.attributes.uv;
 
-    // monitor.glp uv setup
+    // monitor.glb uv setup
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
       const y = positionAttribute.getY(i);
@@ -169,16 +260,16 @@ function init() {
     }
 
     uvAttribute.needsUpdate = true;
-    screenMesh.material = new THREE.MeshBasicMaterial({
-      map: screenComposer.outputBuffer.texture,
+    this.screenMesh.material = new THREE.MeshBasicMaterial({
+      map: this.screenComposer.outputBuffer.texture,
     });
-    screenMesh.material.needsUpdate = true;
+    this.screenMesh.material.needsUpdate = true;
   }
 
-  function loadMonitorModel() {
+  private loadMonitorModel() {
     const monitorLoader = new GLTFLoader();
     monitorLoader.load("/models/monitor.glb", (gltf) => {
-      monitorGroup = new THREE.Group();
+      this.monitorGroup = new THREE.Group();
       const monitor = gltf.scene;
       monitor.scale.set(3, 3, 3);
 
@@ -189,13 +280,13 @@ function init() {
         }
       });
 
-      monitorGroup.add(monitor);
+      this.monitorGroup.add(monitor);
 
-      screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
+      this.screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
         | THREE.Mesh
         | undefined;
 
-      setupScreenMeshTexture();
+      this.setupScreenMeshTexture();
 
       const monitorBox = new THREE.Box3().setFromObject(monitor);
       const center = monitorBox.getCenter(new THREE.Vector3());
@@ -210,150 +301,131 @@ function init() {
       shadowPlane.rotation.x = -Math.PI / 2;
       shadowPlane.position.y = bottomY;
       shadowPlane.receiveShadow = true;
-      mainScene.add(shadowPlane);
+      this.mainScene.add(shadowPlane);
 
-      mainScene.add(monitorGroup);
-      frameCameraOnMonitor();
-      animate();
+      this.mainScene.add(this.monitorGroup);
+      this.frameCameraOnMonitor();
+      this.animate();
     });
   }
 
-  function frameCameraOnMonitor() {
-    if (!monitorGroup) return;
+  private frameCameraOnMonitor() {
+    if (!this.monitorGroup) return;
 
-    monitorGroup.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(monitorGroup);
+    this.monitorGroup.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(this.monitorGroup);
     const size = new THREE.Vector3();
     box.getSize(size);
     const center = new THREE.Vector3();
 
-    if (isMobile && screenMesh) {
-      new THREE.Box3().setFromObject(screenMesh).getCenter(center);
+    if (this.isMobile && this.screenMesh) {
+      new THREE.Box3().setFromObject(this.screenMesh).getCenter(center);
       center.y -= size.y * 0.25;
     } else {
       box.getCenter(center);
     }
 
-    const fovRad = (mainCamera.fov * Math.PI) / 180;
+    const fovRad = (this.mainCamera.fov * Math.PI) / 180;
     const halfFov = fovRad / 2;
-    const aspect = canvas.clientWidth / canvas.clientHeight;
+    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
 
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = isMobile ? 1.1 : 0.8;
+    const scaling = this.isMobile ? 1.1 : 0.8;
 
-    mainCamera.position.z = Math.max(distByHeight, distByWidth) / scaling;
-    mainCamera.lookAt(center);
-    mainCamera.updateProjectionMatrix();
+    this.mainCamera.position.z = Math.max(distByHeight, distByWidth) / scaling;
+    this.mainCamera.lookAt(center);
+    this.mainCamera.updateProjectionMatrix();
   }
 
-  function loadHDRBackground() {
+  // --- Background screenScene ---
+
+  private loadHDRBackground() {
     const hdrLoader = new HDRLoader();
     hdrLoader.load("/models/bunker.hdr", (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
-      screenScene.background = texture;
-      screenScene.environment = texture;
+      this.screenScene.background = texture;
+      this.screenScene.environment = texture;
     });
   }
 
-  function setupEventListeners() {
+  // --- Interaction ---
+
+  private setupEventHandlers() {
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
 
     document.addEventListener("mousedown", (event) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, mainCamera);
+      raycaster.setFromCamera(mouse, this.mainCamera);
 
-      if (monitorGroup) {
-        const intersects = raycaster.intersectObject(monitorGroup, true);
+      if (this.monitorGroup) {
+        const intersects = raycaster.intersectObject(this.monitorGroup, true);
         if (intersects.length > 0) {
-          isRotatingMonitor = true;
-          previousMouseX = event.clientX;
-          previousMouseY = event.clientY;
+          this.isRotatingMonitor = true;
+          this.previousMouseX = event.clientX;
+          this.previousMouseY = event.clientY;
           event.preventDefault();
         }
       }
     });
 
     document.addEventListener("mousemove", (event) => {
-      if (isRotatingMonitor && monitorGroup) {
-        const deltaX = event.clientX - previousMouseX;
-        const deltaY = event.clientY - previousMouseY;
+      if (this.isRotatingMonitor && this.monitorGroup) {
+        const deltaX = event.clientX - this.previousMouseX;
+        const deltaY = event.clientY - this.previousMouseY;
 
-        monitorTargetRotationY += deltaX * MONITOR_ROTATION_SENSITIVITY;
-        monitorTargetRotationX += deltaY * MONITOR_ROTATION_SENSITIVITY;
-        monitorTargetRotationX = Math.max(
+        this.monitorTargetRotationY += deltaX * MONITOR_ROTATION_SENSITIVITY;
+        this.monitorTargetRotationX += deltaY * MONITOR_ROTATION_SENSITIVITY;
+        this.monitorTargetRotationX = Math.max(
           -MONITOR_MAX_ROTATION_X,
-          Math.min(MONITOR_MAX_ROTATION_X, monitorTargetRotationX),
+          Math.min(MONITOR_MAX_ROTATION_X, this.monitorTargetRotationX),
         );
-        monitorTargetRotationY = Math.max(
+        this.monitorTargetRotationY = Math.max(
           -MONITOR_MAX_ROTATION_Y,
-          Math.min(MONITOR_MAX_ROTATION_Y, monitorTargetRotationY),
+          Math.min(MONITOR_MAX_ROTATION_Y, this.monitorTargetRotationY),
         );
 
-        previousMouseX = event.clientX;
-        previousMouseY = event.clientY;
+        this.previousMouseX = event.clientX;
+        this.previousMouseY = event.clientY;
       }
 
-      const rect = canvas.getBoundingClientRect();
+      const rect = this.canvas.getBoundingClientRect();
       const canvasCenterX = rect.left + rect.width / 2;
       const canvasCenterY = rect.top + rect.height / 2;
       const offsetX = event.clientX - canvasCenterX;
       const offsetY = event.clientY - canvasCenterY;
 
       // invert if using monitor2.glb
-      eyeTargetRotationX = -offsetY * EYE_TRACKING_SENSITIVITY;
-      eyeTargetRotationY = -offsetX * EYE_TRACKING_SENSITIVITY;
+      this.eyeTargetRotationX = -offsetY * EYE_TRACKING_SENSITIVITY;
+      this.eyeTargetRotationY = -offsetX * EYE_TRACKING_SENSITIVITY;
     });
 
     document.addEventListener("mouseup", () => {
-      isRotatingMonitor = false;
+      this.isRotatingMonitor = false;
     });
 
     window.addEventListener("resize", () => {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+      const width = this.canvas.clientWidth;
+      const height = this.canvas.clientHeight;
       const newAspect = width / height;
 
-      mainCamera.aspect = newAspect;
-      mainCamera.updateProjectionMatrix();
-      frameCameraOnMonitor();
-      mainRenderer.setSize(width, height);
+      this.mainCamera.aspect = newAspect;
+      this.mainCamera.updateProjectionMatrix();
+      this.frameCameraOnMonitor();
+      this.mainRenderer.setSize(width, height);
 
       // Update composer with correct aspect ratio
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
-      screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
-      mainRenderer.setSize(width, height);
+      this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
+      this.mainRenderer.setSize(width, height);
     });
 
     // mobile tilt tracking
-    const permissionOverlay = document.getElementById(
-      "tilt-permission-overlay",
-    );
+    const permissionOverlay = document.getElementById("tilt-permission-overlay");
     const enableTiltBtn = document.getElementById("enable-tilt-btn");
-
-    function handleOrientation(event: DeviceOrientationEvent) {
-      if (event.beta === null || event.gamma === null) return;
-
-      // optimized for device held at 45 degrees
-      let normalizedGamma = -(event.gamma / 45);
-      let normalizedBeta = -((event.beta - 45) / 45);
-
-      // // ortogonal orientation
-      // let normalizedGamma = event.gamma / 45;
-      // let normalizedBeta = event.beta / 45;
-
-      // Clamp the values to keep it within the -1.0 to 1.0 range
-      normalizedGamma = Math.max(-1, Math.min(1, normalizedGamma));
-      normalizedBeta = Math.max(-1, Math.min(1, normalizedBeta));
-
-      // INVERT the rotations by making them negative
-      // This counteracts the phone's tilt so the eye stays locked in the same real-world direction
-      eyeTargetRotationY = -normalizedGamma * EYE_MAX_ROTATION_Y;
-      eyeTargetRotationX = -normalizedBeta * EYE_MAX_ROTATION_X;
-    }
 
     // Check if the device uses iOS 13+ permission API
     if (
@@ -368,7 +440,9 @@ function init() {
             .requestPermission()
             .then((permissionState: string) => {
               if (permissionState === "granted") {
-                window.addEventListener("deviceorientation", handleOrientation);
+                window.addEventListener("deviceorientation", (event) =>
+                  this.handleOrientation(event),
+                );
                 permissionOverlay.classList.add("hidden");
               } else {
                 console.warn("Device orientation permission denied");
@@ -383,78 +457,57 @@ function init() {
       if (permissionOverlay) {
         permissionOverlay.classList.add("hidden");
       }
-      window.addEventListener("deviceorientation", handleOrientation);
+      window.addEventListener("deviceorientation", (event) =>
+        this.handleOrientation(event),
+      );
     }
   }
 
-  const canvasWidth = canvas.clientWidth;
-  const canvasHeight = canvas.clientHeight;
-  const canvasAspect = canvasWidth / canvasHeight;
+  private handleOrientation(event: DeviceOrientationEvent) {
+    if (event.beta === null || event.gamma === null) return;
 
-  const screenComposer = new EffectComposer(mainRenderer);
-  screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
+    // optimized for device held at 45 degrees
+    let normalizedGamma = -(event.gamma / 45);
+    let normalizedBeta = -((event.beta - 45) / 45);
 
-  const mainComposer = new EffectComposer(mainRenderer);
+    // // ortogonal orientation
+    // let normalizedGamma = event.gamma / 45;
+    // let normalizedBeta = event.beta / 45;
 
-  // Calculate composer size with proper aspect ratio
-  const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
-  screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
-  mainRenderer.setSize(canvasWidth, canvasHeight);
+    // Clamp the values to keep it within the -1.0 to 1.0 range
+    normalizedGamma = Math.max(-1, Math.min(1, normalizedGamma));
+    normalizedBeta = Math.max(-1, Math.min(1, normalizedBeta));
 
-  const renderPassMain = new RenderPass(mainScene, mainCamera);
-  const bloomEffect = new BloomEffect({
-    intensity: 0.15,
-    luminanceThreshold: 0.01,
-  });
-
-  const effectPassMain = new EffectPass(mainCamera, bloomEffect);
-  mainComposer.addPass(renderPassMain);
-  mainComposer.addPass(effectPassMain);
-
-  const renderPassScreen = new RenderPass(screenScene, screenCamera);
-  const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
-
-  const scanlineEffect = new ScanlineEffect({
-    blendFunction: BlendFunction.OVERLAY,
-    density: 1.25,
-  });
-  scanlineEffect.blendMode.opacity.value = 0.4;
-  scanlineEffect.scrollSpeed = 0.03;
-
-  const glitchEffect = new GlitchEffect({
-    duration: new THREE.Vector2(0.3, 0.2),
-    delay: new THREE.Vector2(5, 10),
-  });
-
-  const effectPassScreen = new EffectPass(
-    screenCamera,
-    pixelationEffect,
-    scanlineEffect,
-    glitchEffect,
-  );
-  screenComposer.addPass(renderPassScreen);
-  screenComposer.addPass(effectPassScreen);
-
-  function updateMonitorRotation() {
-    if (!monitorGroup) return;
+    // INVERT the rotations by making them negative
+    // This counteracts the phone's tilt so the eye stays locked in the same real-world direction
+    this.eyeTargetRotationY = -normalizedGamma * EYE_MAX_ROTATION_Y;
+    this.eyeTargetRotationX = -normalizedBeta * EYE_MAX_ROTATION_X;
   }
 
-  function updateEyeRotation() {
-    if (!eyeModel) return;
+  // --- Animation ---
 
-    eyeCurrentRotationX += (eyeTargetRotationX - eyeCurrentRotationX) * EASING;
-    eyeCurrentRotationY += (eyeTargetRotationY - eyeCurrentRotationY) * EASING;
+  private updateMonitorRotation() {
+    if (!this.monitorGroup) return;
+  }
+
+  private updateEyeRotation() {
+    if (!this.eyeModel) return;
+
+    this.eyeCurrentRotationX +=
+      (this.eyeTargetRotationX - this.eyeCurrentRotationX) * EASING;
+    this.eyeCurrentRotationY +=
+      (this.eyeTargetRotationY - this.eyeCurrentRotationY) * EASING;
 
     const clampedRotationX = Math.max(
       -EYE_MAX_ROTATION_X,
-      Math.min(EYE_MAX_ROTATION_X, eyeCurrentRotationX),
+      Math.min(EYE_MAX_ROTATION_X, this.eyeCurrentRotationX),
     );
     const clampedRotationY = Math.max(
       -EYE_MAX_ROTATION_Y,
-      Math.min(EYE_MAX_ROTATION_Y, eyeCurrentRotationY),
+      Math.min(EYE_MAX_ROTATION_Y, this.eyeCurrentRotationY),
     );
 
-    if (monitorGroup) {
+    if (this.monitorGroup) {
       const eyeQuat = new THREE.Quaternion();
       eyeQuat.setFromEuler(
         new THREE.Euler(clampedRotationX, clampedRotationY, 0, "YXZ"),
@@ -463,8 +516,8 @@ function init() {
       const monitorQuat = new THREE.Quaternion();
       monitorQuat.setFromEuler(
         new THREE.Euler(
-          monitorCurrentRotationX,
-          monitorCurrentRotationY,
+          this.monitorCurrentRotationX,
+          this.monitorCurrentRotationY,
           0,
           "YXZ",
         ),
@@ -473,40 +526,38 @@ function init() {
       const finalQuat = monitorQuat.clone().multiply(eyeQuat);
       const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, "YXZ");
 
-      eyeModel.rotation.x = finalEuler.x;
-      eyeModel.rotation.y = finalEuler.y;
+      this.eyeModel.rotation.x = finalEuler.x;
+      this.eyeModel.rotation.y = finalEuler.y;
     } else {
-      eyeModel.rotation.x = clampedRotationX;
-      eyeModel.rotation.y = clampedRotationY;
+      this.eyeModel.rotation.x = clampedRotationX;
+      this.eyeModel.rotation.y = clampedRotationY;
     }
   }
 
-  function animate() {
-    requestAnimationFrame(animate);
+  private animate() {
+    requestAnimationFrame(() => this.animate());
 
     const now = Date.now();
-    const elapsed = now - lastFrameTime;
+    const elapsed = now - this.lastFrameTime;
 
-    if (elapsed >= targetFrameTime) {
-      lastFrameTime = now;
+    if (elapsed >= this.targetFrameTime) {
+      this.lastFrameTime = now;
 
-      updateMonitorRotation();
-      updateEyeRotation();
-      screenComposer.render();
-      mainComposer.render();
+      this.updateMonitorRotation();
+      this.updateEyeRotation();
+      this.screenComposer.render();
+      this.mainComposer.render();
       // mainRenderer.setRenderTarget(null);
       // mainRenderer.render(mainScene, mainCamera);
     }
   }
-
-  loadEyeModel();
-  loadMonitorModel();
-  loadHDRBackground();
-  setupEventListeners();
 }
 
+// entry point
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener("DOMContentLoaded", () => {
+    new HeroAnimation("hero-animation").start();
+  });
 } else {
-  init();
+  new HeroAnimation("hero-animation").start();
 }
