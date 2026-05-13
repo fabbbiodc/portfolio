@@ -437,12 +437,21 @@ class HeroAnimation {
       }
 
       const rect = this.canvas.getBoundingClientRect();
-      const canvasCenterX = rect.left + rect.width / 2;
-      const canvasCenterY = rect.top + rect.height / 2;
-      const offsetX = event.clientX - canvasCenterX;
-      const offsetY = event.clientY - canvasCenterY;
 
-      // invert if using monitor2.glb
+      let refX = rect.left + rect.width / 2;
+      let refY = rect.top + rect.height / 2;
+
+      if (this.screenMesh) {
+        const meshCenter = new THREE.Vector3();
+        new THREE.Box3().setFromObject(this.screenMesh).getCenter(meshCenter);
+        meshCenter.project(this.mainCamera);
+        refX = ((meshCenter.x + 1) / 2) * rect.width + rect.left;
+        refY = ((1 - meshCenter.y) / 2) * rect.height + rect.top;
+      }
+
+      const offsetX = event.clientX - refX;
+      const offsetY = event.clientY - refY;
+
       this.eyeTargetRotationX = -offsetY * EYE_TRACKING_SENSITIVITY;
       this.eyeTargetRotationY = -offsetX * EYE_TRACKING_SENSITIVITY;
     });
