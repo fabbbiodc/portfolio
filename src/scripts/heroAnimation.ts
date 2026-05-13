@@ -9,6 +9,7 @@ import {
   PixelationEffect,
   BlendFunction,
   GlitchEffect,
+  BloomEffect,
 } from "postprocessing";
 
 const EASING = 0.1;
@@ -92,7 +93,7 @@ function init() {
   const extraDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
   extraDirectionalLight.position.set(5, 10, 2);
   mainScene.add(extraDirectionalLight);
-  
+
   const shadowMapSize = isMobile ? 512 : 1024;
   mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
   mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
@@ -393,12 +394,24 @@ function init() {
   const screenComposer = new EffectComposer(mainRenderer);
   screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
 
+  const mainComposer = new EffectComposer(mainRenderer);
+
   // Calculate composer size with proper aspect ratio
   const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
   screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
   mainRenderer.setSize(canvasWidth, canvasHeight);
 
-  const renderPass = new RenderPass(screenScene, screenCamera);
+  const renderPassMain = new RenderPass(mainScene, mainCamera);
+  const bloomEffect = new BloomEffect({
+    intensity: 0.15,
+    luminanceThreshold: 0.01,
+  });
+
+  const effectPassMain = new EffectPass(mainCamera, bloomEffect);
+  mainComposer.addPass(renderPassMain);
+  mainComposer.addPass(effectPassMain);
+
+  const renderPassScreen = new RenderPass(screenScene, screenCamera);
   const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
 
   const scanlineEffect = new ScanlineEffect({
@@ -413,14 +426,14 @@ function init() {
     delay: new THREE.Vector2(5, 10),
   });
 
-  const effectPass = new EffectPass(
+  const effectPassScreen = new EffectPass(
     screenCamera,
     pixelationEffect,
     scanlineEffect,
     glitchEffect,
   );
-  screenComposer.addPass(renderPass);
-  screenComposer.addPass(effectPass);
+  screenComposer.addPass(renderPassScreen);
+  screenComposer.addPass(effectPassScreen);
 
   function updateMonitorRotation() {
     if (!monitorGroup) return;
@@ -480,8 +493,9 @@ function init() {
       updateMonitorRotation();
       updateEyeRotation();
       screenComposer.render();
-      mainRenderer.setRenderTarget(null);
-      mainRenderer.render(mainScene, mainCamera);
+      mainComposer.render();
+      // mainRenderer.setRenderTarget(null);
+      // mainRenderer.render(mainScene, mainCamera);
     }
   }
 
