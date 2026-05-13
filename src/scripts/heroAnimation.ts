@@ -23,6 +23,10 @@ const MONITOR_ROTATION_SENSITIVITY = 0.005;
 const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
+const DEBUG_MODE = true; // Set to false in production
+
+// Global instance tracker for hot reload safety
+let globalHeroAnimationInstance: HeroAnimation | null = null;
 
 // helpers
 function mobileDetection(): boolean {
@@ -36,6 +40,8 @@ class HeroAnimation {
   private isMobile: boolean;
   private lastFrameTime: number;
   private targetFrameTime: number;
+  private isAnimating = false;
+  private animationFrameId: number | null = null;
 
   // --- Scenes & Cameras ---
   private mainScene!: THREE.Scene;
@@ -66,6 +72,34 @@ class HeroAnimation {
   private screenComposer!: EffectComposer;
   private mainComposer!: EffectComposer;
 
+  // --- Reusable objects for animation loop (reduce GC pressure) ---
+  private reusableQuaternion1 = new THREE.Quaternion();
+  private reusableQuaternion2 = new THREE.Quaternion();
+  private reusableEuler = new THREE.Euler();
+  private reusableVector3 = new THREE.Vector3();
+
+  // --- Event listeners (for cleanup) ---
+  private boundEventHandlers: {
+    mousedown: (e: MouseEvent) => void;
+    mousemove: (e: MouseEvent) => void;
+    mouseup: (e: MouseEvent) => void;
+    resize: () => void;
+    deviceorientation: (e: DeviceOrientationEvent) => void;
+  } = {
+    mousedown: () => {},
+    mousemove: () => {},
+    mouseup: () => {},
+    resize: () => {},
+    deviceorientation: () => {},
+  };
+
+  // --- Cached values ---
+  private lastCanvasWidth = 0;
+  private lastCanvasHeight = 0;
+  private cachedMeshCenterX = 0;
+  private cachedMeshCenterY = 0;
+  private cachedCanvasRect: DOMRect | null = null;
+
   constructor(canvasId: string) {
     const canvas = document.getElementById(
       canvasId,
@@ -78,6 +112,13 @@ class HeroAnimation {
     this.lastFrameTime = Date.now();
     this.targetFrameTime = 1000 / (this.isMobile ? 30 : 60);
 
+    // Clean up any previous instance (for hot reload safety)
+    if (globalHeroAnimationInstance) {
+      if (DEBUG_MODE) console.log("[HeroAnimation] Destroying previous instance for hot reload");
+      globalHeroAnimationInstance.destroy();
+    }
+    globalHeroAnimationInstance = this;
+
     this.setupScenesAndCameras();
     this.setupRenderer();
     this.setupLights();
@@ -89,6 +130,83 @@ class HeroAnimation {
     this.loadMonitorModel();
     this.loadHDRBackground();
     this.setupEventHandlers();
+  }
+
+  // --- Cleanup & Resource Disposal ---
+
+  destroy() {
+    if (DEBUG_MODE) console.log("[HeroAnimation] Destroying HeroAnimation instance");
+    
+    // Stop animation loop
+    this.stopAnimation();
+
+    // Remove all event listeners
+    this.removeEventListeners();
+
+    // Dispose Three.js resources
+    this.disposeResources();
+
+    if (DEBUG_MODE) console.log("[HeroAnimation] Cleanup complete");
+  }
+
+  private stopAnimation() {
+    this.isAnimating = false;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
+  private removeEventListeners() {
+    document.removeEventListener("mousedown", this.boundEventHandlers.mousedown);
+    document.removeEventListener("mousemove", this.boundEventHandlers.mousemove);
+    document.removeEventListener("mouseup", this.boundEventHandlers.mouseup);
+    window.removeEventListener("resize", this.boundEventHandlers.resize);
+    window.removeEventListener("deviceorientation", this.boundEventHandlers.deviceorientation);
+  }
+
+  private disposeResources() {
+    // Dispose scenes
+    if (this.mainScene) {
+      this.mainScene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.geometry?.dispose();
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach((mat) => mat.dispose());
+          } else {
+            mesh.material?.dispose();
+          }
+        }
+      });
+    }
+
+    if (this.screenScene) {
+      this.screenScene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.geometry?.dispose();
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach((mat) => mat.dispose());
+          } else {
+            mesh.material?.dispose();
+          }
+        }
+      });
+    }
+
+    // Dispose composers
+    if (this.screenComposer) {
+      this.screenComposer.dispose();
+    }
+    if (this.mainComposer) {
+      this.mainComposer.dispose();
+    }
+
+    // Dispose renderer
+    if (this.mainRenderer) {
+      this.mainRenderer.dispose();
+    }
   }
 
   // --- Setup ---
@@ -315,7 +433,8 @@ class HeroAnimation {
 
       this.mainScene.add(this.monitorGroup);
       this.frameCameraOnMonitor();
-      this.animate();
+      this.startAnimation();
+      if (DEBUG_MODE) console.log("[HeroAnimation] Models loaded, animation started");
     });
   }
 
@@ -410,7 +529,8 @@ class HeroAnimation {
     const mouse = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
 
-    document.addEventListener("mousedown", (event) => {
+    // Create bound event handlers for cleanup
+    this.boundEventHandlers.mousedown = (event: MouseEvent) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, this.mainCamera);
@@ -424,9 +544,9 @@ class HeroAnimation {
           event.preventDefault();
         }
       }
-    });
+    };
 
-    document.addEventListener("mousemove", (event) => {
+    this.boundEventHandlers.mousemove = (event: MouseEvent) => {
       if (this.isRotatingMonitor && this.monitorGroup) {
         const deltaX = event.clientX - this.previousMouseX;
         const deltaY = event.clientY - this.previousMouseY;
@@ -452,8 +572,9 @@ class HeroAnimation {
       let refY = rect.top + rect.height / 2;
 
       if (this.screenMesh) {
-        const meshCenter = new THREE.Vector3();
-        new THREE.Box3().setFromObject(this.screenMesh).getCenter(meshCenter);
+        // Cache mesh center calculation
+        this.reusableVector3.setFromMatrixPosition(this.screenMesh.matrixWorld);
+        const meshCenter = this.reusableVector3;
         meshCenter.project(this.mainCamera);
         refX = ((meshCenter.x + 1) / 2) * rect.width + rect.left;
         refY = ((1 - meshCenter.y) / 2) * rect.height + rect.top;
@@ -464,17 +585,26 @@ class HeroAnimation {
 
       this.eyeTargetRotationX = -offsetY * EYE_TRACKING_SENSITIVITY;
       this.eyeTargetRotationY = -offsetX * EYE_TRACKING_SENSITIVITY;
-    });
+    };
 
-    document.addEventListener("mouseup", () => {
+    this.boundEventHandlers.mouseup = () => {
       this.isRotatingMonitor = false;
-    });
+    };
 
-    window.addEventListener("resize", () => {
+    this.boundEventHandlers.resize = () => {
       const width = this.canvas.clientWidth;
       const height = this.canvas.clientHeight;
+      
+      // Only update if size actually changed
+      if (width === this.lastCanvasWidth && height === this.lastCanvasHeight) {
+        return;
+      }
+      
+      this.lastCanvasWidth = width;
+      this.lastCanvasHeight = height;
+      
       const newAspect = width / height;
-      console.log("RESIZE ", width, height); // DBG
+      if (DEBUG_MODE) console.log("[HeroAnimation] RESIZE", width, height);
 
       this.mainCamera.aspect = newAspect;
       this.mainCamera.updateProjectionMatrix();
@@ -485,7 +615,17 @@ class HeroAnimation {
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
       this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
       this.mainComposer.setSize(width, height);
-    });
+    };
+
+    this.boundEventHandlers.deviceorientation = (event: DeviceOrientationEvent) => {
+      this.handleOrientation(event);
+    };
+
+    // Add event listeners with bound methods
+    document.addEventListener("mousedown", this.boundEventHandlers.mousedown);
+    document.addEventListener("mousemove", this.boundEventHandlers.mousemove);
+    document.addEventListener("mouseup", this.boundEventHandlers.mouseup);
+    window.addEventListener("resize", this.boundEventHandlers.resize);
 
     // mobile tilt tracking
     const permissionOverlay = document.getElementById(
@@ -506,8 +646,9 @@ class HeroAnimation {
             .requestPermission()
             .then((permissionState: string) => {
               if (permissionState === "granted") {
-                window.addEventListener("deviceorientation", (event) =>
-                  this.handleOrientation(event),
+                window.addEventListener(
+                  "deviceorientation",
+                  this.boundEventHandlers.deviceorientation,
                 );
                 permissionOverlay.classList.add("hidden");
               } else {
@@ -523,8 +664,9 @@ class HeroAnimation {
       if (permissionOverlay) {
         permissionOverlay.classList.add("hidden");
       }
-      window.addEventListener("deviceorientation", (event) =>
-        this.handleOrientation(event),
+      window.addEventListener(
+        "deviceorientation",
+        this.boundEventHandlers.deviceorientation,
       );
     }
   }
@@ -554,6 +696,15 @@ class HeroAnimation {
 
   private updateMonitorRotation() {
     if (!this.monitorGroup) return;
+
+    // Smooth rotation easing
+    this.monitorCurrentRotationX +=
+      (this.monitorTargetRotationX - this.monitorCurrentRotationX) * EASING;
+    this.monitorCurrentRotationY +=
+      (this.monitorTargetRotationY - this.monitorCurrentRotationY) * EASING;
+
+    this.monitorGroup.rotation.x = this.monitorCurrentRotationX;
+    this.monitorGroup.rotation.y = this.monitorCurrentRotationY;
   }
 
   private updateEyeRotation() {
@@ -574,14 +725,13 @@ class HeroAnimation {
     );
 
     if (this.monitorGroup) {
-      const eyeQuat = new THREE.Quaternion();
-      eyeQuat.setFromEuler(
-        new THREE.Euler(clampedRotationX, clampedRotationY, 0, "YXZ"),
+      // Reuse quaternions and euler to reduce GC pressure
+      this.reusableQuaternion1.setFromEuler(
+        this.reusableEuler.set(clampedRotationX, clampedRotationY, 0, "YXZ"),
       );
 
-      const monitorQuat = new THREE.Quaternion();
-      monitorQuat.setFromEuler(
-        new THREE.Euler(
+      this.reusableQuaternion2.setFromEuler(
+        this.reusableEuler.set(
           this.monitorCurrentRotationX,
           this.monitorCurrentRotationY,
           0,
@@ -589,19 +739,21 @@ class HeroAnimation {
         ),
       );
 
-      const finalQuat = monitorQuat.clone().multiply(eyeQuat);
-      const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, "YXZ");
+      this.reusableQuaternion2.multiply(this.reusableQuaternion1);
+      this.reusableEuler.setFromQuaternion(this.reusableQuaternion2, "YXZ");
 
-      this.eyeModel.rotation.x = finalEuler.x;
-      this.eyeModel.rotation.y = finalEuler.y;
+      this.eyeModel.rotation.x = this.reusableEuler.x;
+      this.eyeModel.rotation.y = this.reusableEuler.y;
     } else {
       this.eyeModel.rotation.x = clampedRotationX;
       this.eyeModel.rotation.y = clampedRotationY;
     }
   }
 
-  private animate() {
-    requestAnimationFrame(() => this.animate());
+  private animate = () => {
+    if (!this.isAnimating) return;
+
+    this.animationFrameId = requestAnimationFrame(this.animate);
 
     const now = Date.now();
     const elapsed = now - this.lastFrameTime;
@@ -613,17 +765,35 @@ class HeroAnimation {
       this.updateEyeRotation();
       this.screenComposer.render();
       this.mainComposer.render();
-      // mainRenderer.setRenderTarget(null);
-      // mainRenderer.render(mainScene, mainCamera);
     }
+  };
+
+  private startAnimation() {
+    if (this.isAnimating) return;
+    this.isAnimating = true;
+    this.animationFrameId = requestAnimationFrame(this.animate);
   }
 }
 
 // entry point
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
+function initializeHeroAnimation() {
+  try {
     new HeroAnimation("hero-animation").start();
-  });
-} else {
-  new HeroAnimation("hero-animation").start();
+  } catch (error) {
+    console.error("[HeroAnimation] Failed to initialize:", error);
+  }
 }
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeHeroAnimation);
+} else {
+  initializeHeroAnimation();
+}
+
+// Cleanup on page unload/navigation (for SPA transitions)
+window.addEventListener("beforeunload", () => {
+  if (globalHeroAnimationInstance) {
+    globalHeroAnimationInstance.destroy();
+    globalHeroAnimationInstance = null;
+  }
+});
