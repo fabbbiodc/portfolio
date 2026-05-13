@@ -67,7 +67,9 @@ class HeroAnimation {
   private mainComposer!: EffectComposer;
 
   constructor(canvasId: string) {
-    const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;
+    const canvas = document.getElementById(
+      canvasId,
+    ) as HTMLCanvasElement | null;
     if (!canvas) {
       throw new Error(`[HeroAnimation] Canvas element #${canvasId} not found`);
     }
@@ -124,7 +126,10 @@ class HeroAnimation {
       premultipliedAlpha: false,
     });
 
-    this.mainRenderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.mainRenderer.setSize(
+      this.canvas.clientWidth,
+      this.canvas.clientHeight,
+    );
     this.mainRenderer.setClearColor(0x000000, 0);
 
     if (this.isMobile) {
@@ -198,7 +203,10 @@ class HeroAnimation {
     this.mainComposer.addPass(renderPassMain);
     this.mainComposer.addPass(effectPassMain);
 
-    const renderPassScreen = new RenderPass(this.screenScene, this.screenCamera);
+    const renderPassScreen = new RenderPass(
+      this.screenScene,
+      this.screenCamera,
+    );
     const pixelationEffect = new PixelationEffect(PIXEL_SIZE);
 
     const scanlineEffect = new ScanlineEffect({
@@ -353,8 +361,10 @@ class HeroAnimation {
         new THREE.Vector3(box.max.x, box.max.y, box.max.z),
       ];
 
-      let ndcMinX = Infinity, ndcMaxX = -Infinity;
-      let ndcMinY = Infinity, ndcMaxY = -Infinity;
+      let ndcMinX = Infinity,
+        ndcMaxX = -Infinity;
+      let ndcMinY = Infinity,
+        ndcMaxY = -Infinity;
       for (const p of corners) {
         p.project(this.mainCamera);
         ndcMinX = Math.min(ndcMinX, p.x);
@@ -464,6 +474,7 @@ class HeroAnimation {
       const width = this.canvas.clientWidth;
       const height = this.canvas.clientHeight;
       const newAspect = width / height;
+      console.log("RESIZE ", width, height); // DBG
 
       this.mainCamera.aspect = newAspect;
       this.mainCamera.updateProjectionMatrix();
@@ -473,11 +484,13 @@ class HeroAnimation {
       // Update composer with correct aspect ratio
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
       this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
-      this.mainRenderer.setSize(width, height);
+      this.mainComposer.setSize(width, height);
     });
 
     // mobile tilt tracking
-    const permissionOverlay = document.getElementById("tilt-permission-overlay");
+    const permissionOverlay = document.getElementById(
+      "tilt-permission-overlay",
+    );
     const enableTiltBtn = document.getElementById("enable-tilt-btn");
 
     // Check if the device uses iOS 13+ permission API
