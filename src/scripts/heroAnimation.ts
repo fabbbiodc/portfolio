@@ -319,12 +319,11 @@ class HeroAnimation {
     const size = new THREE.Vector3();
     box.getSize(size);
     const center = new THREE.Vector3();
+    box.getCenter(center);
 
     if (this.isMobile && this.screenMesh) {
       new THREE.Box3().setFromObject(this.screenMesh).getCenter(center);
       center.y -= size.y * 0.25;
-    } else {
-      box.getCenter(center);
     }
 
     const fovRad = (this.mainCamera.fov * Math.PI) / 180;
@@ -335,9 +334,52 @@ class HeroAnimation {
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
     const scaling = this.isMobile ? 1.1 : 0.8;
+    const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    this.mainCamera.position.z = Math.max(distByHeight, distByWidth) / scaling;
-    this.mainCamera.lookAt(center);
+    if (this.isMobile) {
+      this.mainCamera.position.set(0, 0, zDist);
+      this.mainCamera.lookAt(center);
+    } else {
+      this.mainCamera.position.set(2, 0, zDist);
+
+      // Center via screen-space projected bounding box
+      const corners = [
+        new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+        new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+        new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+        new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+      ];
+
+      let ndcMinX = Infinity, ndcMaxX = -Infinity;
+      let ndcMinY = Infinity, ndcMaxY = -Infinity;
+      for (const p of corners) {
+        p.project(this.mainCamera);
+        ndcMinX = Math.min(ndcMinX, p.x);
+        ndcMaxX = Math.max(ndcMaxX, p.x);
+        ndcMinY = Math.min(ndcMinY, p.y);
+        ndcMaxY = Math.max(ndcMaxY, p.y);
+      }
+
+      const ndcCenterX = (ndcMinX + ndcMaxX) / 2;
+      const ndcCenterY = (ndcMinY + ndcMaxY) / 2;
+
+      const ndcPoint = new THREE.Vector3(ndcCenterX, ndcCenterY, 1);
+      ndcPoint.unproject(this.mainCamera);
+      const dir = new THREE.Vector3()
+        .copy(ndcPoint)
+        .sub(this.mainCamera.position)
+        .normalize();
+      const distToCenter = this.mainCamera.position.distanceTo(center);
+      const lookTarget = this.mainCamera.position
+        .clone()
+        .add(dir.multiplyScalar(distToCenter));
+      this.mainCamera.lookAt(lookTarget);
+    }
+
     this.mainCamera.updateProjectionMatrix();
   }
 
