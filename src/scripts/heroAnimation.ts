@@ -56,7 +56,7 @@ function init() {
   if (isMobile) {
     mainCamera.position.set(0, 0, 5);
   } else {
-  mainCamera.position.set(2, 0, 5)
+    mainCamera.position.set(2, 0, 5);
   }
   mainCamera.lookAt(0, 0, 0);
 
@@ -89,6 +89,10 @@ function init() {
   // mainDirectionalLight.position.set(5, 10, 2);
   mainDirectionalLight.castShadow = true;
 
+  const extraDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
+  extraDirectionalLight.position.set(5, 10, 2);
+  mainScene.add(extraDirectionalLight);
+  
   const shadowMapSize = isMobile ? 512 : 1024;
   mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
   mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
@@ -229,7 +233,7 @@ function init() {
       box.getCenter(center);
     }
 
-    const fovRad = mainCamera.fov * Math.PI / 180;
+    const fovRad = (mainCamera.fov * Math.PI) / 180;
     const halfFov = fovRad / 2;
     const aspect = canvas.clientWidth / canvas.clientHeight;
 
