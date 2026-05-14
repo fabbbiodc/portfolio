@@ -1,17 +1,17 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --color-bg-primary: #FFFFFF;
-    --color-bg-primary-rgb: 255 255 255;
-    --color-text-primary: #000000;
-    --color-text-primary-rgb: 0 0 0;
-    --color-accent: #E6FF00;
-    --color-accent-rgb: 230 255 0;
-    --color-grid-lines: #E6FF0020;
-  }
+/* 1. Define your tokens here! Tailwind handles the rest. */
+@theme {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-dark: #171717;
+  --color-text-primary: #171717;
+  --color-text-bright: #FFFFFF;
+  --color-accent-primary: #E6FF00;
+  --color-grid-lines: #E6FF0020;
+}
 
+@layer base {
   *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -31,41 +31,19 @@
     font-family: "DM Mono", monospace;
     font-weight: 400;
     font-size: 1.125rem;
-    background-color: var(--color-bg-primary);
     
+    /* You can still use the variables natively in CSS */
+    background-color: var(--color-bg-primary);
     background-image: 
       radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
       radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
-    
     background-size: 3px 9px;
-    
     background-position: 0 0, 1.5px 4.5px;
-    
     color: var(--color-text-primary);
   }
 
-  /* DM Mono Bold for headings - easily adjustable sizes */
   h1, h2, h3, h4, h5, h6 {
     font-family: "DM Mono", monospace;
     font-weight: 700;
-  }
-
-  /* Individual heading sizes - adjust as needed */
-  h1 { /* font-size: adjust here */ }
-  h2 { /* font-size: adjust here */ }
-  h3 { /* font-size: adjust here */ }
-  h4 { /* font-size: adjust here */ }
-  h5 { /* font-size: adjust here */ }
-  h6 { /* font-size: adjust here */ }
-}
-
-@layer components {
-  .mesh-bg {
-    background-color: var(--color-bg-primary);
-    background-image: 
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
-    background-size: 3px 9px;
-    background-position: 0 0, 1.5px 4.5px;
   }
 }

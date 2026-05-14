@@ -1,10 +1,11 @@
 ---
 // Generic container
 
-const { class: className } = Astro.props;
 import { containerStyle } from "../styles/styles";
+import Titlebar from "./Titlebar.astro";
 ---
 
+<Titlebar title="about me" />
 <div class={containerStyle}>
-    <slot />
+  <slot />
 </div>

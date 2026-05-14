@@ -1,8 +1,9 @@
 ---
 import Container from './Container.astro'
+import { homeSectionStyle } from '../styles/styles'
 ---
 
-<section class="w-full h-screen flex items-center justify-center">
+<section class={homeSectionStyle}>
     <Container> <h1>Section 1</h1> </Container>
-    <h1 class="text-6xl text-text-primary">section1</h1>
+    <!-- <h1 class="text-6xl text-text-primary">section1</h1> -->
 </section>
