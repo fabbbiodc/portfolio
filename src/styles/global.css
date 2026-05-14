@@ -2,6 +2,16 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --color-bg-primary: #FFFFFF;
+    --color-bg-primary-rgb: 255 255 255;
+    --color-text-primary: #000000;
+    --color-text-primary-rgb: 0 0 0;
+    --color-accent: #E6FF00;
+    --color-accent-rgb: 230 255 0;
+    --color-grid-lines: #E6FF0020;
+  }
+
   *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -16,20 +26,21 @@
   body {
     font-family: "VT323", monospace;
     font-size: 1.125rem;
-    background-color: #111827;
+    background-color: var(--color-bg-primary);
     background-image:
-      linear-gradient(to right, #E6FF0020 1px, transparent 1px),
-      linear-gradient(to bottom, #E6FF0020 1px, transparent 1px);
+      linear-gradient(to right, var(--color-grid-lines) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-grid-lines) 1px, transparent 1px);
     background-size: 24px 24px;
+    color: var(--color-text-primary);
   }
 }
 
 @layer components {
   .grid-bg {
-    background-color: #2a2a2a;
+    background-color: var(--color-bg-primary);
     background-image:
-      linear-gradient(to right, #d0d0d080 1px, transparent 1px),
-      linear-gradient(to bottom, #d0d0d080 1px, transparent 1px);
+      linear-gradient(to right, var(--color-grid-lines) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-grid-lines) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 }

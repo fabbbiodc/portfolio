@@ -12,6 +12,7 @@ import {
   GlitchEffect,
   BloomEffect,
 } from "postprocessing";
+import { COLORS } from "./colors";
 
 // constants
 const EASING = 0.1;
@@ -98,7 +99,7 @@ class HeroAnimation {
     this.mainScene.background = null;
 
     this.screenScene = new THREE.Scene();
-    this.screenScene.background = new THREE.Color(0x000000);
+    this.screenScene.background = new THREE.Color(COLORS.DARK_BLACK);
 
     this.mainCamera = new THREE.PerspectiveCamera(
       30,
@@ -130,7 +131,7 @@ class HeroAnimation {
       this.canvas.clientWidth,
       this.canvas.clientHeight,
     );
-    this.mainRenderer.setClearColor(0x000000, 0);
+    this.mainRenderer.setClearColor(COLORS.DARK_BLACK, 0);
 
     if (this.isMobile) {
       this.mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -144,14 +145,14 @@ class HeroAnimation {
   }
 
   private setupLights() {
-    const mainAmbientLight = new THREE.AmbientLight(0xffffff, 2);
+    const mainAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 2);
     this.mainScene.add(mainAmbientLight);
-    const mainDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    const mainDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
     mainDirectionalLight.position.set(0, 10, 0);
     // mainDirectionalLight.position.set(5, 10, 2);
     mainDirectionalLight.castShadow = true;
 
-    const extraDirectionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    const extraDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
     extraDirectionalLight.position.set(5, 10, 2);
     this.mainScene.add(extraDirectionalLight);
 
@@ -170,9 +171,9 @@ class HeroAnimation {
 
     this.mainScene.add(mainDirectionalLight);
 
-    const screenAmbientLight = new THREE.AmbientLight(0xffffff, 1);
+    const screenAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 1);
     this.screenScene.add(screenAmbientLight);
-    const screenDirectionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const screenDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 1);
     screenDirectionalLight.position.set(5, 5, 5);
     this.screenScene.add(screenDirectionalLight);
   }
