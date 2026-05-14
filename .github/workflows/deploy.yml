@@ -1,8 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Trigger the workflow every time you push to the `main` branch
-  # (Change to `master` if that is your default branch name)
+  # Trigger the workflow every time you push to the `wip-page` branch
   push:
     branches: [ wip-page ]
   workflow_dispatch:
@@ -18,16 +17,11 @@ jobs:
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
+      
       - name: Install, build, and upload your site
         uses: withastro/action@v3
         with:
-          output-dir: dist
+          node-version: 22.12.0 
 
   deploy:
     needs: build
