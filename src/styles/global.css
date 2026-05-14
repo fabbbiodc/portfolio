@@ -31,7 +31,7 @@
   body {
     font-family: "DM Mono", monospace;
     font-weight: 300;
-    font-size: 1rem;
+    font-size: 0.875rem;
     
     /* You can still use the variables natively in CSS */
     background-color: var(--color-bg-primary);
@@ -45,17 +45,8 @@
 
   @media (min-width: 768px) {
     body {
-      font-size: 1.125rem;
+      font-size: 1rem;
     }
-    
-    /* You can still use the variables natively in CSS */
-    background-color: var(--color-bg-primary);
-    background-image: 
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
-    background-size: 3px 9px;
-    background-position: 0 0, 1.5px 4.5px;
-    color: var(--color-text-primary);
   }
 
   h1, h2, h3, h4, h5, h6 {

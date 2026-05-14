@@ -2,7 +2,7 @@ export const titlebarStyle =
   "px-4 py-1 w-full bg-bg-dark flex items-center text-text-bright";
 
 export const homeSectionStyle =
-  "h-screen w-full flex flex-col items-center justify-center p-4";
+  "h-screen w-full flex flex-col items-center md:justify-center p-4";
 
 export const containerStyle =
   "relative w-full md:w-auto h-auto bg-bg-primary border-x-4 md:border-x-6 p-8 md:p-12 border-b-4 md:border-b-6 gap-y-4 border-double overflow-hidden";
