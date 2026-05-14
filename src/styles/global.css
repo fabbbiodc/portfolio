@@ -27,20 +27,26 @@
     font-family: "VT323", monospace;
     font-size: 1.125rem;
     background-color: var(--color-bg-primary);
-    background-image:
-      linear-gradient(to right, var(--color-grid-lines) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-grid-lines) 1px, transparent 1px);
-    background-size: 24px 24px;
+    
+    background-image: 
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
+    
+    background-size: 3px 9px;
+    
+    background-position: 0 0, 1.5px 4.5px;
+    
     color: var(--color-text-primary);
   }
 }
 
 @layer components {
-  .grid-bg {
+  .mesh-bg {
     background-color: var(--color-bg-primary);
-    background-image:
-      linear-gradient(to right, var(--color-grid-lines) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-grid-lines) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: 
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
+    background-size: 3px 9px;
+    background-position: 0 0, 1.5px 4.5px;
   }
 }

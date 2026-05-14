@@ -17,6 +17,15 @@ export default {
           lines: 'var(--color-grid-lines)',
         },
       },
+      backgroundImage: {
+        'mesh': `
+          radial-gradient(ellipse farthest-side, black 30%, transparent 35%), 
+          radial-gradient(ellipse farthest-side, black 30%, transparent 35%)
+        `,
+      },
+      backgroundSize: {
+        'mesh-size': '3px 9px',
+      },
     },
   },
 } satisfies Config;
