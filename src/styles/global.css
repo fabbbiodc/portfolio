@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 
 @layer base {
@@ -24,7 +24,8 @@
   }
 
   body {
-    font-family: "VT323", monospace;
+    font-family: "DM Mono", monospace;
+    font-weight: 400;
     font-size: 1.125rem;
     background-color: var(--color-bg-primary);
     
@@ -38,6 +39,20 @@
     
     color: var(--color-text-primary);
   }
+
+  /* DM Mono Bold for headings - easily adjustable sizes */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "DM Mono", monospace;
+    font-weight: 700;
+  }
+
+  /* Individual heading sizes - adjust as needed */
+  h1 { /* font-size: adjust here */ }
+  h2 { /* font-size: adjust here */ }
+  h3 { /* font-size: adjust here */ }
+  h4 { /* font-size: adjust here */ }
+  h5 { /* font-size: adjust here */ }
+  h6 { /* font-size: adjust here */ }
 }
 
 @layer components {

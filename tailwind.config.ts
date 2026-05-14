@@ -3,6 +3,9 @@ import type { Config } from 'tailwindcss';
 export default {
   theme: {
     extend: {
+      fontFamily: {
+        'dm-mono': '"DM Mono", monospace',
+      },
       colors: {
         bg: {
           primary: 'rgb(var(--color-bg-primary-rgb) / <alpha-value>)',
