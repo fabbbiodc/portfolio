@@ -1,0 +1,45 @@
+---
+// Web3 contact form
+import { inputStyle, textareaStyle, buttonStyle } from "../styles/styles";
+---
+
+<form
+  action="https://api.web3forms.com/submit"
+  method="POST"
+  class="flex flex-col gap-3 w-full max-w-sm mt-4"
+  data-w3c
+>
+  <input
+    type="hidden"
+    name="access_key"
+    value="d4f27017-4646-4867-929c-c5a5b0cc7894"
+  />
+  <input type="hidden" name="subject" value="Portfolio Contact" />
+  <input
+    type="text"
+    name="name"
+    required
+    placeholder="Name"
+    class={inputStyle}
+  />
+  <input
+    type="email"
+    name="email"
+    required
+    placeholder="Email"
+    class={inputStyle}
+    />
+  <textarea
+    name="message"
+    required
+    placeholder="Message"
+    rows="4"
+    class={textareaStyle}
+  ></textarea>
+  <button
+    type="submit"
+    class={buttonStyle}
+  >
+    Send Message
+  </button>
+</form>
