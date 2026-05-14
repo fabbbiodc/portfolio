@@ -164,8 +164,8 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
         }
       });
 
-      const horizontalMargin = fuzzRange + 20;
-      const verticalMargin = direction === 'vertical' || direction === 'both' ? fuzzRange + 10 : 0;
+      const horizontalMargin = Math.floor(fuzzRange / 2) + 5;
+      const verticalMargin = direction === 'vertical' || direction === 'both' ? Math.floor(fuzzRange / 2) + 5 : 0;
       canvas.width = offscreenWidth + horizontalMargin * 2;
       canvas.height = tightHeight + verticalMargin * 2;
       ctx.translate(horizontalMargin, verticalMargin);
@@ -207,10 +207,10 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
         lastFrameTime = timestamp;
 
         ctx.clearRect(
-          -fuzzRange - 20,
-          -fuzzRange - 10,
-          offscreenWidth + 2 * (fuzzRange + 20),
-          tightHeight + 2 * (fuzzRange + 10)
+          -horizontalMargin,
+          -verticalMargin,
+          offscreenWidth + 2 * horizontalMargin,
+          tightHeight + 2 * verticalMargin
         );
 
         if (isClicking) {
@@ -352,7 +352,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
     letterSpacing
   ]);
 
-  return <canvas ref={canvasRef} className={`${className} max-w-[100vw]`} style={{ width: '100%', maxWidth: '100%' }} />;
+  return <canvas ref={canvasRef} className={className} />;
 };
 
 export default FuzzyText;

@@ -9,18 +9,22 @@ import Section1 from "../components/Section1.astro";
 
 <Layout title="fabiodicec.ca">
   <Section1>
-<FuzzyText
+    <div class="w-full max-w-sm">
+      <FuzzyText
         text="Under\nConstruction"
         baseIntensity={0.06}
         hoverIntensity={0.5}
         color="#000000"
-        fontSize="clamp(3rem, 8vw, 4.5rem)"
+        fontSize="clamp(2.5rem, 8vw, 4.5rem)"
         fontWeight={700}
-        className="w-full max-w-sm"
+        className="-ml-[20px] w-[calc(100%+40px)] max-w-none h-auto block"
         client:load
       />
+    </div>
 
-    <p class="w-full max-w-sm">Thanks for stopping by. At the moment my portfolio is under construction, but feel free to have a look at the links below. Otherwise send me a message.</p>
+    <p class="w-full max-w-sm">Thanks for stopping by.
+At the moment my portfolio is under construction, but feel free to have a look at the links below.
+Otherwise send me a message.</p>
 
     <div class="flex flex-row gap-4 mt-4">
       <LinkButton
@@ -44,14 +48,16 @@ import Section1 from "../components/Section1.astro";
       id="success-message"
       class="hidden text-black text-xl font-bold mt-4 text-center"
     >
-      Message sent! I'll get back to you soon.
+      Message sent!
+I'll get back to you soon.
     </div>
 
     <div
       id="error-message"
       class="hidden text-red-400 text-lg font-bold mt-4 text-center"
     >
-      Something went wrong. Please try again.
+      Something went wrong.
+Please try again.
     </div>
   </Section1>
 
