@@ -352,7 +352,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
     letterSpacing
   ]);
 
-  return <canvas ref={canvasRef} className={className} />;
+  return <canvas ref={canvasRef} className={`${className} max-w-[100vw]`} style={{ width: '100%', maxWidth: '100%' }} />;
 };
 
 export default FuzzyText;

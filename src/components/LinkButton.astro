@@ -1,0 +1,21 @@
+---
+import { secondaryButtonStyle } from "../styles/styles";
+
+interface Props {
+  href: string;
+  target?: string;
+  rel?: string;
+  class?: string;
+}
+
+const { href, target, rel, class: customClass = "" } = Astro.props;
+---
+
+<a
+  href={href}
+  target={target}
+  rel={rel}
+  class={`${secondaryButtonStyle} inline-flex items-center gap-2 ${customClass}`}
+>
+  <slot />
+</a>

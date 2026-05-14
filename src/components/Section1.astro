@@ -3,7 +3,12 @@ import Container from './Container.astro'
 import { homeSectionStyle } from '../styles/styles'
 ---
 
-<section class={homeSectionStyle}>
-    <Container> <h1>Section 1</h1> </Container>
-    <!-- <h1 class="text-6xl text-text-primary">section1</h1> -->
+<section class={`${homeSectionStyle} min-h-screen`}>
+    <Container 
+      class="flex flex-col items-center justify-center gap-8 min-w-0"
+      showTitlebar={true}
+      title='fabiodicec.ca'
+    >
+      <slot />
+    </Container>
 </section>

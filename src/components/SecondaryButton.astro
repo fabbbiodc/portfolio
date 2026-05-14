@@ -1,0 +1,19 @@
+---
+import { secondaryButtonStyle } from "../styles/styles";
+
+interface Props {
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  class?: string;
+}
+
+const { type = "button", disabled = false, class: customClass = "" } = Astro.props;
+---
+
+<button
+  type={type}
+  disabled={disabled}
+  class={`${secondaryButtonStyle} ${customClass} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  <slot />
+</button>

@@ -1,6 +1,7 @@
 ---
 // Web3 contact form
-import { inputStyle, textareaStyle, buttonStyle } from "../styles/styles";
+import { inputStyle, textareaStyle } from "../styles/styles";
+import PrimaryButton from "./PrimaryButton.astro";
 ---
 
 <form
@@ -28,7 +29,7 @@ import { inputStyle, textareaStyle, buttonStyle } from "../styles/styles";
     required
     placeholder="Email"
     class={inputStyle}
-    />
+  />
   <textarea
     name="message"
     required
@@ -36,10 +37,5 @@ import { inputStyle, textareaStyle, buttonStyle } from "../styles/styles";
     rows="4"
     class={textareaStyle}
   ></textarea>
-  <button
-    type="submit"
-    class={buttonStyle}
-  >
-    Send Message
-  </button>
+  <PrimaryButton type="submit">Send Message</PrimaryButton>
 </form>

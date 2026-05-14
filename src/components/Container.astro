@@ -1,11 +1,25 @@
 ---
-// Generic container
+// Generic container with flexible styling and optional titlebar
 
 import { containerStyle } from "../styles/styles";
 import Titlebar from "./Titlebar.astro";
+
+interface Props {
+  class?: string;
+  showTitlebar?: boolean;
+  title?: string;
+}
+
+const {
+  class: customClass = "",
+  showTitlebar = true,
+  title = "",
+} = Astro.props;
 ---
 
-<Titlebar title="about me" />
-<div class={containerStyle}>
-  <slot />
+<div>
+  {showTitlebar && <Titlebar title={title} />}
+  <div class={`${containerStyle} ${customClass}`}>
+    <slot />
+  </div>
 </div>

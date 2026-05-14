@@ -6,6 +6,7 @@
   --color-bg-primary: #FFFFFF;
   --color-bg-dark: #171717;
   --color-text-primary: #171717;
+  --color-text-placeholder:#d4d4d4;
   --color-text-bright: #FFFFFF;
   --color-accent-primary: #E6FF00;
   --color-grid-lines: #E6FF0020;
@@ -29,8 +30,23 @@
 
   body {
     font-family: "DM Mono", monospace;
-    font-weight: 400;
-    font-size: 1.125rem;
+    font-weight: 300;
+    font-size: 1rem;
+    
+    /* You can still use the variables natively in CSS */
+    background-color: var(--color-bg-primary);
+    background-image: 
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
+      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
+    background-size: 3px 9px;
+    background-position: 0 0, 1.5px 4.5px;
+    color: var(--color-text-primary);
+  }
+
+  @media (min-width: 768px) {
+    body {
+      font-size: 1.125rem;
+    }
     
     /* You can still use the variables natively in CSS */
     background-color: var(--color-bg-primary);
