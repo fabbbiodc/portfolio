@@ -51,6 +51,7 @@ class HeroAnimation {
   private screenMesh: THREE.Mesh | undefined;
   private eyeModel: THREE.Group | undefined;
   private monitorGroup: THREE.Group | undefined;
+  private mainDirectionalLight: THREE.DirectionalLight | undefined;
   private eyeTargetRotationX = 0;
   private eyeTargetRotationY = 0;
   private eyeCurrentRotationX = 0;
@@ -144,32 +145,38 @@ class HeroAnimation {
       : THREE.PCFSoftShadowMap;
   }
 
+  private updateShadowCameraBounds(light: THREE.DirectionalLight) {
+    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    const horizontalBound = 10 * aspect;
+    light.shadow.camera.left = -horizontalBound;
+    light.shadow.camera.right = horizontalBound;
+    light.shadow.camera.top = 10;
+    light.shadow.camera.bottom = -10;
+  }
+
   private setupLights() {
     const mainAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 2);
     this.mainScene.add(mainAmbientLight);
-    const mainDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
-    mainDirectionalLight.position.set(0, 10, 0);
-    // mainDirectionalLight.position.set(5, 10, 2);
-    mainDirectionalLight.castShadow = true;
+    this.mainDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
+    this.mainDirectionalLight.position.set(0, 10, 0);
+    // this.mainDirectionalLight.position.set(5, 10, 2);
+    this.mainDirectionalLight.castShadow = true;
 
     const extraDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
     extraDirectionalLight.position.set(5, 10, 2);
     this.mainScene.add(extraDirectionalLight);
 
     const shadowMapSize = this.isMobile ? 512 : 1024;
-    mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
-    mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
-    mainDirectionalLight.shadow.camera.near = 0.5;
-    mainDirectionalLight.shadow.camera.far = 50;
+    this.mainDirectionalLight.shadow.mapSize.width = shadowMapSize;
+    this.mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
+    this.mainDirectionalLight.shadow.camera.near = 0.5;
+    this.mainDirectionalLight.shadow.camera.far = 50;
 
-    mainDirectionalLight.shadow.camera.left = -10;
-    mainDirectionalLight.shadow.camera.right = 10;
-    mainDirectionalLight.shadow.camera.top = 10;
-    mainDirectionalLight.shadow.camera.bottom = -10;
-    mainDirectionalLight.shadow.bias = -0.001;
-    mainDirectionalLight.shadow.radius = this.isMobile ? 2 : 10;
+    this.updateShadowCameraBounds(this.mainDirectionalLight);
+    this.mainDirectionalLight.shadow.bias = -0.001;
+    this.mainDirectionalLight.shadow.radius = this.isMobile ? 2 : 10;
 
-    this.mainScene.add(mainDirectionalLight);
+    this.mainScene.add(this.mainDirectionalLight);
 
     const screenAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 1);
     this.screenScene.add(screenAmbientLight);
@@ -483,6 +490,11 @@ class HeroAnimation {
       this.mainCamera.updateProjectionMatrix();
       this.frameCameraOnMonitor();
       this.mainRenderer.setSize(width, height);
+
+      // Update shadow camera bounds for aspect ratio
+      if (this.mainDirectionalLight) {
+        this.updateShadowCameraBounds(this.mainDirectionalLight);
+      }
 
       // Update composer with correct aspect ratio
       const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);

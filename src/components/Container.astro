@@ -1,0 +1,10 @@
+---
+// Generic container
+
+const { class: className } = Astro.props;
+import { containerStyle } from "../styles/styles";
+---
+
+<div class={containerStyle}>
+    <slot />
+</div>
