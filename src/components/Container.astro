@@ -1,11 +1,13 @@
 ---
 // Generic container
 
-import { containerStyle } from "../styles/styles";
+import { containerStyle, containerContent } from "../styles/styles";
 import Titlebar from "./Titlebar.astro";
 ---
+<div class={containerStyle}>
 
 <Titlebar title="about me" />
-<div class={containerStyle}>
+<div class={containerContent}>
   <slot />
+</div>
 </div>

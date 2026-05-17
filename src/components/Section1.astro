@@ -1,9 +1,30 @@
 ---
-import Container from './Container.astro'
+import DragContainer from './DragContainer.astro'
 import { homeSectionStyle } from '../styles/styles'
 ---
 
 <section class={homeSectionStyle}>
-    <Container> <h1>Section 1</h1> </Container>
-    <!-- <h1 class="text-6xl text-text-primary">section1</h1> -->
+    <DragContainer id="home" title="about me" closable={false}>
+      <h1>Section 1</h1>
+      <button data-action="open-window" data-target="projects" class="mt-4 px-4 py-2 bg-bg-dark text-text-bright rounded hover:bg-bg-light transition-colors">
+        Open Projects
+      </button>
+    </DragContainer>
+    <DragContainer id="projects" title="projects" initialX={300} initialY={200} initiallyHidden>
+      <h1>Projects Window</h1>
+    </DragContainer>
 </section>
+
+<script>
+  document.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest('[data-action="open-window"]');
+    if (target) {
+      const windowId = target.getAttribute('data-target');
+      const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+      if (windowEl) {
+        windowEl.style.display = 'block';
+        localStorage.removeItem(`window-${windowId}-closed`);
+      }
+    }
+  });
+</script>
