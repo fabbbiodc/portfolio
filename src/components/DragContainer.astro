@@ -22,7 +22,7 @@ const { id, title, initialX = 100, initialY = 100, closable = true, initiallyHid
   style={`transform: translate(${initialX}px, ${initialY}px);${initiallyHidden ? ' display: none;' : ''}`}
 >
   <Titlebar title={title} closable={closable} />
-  <div class={containerContent}>
+  <div class={`${containerContent} p-6 md:p-12`}>
     <slot />
   </div>
 </div>
