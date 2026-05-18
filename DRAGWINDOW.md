@@ -83,7 +83,7 @@ Add a button in any window's content:
 </button>
 ```
 
-The global click handler in `Section1.astro` (or your layout) will show the target window.
+The global click handler in `Hero.astro` (or your layout) will show the target window.
 
 ---
 

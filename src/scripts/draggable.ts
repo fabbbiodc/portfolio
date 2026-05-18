@@ -4,14 +4,26 @@ interface WindowState {
   zIndex: number;
 }
 
+function isOffScreen(x: number, y: number, windowEl: HTMLElement): boolean {
+  const rect = windowEl.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  const screenX = x + w / 2;
+  const screenY = y + h / 2;
+  return (
+    screenX < 0 ||
+    screenX > window.innerWidth ||
+    screenY < 0 ||
+    screenY > window.innerHeight
+  );
+}
+
 function constrainToViewport(
   x: number,
   y: number,
   windowEl: HTMLElement,
   margin = 50,
 ): { x: number; y: number } {
-  if (window.innerWidth >= 768) return { x, y };
-
   const rect = windowEl.getBoundingClientRect();
   const w = rect.width;
   const h = rect.height;
@@ -30,12 +42,14 @@ function constrainToViewport(
 class DraggableWindowManager {
   private zIndexCounter: number;
   private windowStates: Map<string, WindowState> = new Map();
+  private windowElements: Map<string, HTMLElement> = new Map();
 
   constructor() {
     this.zIndexCounter = parseInt(
       localStorage.getItem("window-z-index-counter") || "100",
     );
     this.init();
+    window.addEventListener("resize", () => this.onResize());
   }
 
   init() {
@@ -49,7 +63,8 @@ class DraggableWindowManager {
     const closeBtn = windowEl.querySelector('[data-action="close"]');
 
     const saved = localStorage.getItem(`window-${id}-position`);
-    const isClosed = localStorage.getItem(`window-${id}-closed`) === "true";
+    const isClosable = windowEl.dataset.closable !== "false";
+    const isClosed = isClosable && localStorage.getItem(`window-${id}-closed`) === "true";
 
     if (isClosed) {
       windowEl.style.display = "none";
@@ -68,9 +83,22 @@ class DraggableWindowManager {
           zIndex: this.zIndexCounter,
         };
 
+    if (saved && isOffScreen(state.x, state.y, windowEl)) {
+      state.x = parseFloat(
+        windowEl.style.transform.match(/translate\(([-\d.]+)px/)?.[1] || "100",
+      );
+      state.y = parseFloat(
+        windowEl.style.transform.match(/,\s*([-\d.]+)px\)/)?.[1] || "100",
+      );
+      localStorage.removeItem(`window-${id}-position`);
+    }
+
     this.windowStates.set(id, state);
+    this.windowElements.set(id, windowEl);
+
     windowEl.style.transform = `translate(${state.x}px, ${state.y}px)`;
     windowEl.style.zIndex = state.zIndex.toString();
+    this.savePosition(id);
 
     windowEl.addEventListener("pointerdown", () =>
       this.bringToFront(windowEl, id),
@@ -131,6 +159,19 @@ class DraggableWindowManager {
     titlebar.addEventListener("pointermove", onMove);
     titlebar.addEventListener("pointerup", onEnd);
     titlebar.addEventListener("pointercancel", onEnd);
+  }
+
+  private onResize() {
+    for (const [id, windowEl] of this.windowElements) {
+      const state = this.windowStates.get(id);
+      if (!state || windowEl.style.display === "none") continue;
+
+      const constrained = constrainToViewport(state.x, state.y, windowEl);
+      state.x = constrained.x;
+      state.y = constrained.y;
+      windowEl.style.transform = `translate(${constrained.x}px, ${constrained.y}px)`;
+      this.savePosition(id);
+    }
   }
 
   bringToFront(windowEl: HTMLElement, id: string) {

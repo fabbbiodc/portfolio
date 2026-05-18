@@ -9,7 +9,7 @@ export const containerContent =
 
 export const containerStyle = "w-1/2 h-full";
 
-export const draggableWindowStyle = "absolute w-[calc(100vw-2rem)] max-w-lg left-4 right-4 md:w-auto md:left-auto md:right-auto";
+export const draggableWindowStyle = "absolute top-0 left-0 w-[calc(100vw-2rem)] max-w-lg md:w-auto";
 
 export const titlebarCloseButtonStyle =
   "ml-auto p-3 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-bg-light rounded transition-colors cursor-pointer";

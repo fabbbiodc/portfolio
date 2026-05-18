@@ -19,6 +19,7 @@ const { id, title, initialX = 100, initialY = 100, closable = true, initiallyHid
 <div 
   class={`${draggableWindowStyle}`}
   data-window-id={id}
+  data-closable={closable ? "true" : "false"}
   style={`transform: translate(${initialX}px, ${initialY}px);${initiallyHidden ? ' display: none;' : ''}`}
 >
   <Titlebar title={title} closable={closable} />
