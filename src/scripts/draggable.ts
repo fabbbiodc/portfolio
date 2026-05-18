@@ -120,6 +120,9 @@ class DraggableWindowManager {
   }
 
   startDrag(e: PointerEvent, windowEl: HTMLElement, id: string) {
+    const closeBtn = windowEl.querySelector('[data-action="close"]');
+    if (closeBtn && closeBtn.contains(e.target as Node)) return;
+
     const state = this.windowStates.get(id)!;
     const titlebar = e.currentTarget as HTMLElement;
 
