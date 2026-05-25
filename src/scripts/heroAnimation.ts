@@ -18,9 +18,6 @@ import { COLORS } from "./colors";
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
 const EYE_MAX_ROTATION_Y = Math.PI * 0.25;
-const MONITOR_MAX_ROTATION_X = Math.PI * 0.25;
-const MONITOR_MAX_ROTATION_Y = Math.PI * 0.25;
-const MONITOR_ROTATION_SENSITIVITY = 0.005;
 const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
@@ -56,13 +53,6 @@ class HeroAnimation {
   private eyeTargetRotationY = 0;
   private eyeCurrentRotationX = 0;
   private eyeCurrentRotationY = 0;
-  private monitorTargetRotationX = 0;
-  private monitorTargetRotationY = 0;
-  private monitorCurrentRotationX = 0;
-  private monitorCurrentRotationY = 0;
-  private isRotatingMonitor = false;
-  private previousMouseX = 0;
-  private previousMouseY = 0;
 
   // --- Post-processing ---
   private screenComposer!: EffectComposer;
@@ -128,10 +118,10 @@ class HeroAnimation {
       canvas: this.canvas,
       antialias: !this.isMobile,
       alpha: true,
-      premultipliedAlpha: false,
+      premultipliedAlpha: true,
     });
 
-    this.mainRenderer.setClearColor(COLORS.DARK_BLACK, 0);
+    this.mainRenderer.setClearColor(COLORS.BG_PRIMARY, 0);
 
     if (this.isMobile) {
       this.mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -139,9 +129,7 @@ class HeroAnimation {
       this.mainRenderer.setPixelRatio(window.devicePixelRatio);
     }
     this.mainRenderer.shadowMap.enabled = true;
-    this.mainRenderer.shadowMap.type = this.isMobile
-      ? THREE.PCFShadowMap
-      : THREE.PCFSoftShadowMap;
+    this.mainRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
   }
 
   private updateShadowCameraBounds(light: THREE.DirectionalLight) {
@@ -173,7 +161,7 @@ class HeroAnimation {
 
     this.updateShadowCameraBounds(this.mainDirectionalLight);
     this.mainDirectionalLight.shadow.bias = -0.001;
-    this.mainDirectionalLight.shadow.radius = this.isMobile ? 2 : 10;
+    this.mainDirectionalLight.shadow.radius = this.isMobile ? 4 : 8;
 
     this.mainScene.add(this.mainDirectionalLight);
 
@@ -308,7 +296,7 @@ class HeroAnimation {
       const bottomY = centeredBox.min.y;
 
       const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.5, depthWrite: false });
       const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       shadowPlane.rotation.x = -Math.PI / 2;
       shadowPlane.position.y = bottomY;
@@ -387,14 +375,16 @@ class HeroAnimation {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = isLandscape ? 0.85 : 0.9; 
+    const scaling = isLandscape ? 0.85 : 0.95; 
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    const xOffset = isLandscape ? 2 : -0.2;
+    const xOffset = isLandscape ? 2 : 0;
     this.mainCamera.position.set(xOffset, 0, zDist);
     
     const lookTarget = center.clone();
-    lookTarget.y += size.y * 0.02;
+    if (isLandscape) {
+      lookTarget.y += size.y * 0.02;
+    }
     this.mainCamera.lookAt(lookTarget);
 
     this.mainCamera.updateProjectionMatrix();
@@ -405,41 +395,10 @@ class HeroAnimation {
     const raycaster = new THREE.Raycaster();
 
     document.addEventListener("mousedown", (event) => {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, this.mainCamera);
-
-      if (this.monitorGroup) {
-        const intersects = raycaster.intersectObject(this.monitorGroup, true);
-        if (intersects.length > 0) {
-          this.isRotatingMonitor = true;
-          this.previousMouseX = event.clientX;
-          this.previousMouseY = event.clientY;
-          event.preventDefault();
-        }
-      }
+      // Monitor rotation controls removed
     });
 
     document.addEventListener("mousemove", (event) => {
-      if (this.isRotatingMonitor && this.monitorGroup) {
-        const deltaX = event.clientX - this.previousMouseX;
-        const deltaY = event.clientY - this.previousMouseY;
-
-        this.monitorTargetRotationY += deltaX * MONITOR_ROTATION_SENSITIVITY;
-        this.monitorTargetRotationX += deltaY * MONITOR_ROTATION_SENSITIVITY;
-        this.monitorTargetRotationX = Math.max(
-          -MONITOR_MAX_ROTATION_X,
-          Math.min(MONITOR_MAX_ROTATION_X, this.monitorTargetRotationX),
-        );
-        this.monitorTargetRotationY = Math.max(
-          -MONITOR_MAX_ROTATION_Y,
-          Math.min(MONITOR_MAX_ROTATION_Y, this.monitorTargetRotationY),
-        );
-
-        this.previousMouseX = event.clientX;
-        this.previousMouseY = event.clientY;
-      }
-
       const rect = this.canvas.getBoundingClientRect();
 
       let refX = rect.left + rect.width / 2;
@@ -461,7 +420,7 @@ class HeroAnimation {
     });
 
     document.addEventListener("mouseup", () => {
-      this.isRotatingMonitor = false;
+      // Monitor rotation controls removed
     });
 
     window.addEventListener("resize", () => this.handleResize());
@@ -532,12 +491,6 @@ class HeroAnimation {
 
   private updateMonitorRotation() {
     if (!this.monitorGroup) return;
-    this.monitorCurrentRotationX +=
-      (this.monitorTargetRotationX - this.monitorCurrentRotationX) * EASING;
-    this.monitorCurrentRotationY +=
-      (this.monitorTargetRotationY - this.monitorCurrentRotationY) * EASING;
-    this.monitorGroup.rotation.x = this.monitorCurrentRotationX;
-    this.monitorGroup.rotation.y = this.monitorCurrentRotationY;
   }
 
   private updateEyeRotation() {
@@ -557,31 +510,8 @@ class HeroAnimation {
       Math.min(EYE_MAX_ROTATION_Y, this.eyeCurrentRotationY),
     );
 
-    if (this.monitorGroup) {
-      const eyeQuat = new THREE.Quaternion();
-      eyeQuat.setFromEuler(
-        new THREE.Euler(clampedRotationX, clampedRotationY, 0, "YXZ"),
-      );
-
-      const monitorQuat = new THREE.Quaternion();
-      monitorQuat.setFromEuler(
-        new THREE.Euler(
-          this.monitorCurrentRotationX,
-          this.monitorCurrentRotationY,
-          0,
-          "YXZ",
-        ),
-      );
-
-      const finalQuat = monitorQuat.clone().multiply(eyeQuat);
-      const finalEuler = new THREE.Euler().setFromQuaternion(finalQuat, "YXZ");
-
-      this.eyeModel.rotation.x = finalEuler.x;
-      this.eyeModel.rotation.y = finalEuler.y;
-    } else {
-      this.eyeModel.rotation.x = clampedRotationX;
-      this.eyeModel.rotation.y = clampedRotationY;
-    }
+    this.eyeModel.rotation.x = clampedRotationX;
+    this.eyeModel.rotation.y = clampedRotationY;
   }
 
   private animate() {
