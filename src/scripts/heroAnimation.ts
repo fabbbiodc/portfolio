@@ -90,6 +90,7 @@ class HeroAnimation {
 
   private setupScenesAndCameras() {
     this.mainScene = new THREE.Scene();
+    // this.mainScene.background = new THREE.Color(0, 0 ,0);
     this.mainScene.background = null;
 
     this.screenScene = new THREE.Scene();
@@ -304,6 +305,7 @@ class HeroAnimation {
       this.mainScene.add(shadowPlane);
 
       this.mainScene.add(this.monitorGroup);
+      this.monitorGroup.rotation.set(0, 0, 0);
       this.handleResize();
       this.animate();
     });
@@ -375,12 +377,12 @@ class HeroAnimation {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = isLandscape ? 0.85 : 0.95; 
+    const scaling = isLandscape ? 0.85 : 0.95;
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    const xOffset = isLandscape ? 2 : 0;
+    const xOffset = isLandscape ? 2 : 0.25;
     this.mainCamera.position.set(xOffset, 0, zDist);
-    
+
     const lookTarget = center.clone();
     if (isLandscape) {
       lookTarget.y += size.y * 0.02;
