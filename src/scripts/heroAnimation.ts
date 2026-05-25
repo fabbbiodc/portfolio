@@ -333,7 +333,7 @@ class HeroAnimation {
 
     if (isLandscape) {
       canvasHeight = vph;
-      const horizontalPaddingFactor = 1.2;
+      const horizontalPaddingFactor = 1.0;
       canvasWidth = Math.min(vpw * 0.7, canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor);
     } else {
       canvasWidth = vpw;
@@ -394,6 +394,8 @@ class HeroAnimation {
     
     const lookTarget = new THREE.Vector3(trueCenterX, 0, 0);
     if (isLandscape) {
+      // Aim slightly to the left of the monitor to shift the monitor to the right of the canvas
+      lookTarget.x -= 0.4;
       lookTarget.y += size.y * 0.02;
     }
     this.mainCamera.lookAt(lookTarget);
