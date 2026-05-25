@@ -333,8 +333,8 @@ class HeroAnimation {
 
     if (isLandscape) {
       canvasHeight = vph;
-      const horizontalPaddingFactor = 1.4;
-      canvasWidth = Math.min(vpw, canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor);
+      const horizontalPaddingFactor = 1.2;
+      canvasWidth = Math.min(vpw * 0.7, canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor);
     } else {
       canvasWidth = vpw;
       const verticalPaddingFactor = 1.4;
@@ -389,7 +389,6 @@ class HeroAnimation {
     const scaling = isLandscape ? 0.85 : 0.95; 
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    // On mobile, the camera X must match the target's true center X for a perfectly frontal view
     const xOffset = isLandscape ? trueCenterX + 2 : trueCenterX;
     this.mainCamera.position.set(xOffset, 0, zDist);
     
