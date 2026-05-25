@@ -321,39 +321,6 @@ class HeroAnimation {
     });
   }
 
-  private frameCameraOnMonitor() {
-    if (!this.monitorGroup) return;
-
-    this.monitorGroup.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(this.monitorGroup);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-
-    const fovRad = (this.mainCamera.fov * Math.PI) / 180;
-    const halfFov = fovRad / 2;
-    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-
-    const distByHeight = size.y / (2 * Math.tan(halfFov));
-    const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
-
-    // Scaling factor to fit the monitor with some padding
-    // 0.8 matches the original desktop feel
-    const scaling = this.isMobile ? 0.9 : 0.8; 
-    const zDist = Math.max(distByHeight, distByWidth) / scaling;
-
-    // Restore original side-view perspective for desktop
-    // On mobile we keep it centered
-    const xOffset = this.isMobile ? 0 : 2;
-    this.mainCamera.position.set(xOffset, 0, zDist);
-    
-    // Target the center of the monitor to keep it framed in the fitted canvas
-    this.mainCamera.lookAt(center);
-
-    this.mainCamera.updateProjectionMatrix();
-  }
-
   // --- Background screenScene ---
 
   private loadHDRBackground() {
@@ -372,15 +339,16 @@ class HeroAnimation {
     const vph = window.innerHeight;
 
     let canvasWidth, canvasHeight;
-    
-    if (vpw > vph) {
-      // Landscape: 100% height
+    const isLandscape = vpw > vph;
+
+    if (isLandscape) {
       canvasHeight = vph;
-      canvasWidth = canvasHeight * this.monitorAspectRatio;
+      const horizontalPaddingFactor = 1.4;
+      canvasWidth = Math.min(vpw, canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor);
     } else {
-      // Portrait: 100% width
       canvasWidth = vpw;
-      canvasHeight = canvasWidth / this.monitorAspectRatio;
+      const verticalPaddingFactor = 1.4;
+      canvasHeight = Math.min(vph, canvasWidth / (this.monitorAspectRatio / verticalPaddingFactor));
     }
 
     const newAspect = canvasWidth / canvasHeight;
@@ -389,7 +357,7 @@ class HeroAnimation {
 
     this.mainCamera.aspect = newAspect;
     this.mainCamera.updateProjectionMatrix();
-    this.frameCameraOnMonitor();
+    this.frameCameraOnMonitor(isLandscape);
 
     // Update shadow camera bounds for aspect ratio
     if (this.mainDirectionalLight) {
@@ -400,6 +368,36 @@ class HeroAnimation {
     const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
     this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
     this.mainComposer.setSize(canvasWidth, canvasHeight);
+  }
+
+  private frameCameraOnMonitor(isLandscape: boolean) {
+    if (!this.monitorGroup) return;
+
+    this.monitorGroup.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(this.monitorGroup);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    const fovRad = (this.mainCamera.fov * Math.PI) / 180;
+    const halfFov = fovRad / 2;
+    const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+
+    const distByHeight = size.y / (2 * Math.tan(halfFov));
+    const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
+
+    const scaling = isLandscape ? 0.85 : 0.9; 
+    const zDist = Math.max(distByHeight, distByWidth) / scaling;
+
+    const xOffset = isLandscape ? 2 : -0.2;
+    this.mainCamera.position.set(xOffset, 0, zDist);
+    
+    const lookTarget = center.clone();
+    lookTarget.y += size.y * 0.02;
+    this.mainCamera.lookAt(lookTarget);
+
+    this.mainCamera.updateProjectionMatrix();
   }
 
   private setupEventHandlers() {
@@ -526,7 +524,6 @@ class HeroAnimation {
     normalizedBeta = Math.max(-1, Math.min(1, normalizedBeta));
 
     // INVERT the rotations by making them negative
-    // This counteracts the phone's tilt so the eye stays locked in the same real-world direction
     this.eyeTargetRotationY = -normalizedGamma * EYE_MAX_ROTATION_Y;
     this.eyeTargetRotationX = -normalizedBeta * EYE_MAX_ROTATION_X;
   }
@@ -535,6 +532,12 @@ class HeroAnimation {
 
   private updateMonitorRotation() {
     if (!this.monitorGroup) return;
+    this.monitorCurrentRotationX +=
+      (this.monitorTargetRotationX - this.monitorCurrentRotationX) * EASING;
+    this.monitorCurrentRotationY +=
+      (this.monitorTargetRotationY - this.monitorCurrentRotationY) * EASING;
+    this.monitorGroup.rotation.x = this.monitorCurrentRotationX;
+    this.monitorGroup.rotation.y = this.monitorCurrentRotationY;
   }
 
   private updateEyeRotation() {
