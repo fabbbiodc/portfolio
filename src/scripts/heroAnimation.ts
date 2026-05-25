@@ -145,11 +145,17 @@ class HeroAnimation {
   private setupLights() {
     const mainAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 2);
     this.mainScene.add(mainAmbientLight);
-    this.mainDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
+    this.mainDirectionalLight = new THREE.DirectionalLight(
+      COLORS.LIGHT_WHITE,
+      2,
+    );
     this.mainDirectionalLight.position.set(0, 10, 5);
     this.mainDirectionalLight.castShadow = true;
 
-    const extraDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
+    const extraDirectionalLight = new THREE.DirectionalLight(
+      COLORS.LIGHT_WHITE,
+      2,
+    );
     extraDirectionalLight.position.set(5, 10, 2);
     this.mainScene.add(extraDirectionalLight);
 
@@ -168,7 +174,10 @@ class HeroAnimation {
 
     const screenAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 1);
     this.screenScene.add(screenAmbientLight);
-    const screenDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 1);
+    const screenDirectionalLight = new THREE.DirectionalLight(
+      COLORS.LIGHT_WHITE,
+      1,
+    );
     screenDirectionalLight.position.set(5, 5, 5);
     this.screenScene.add(screenDirectionalLight);
   }
@@ -297,7 +306,10 @@ class HeroAnimation {
       const bottomY = centeredBox.min.y;
 
       const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.4, depthWrite: false });
+      const planeMaterial = new THREE.ShadowMaterial({
+        opacity: 0.4,
+        depthWrite: false,
+      });
       const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       shadowPlane.rotation.x = -Math.PI / 2;
       shadowPlane.position.y = bottomY - 0.01; // Tiny offset to prevent z-fighting with model base
@@ -334,11 +346,17 @@ class HeroAnimation {
     if (isLandscape) {
       canvasHeight = vph;
       const horizontalPaddingFactor = 1.0;
-      canvasWidth = Math.min(vpw * 0.7, canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor);
+      canvasWidth = Math.min(
+        vpw * 0.7,
+        canvasHeight * this.monitorAspectRatio * horizontalPaddingFactor,
+      );
     } else {
       canvasWidth = vpw;
       const verticalPaddingFactor = 1.4;
-      canvasHeight = Math.min(vph, canvasWidth / (this.monitorAspectRatio / verticalPaddingFactor));
+      canvasHeight = Math.min(
+        vph,
+        canvasWidth / (this.monitorAspectRatio / verticalPaddingFactor),
+      );
     }
 
     const newAspect = canvasWidth / canvasHeight;
@@ -386,12 +404,12 @@ class HeroAnimation {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = isLandscape ? 0.85 : 0.95; 
+    const scaling = isLandscape ? 0.8 : 0.95;
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
     const xOffset = isLandscape ? trueCenterX + 2 : trueCenterX;
     this.mainCamera.position.set(xOffset, 0, zDist);
-    
+
     const lookTarget = new THREE.Vector3(trueCenterX, 0, 0);
     if (isLandscape) {
       // Aim slightly to the left of the monitor to shift the monitor to the right of the canvas
