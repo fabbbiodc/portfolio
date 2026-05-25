@@ -135,19 +135,18 @@ class HeroAnimation {
 
   private updateShadowCameraBounds(light: THREE.DirectionalLight) {
     const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    const horizontalBound = 10 * aspect;
+    const horizontalBound = 5 * aspect;
     light.shadow.camera.left = -horizontalBound;
     light.shadow.camera.right = horizontalBound;
-    light.shadow.camera.top = 10;
-    light.shadow.camera.bottom = -10;
+    light.shadow.camera.top = 5;
+    light.shadow.camera.bottom = -5;
   }
 
   private setupLights() {
     const mainAmbientLight = new THREE.AmbientLight(COLORS.LIGHT_WHITE, 2);
     this.mainScene.add(mainAmbientLight);
     this.mainDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
-    this.mainDirectionalLight.position.set(0, 10, 0);
-    // this.mainDirectionalLight.position.set(5, 10, 2);
+    this.mainDirectionalLight.position.set(0, 10, 5);
     this.mainDirectionalLight.castShadow = true;
 
     const extraDirectionalLight = new THREE.DirectionalLight(COLORS.LIGHT_WHITE, 2);
@@ -159,6 +158,7 @@ class HeroAnimation {
     this.mainDirectionalLight.shadow.mapSize.height = shadowMapSize;
     this.mainDirectionalLight.shadow.camera.near = 0.5;
     this.mainDirectionalLight.shadow.camera.far = 50;
+    this.mainDirectionalLight.shadow.normalBias = 0.02;
 
     this.updateShadowCameraBounds(this.mainDirectionalLight);
     this.mainDirectionalLight.shadow.bias = -0.001;
@@ -297,10 +297,10 @@ class HeroAnimation {
       const bottomY = centeredBox.min.y;
 
       const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.5, depthWrite: false });
+      const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.4, depthWrite: false });
       const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
       shadowPlane.rotation.x = -Math.PI / 2;
-      shadowPlane.position.y = bottomY;
+      shadowPlane.position.y = bottomY - 0.01; // Tiny offset to prevent z-fighting with model base
       shadowPlane.receiveShadow = true;
       this.mainScene.add(shadowPlane);
 
@@ -370,6 +370,15 @@ class HeroAnimation {
     const center = new THREE.Vector3();
     box.getCenter(center);
 
+    // If we have the screenMesh, use its X position as the "true" horizontal center
+    let trueCenterX = center.x;
+    if (this.screenMesh) {
+      const screenBox = new THREE.Box3().setFromObject(this.screenMesh);
+      const screenCenter = new THREE.Vector3();
+      screenBox.getCenter(screenCenter);
+      trueCenterX = screenCenter.x;
+    }
+
     const fovRad = (this.mainCamera.fov * Math.PI) / 180;
     const halfFov = fovRad / 2;
     const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -377,13 +386,14 @@ class HeroAnimation {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = isLandscape ? 0.85 : 0.95;
+    const scaling = isLandscape ? 0.85 : 0.95; 
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    const xOffset = isLandscape ? 2 : 0.25;
+    // On mobile, the camera X must match the target's true center X for a perfectly frontal view
+    const xOffset = isLandscape ? trueCenterX + 2 : trueCenterX;
     this.mainCamera.position.set(xOffset, 0, zDist);
-
-    const lookTarget = center.clone();
+    
+    const lookTarget = new THREE.Vector3(trueCenterX, 0, 0);
     if (isLandscape) {
       lookTarget.y += size.y * 0.02;
     }
