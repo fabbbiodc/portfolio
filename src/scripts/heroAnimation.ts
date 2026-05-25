@@ -68,6 +68,8 @@ class HeroAnimation {
   private screenComposer!: EffectComposer;
   private mainComposer!: EffectComposer;
 
+  private monitorAspectRatio = 1.77; // Default 16:9 until model loads
+
   constructor(canvasId: string) {
     const canvas = document.getElementById(
       canvasId,
@@ -84,6 +86,7 @@ class HeroAnimation {
     this.setupRenderer();
     this.setupLights();
     this.setupPostProcessing();
+    this.handleResize();
   }
 
   start() {
@@ -104,7 +107,7 @@ class HeroAnimation {
 
     this.mainCamera = new THREE.PerspectiveCamera(
       30,
-      this.canvas.clientWidth / this.canvas.clientHeight,
+      window.innerWidth / window.innerHeight,
       0.1,
       1000,
     );
@@ -128,10 +131,6 @@ class HeroAnimation {
       premultipliedAlpha: false,
     });
 
-    this.mainRenderer.setSize(
-      this.canvas.clientWidth,
-      this.canvas.clientHeight,
-    );
     this.mainRenderer.setClearColor(COLORS.DARK_BLACK, 0);
 
     if (this.isMobile) {
@@ -186,19 +185,10 @@ class HeroAnimation {
   }
 
   private setupPostProcessing() {
-    const canvasWidth = this.canvas.clientWidth;
-    const canvasHeight = this.canvas.clientHeight;
-    const canvasAspect = canvasWidth / canvasHeight;
-
     this.screenComposer = new EffectComposer(this.mainRenderer);
     this.screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
 
     this.mainComposer = new EffectComposer(this.mainRenderer);
-
-    // Calculate composer size with proper aspect ratio
-    const composerHeight = Math.round(RENDER_TARGET_SIZE / canvasAspect);
-    this.screenComposer.setSize(RENDER_TARGET_SIZE, composerHeight);
-    this.mainRenderer.setSize(canvasWidth, canvasHeight);
 
     const renderPassMain = new RenderPass(this.mainScene, this.mainCamera);
     const bloomEffect = new BloomEffect({
@@ -307,6 +297,10 @@ class HeroAnimation {
       this.setupScreenMeshTexture();
 
       const monitorBox = new THREE.Box3().setFromObject(monitor);
+      const size = new THREE.Vector3();
+      monitorBox.getSize(size);
+      this.monitorAspectRatio = size.x / size.y;
+
       const center = monitorBox.getCenter(new THREE.Vector3());
       monitor.position.sub(center);
 
@@ -322,7 +316,7 @@ class HeroAnimation {
       this.mainScene.add(shadowPlane);
 
       this.mainScene.add(this.monitorGroup);
-      this.frameCameraOnMonitor();
+      this.handleResize();
       this.animate();
     });
   }
@@ -337,11 +331,6 @@ class HeroAnimation {
     const center = new THREE.Vector3();
     box.getCenter(center);
 
-    if (this.isMobile && this.screenMesh) {
-      new THREE.Box3().setFromObject(this.screenMesh).getCenter(center);
-      center.y -= size.y * 0.25;
-    }
-
     const fovRad = (this.mainCamera.fov * Math.PI) / 180;
     const halfFov = fovRad / 2;
     const aspect = this.canvas.clientWidth / this.canvas.clientHeight;
@@ -349,54 +338,18 @@ class HeroAnimation {
     const distByHeight = size.y / (2 * Math.tan(halfFov));
     const distByWidth = size.x / (2 * Math.tan(halfFov) * aspect);
 
-    const scaling = this.isMobile ? 1.1 : 0.8;
+    // Scaling factor to fit the monitor with some padding
+    // 0.8 matches the original desktop feel
+    const scaling = this.isMobile ? 0.9 : 0.8; 
     const zDist = Math.max(distByHeight, distByWidth) / scaling;
 
-    if (this.isMobile) {
-      this.mainCamera.position.set(0, 0, zDist);
-      this.mainCamera.lookAt(center);
-    } else {
-      this.mainCamera.position.set(2, 0, zDist);
-
-      const corners = [
-        new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-      ];
-
-      let ndcMinX = Infinity,
-        ndcMaxX = -Infinity;
-      let ndcMinY = Infinity,
-        ndcMaxY = -Infinity;
-      for (const p of corners) {
-        p.project(this.mainCamera);
-        ndcMinX = Math.min(ndcMinX, p.x);
-        ndcMaxX = Math.max(ndcMaxX, p.x);
-        ndcMinY = Math.min(ndcMinY, p.y);
-        ndcMaxY = Math.max(ndcMaxY, p.y);
-      }
-
-      const ndcCenterX = (ndcMinX + ndcMaxX) / 2;
-      const ndcCenterY = (ndcMinY + ndcMaxY) / 2;
-
-      const ndcPoint = new THREE.Vector3(ndcCenterX, ndcCenterY, 1);
-      ndcPoint.unproject(this.mainCamera);
-      const dir = new THREE.Vector3()
-        .copy(ndcPoint)
-        .sub(this.mainCamera.position)
-        .normalize();
-      const distToCenter = this.mainCamera.position.distanceTo(center);
-      const lookTarget = this.mainCamera.position
-        .clone()
-        .add(dir.multiplyScalar(distToCenter));
-      lookTarget.y += size.y * 0.05;
-      this.mainCamera.lookAt(lookTarget);
-    }
+    // Restore original side-view perspective for desktop
+    // On mobile we keep it centered
+    const xOffset = this.isMobile ? 0 : 2;
+    this.mainCamera.position.set(xOffset, 0, zDist);
+    
+    // Target the center of the monitor to keep it framed in the fitted canvas
+    this.mainCamera.lookAt(center);
 
     this.mainCamera.updateProjectionMatrix();
   }
@@ -413,6 +366,41 @@ class HeroAnimation {
   }
 
   // --- Interaction ---
+
+  private handleResize() {
+    const vpw = window.innerWidth;
+    const vph = window.innerHeight;
+
+    let canvasWidth, canvasHeight;
+    
+    if (vpw > vph) {
+      // Landscape: 100% height
+      canvasHeight = vph;
+      canvasWidth = canvasHeight * this.monitorAspectRatio;
+    } else {
+      // Portrait: 100% width
+      canvasWidth = vpw;
+      canvasHeight = canvasWidth / this.monitorAspectRatio;
+    }
+
+    const newAspect = canvasWidth / canvasHeight;
+
+    this.mainRenderer.setSize(canvasWidth, canvasHeight);
+
+    this.mainCamera.aspect = newAspect;
+    this.mainCamera.updateProjectionMatrix();
+    this.frameCameraOnMonitor();
+
+    // Update shadow camera bounds for aspect ratio
+    if (this.mainDirectionalLight) {
+      this.updateShadowCameraBounds(this.mainDirectionalLight);
+    }
+
+    // Update composer with correct aspect ratio
+    const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
+    this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
+    this.mainComposer.setSize(canvasWidth, canvasHeight);
+  }
 
   private setupEventHandlers() {
     const mouse = new THREE.Vector2();
@@ -478,29 +466,7 @@ class HeroAnimation {
       this.isRotatingMonitor = false;
     });
 
-    window.addEventListener("resize", () => {
-      const parent = this.canvas.parentElement;
-      if (!parent) return;
-
-      const width = parent.clientWidth;
-      const height = parent.clientHeight;
-      const newAspect = width / height;
-
-      this.mainCamera.aspect = newAspect;
-      this.mainCamera.updateProjectionMatrix();
-      this.frameCameraOnMonitor();
-      this.mainRenderer.setSize(width, height);
-
-      // Update shadow camera bounds for aspect ratio
-      if (this.mainDirectionalLight) {
-        this.updateShadowCameraBounds(this.mainDirectionalLight);
-      }
-
-      // Update composer with correct aspect ratio
-      const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
-      this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
-      this.mainComposer.setSize(width, height);
-    });
+    window.addEventListener("resize", () => this.handleResize());
 
     // mobile tilt tracking
     const permissionOverlay = document.getElementById(
