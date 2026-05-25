@@ -34,7 +34,7 @@ import DragContainer from './DragContainer.astro';
     const target = (e.target as HTMLElement).closest('[data-action="open-window"]');
     if (target) {
       const windowId = target.getAttribute('data-target');
-      const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+      const windowEl = document.querySelector(`[data-window-id="${windowId}"]`) as HTMLElement;
       if (windowEl) {
         windowEl.style.display = 'block';
         localStorage.removeItem(`window-${windowId}-closed`);
