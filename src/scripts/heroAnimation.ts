@@ -10,7 +10,7 @@ import {
   PixelationEffect,
   BlendFunction,
   GlitchEffect,
-  BloomEffect,
+  SelectiveBloomEffect,
 } from "postprocessing";
 import { COLORS } from "./colors";
 
@@ -57,6 +57,7 @@ class HeroAnimation {
   // --- Post-processing ---
   private screenComposer!: EffectComposer;
   private mainComposer!: EffectComposer;
+  private selectiveBloom!: SelectiveBloomEffect;
 
   private monitorAspectRatio = 1.77; // Default 16:9 until model loads
 
@@ -122,7 +123,7 @@ class HeroAnimation {
       premultipliedAlpha: true,
     });
 
-    this.mainRenderer.setClearColor(COLORS.BG_PRIMARY, 0);
+    this.mainRenderer.setClearColor(0x000000, 0);
 
     if (this.isMobile) {
       this.mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -189,13 +190,19 @@ class HeroAnimation {
     this.mainComposer = new EffectComposer(this.mainRenderer);
 
     const renderPassMain = new RenderPass(this.mainScene, this.mainCamera);
-    const bloomEffect = new BloomEffect({
-      intensity: 0.4,
-      luminanceThreshold: 0.1,
-      blendFunction: BlendFunction.ADD,
-    });
+    this.selectiveBloom = new SelectiveBloomEffect(
+      this.mainScene,
+      this.mainCamera,
+      {
+        intensity: 0.4,
+        luminanceThreshold: 0.1,
+        radius: 0.3,
+        blendFunction: BlendFunction.ADD,
+      },
+    );
+    this.selectiveBloom.ignoreBackground = true;
 
-    const effectPassMain = new EffectPass(this.mainCamera, bloomEffect);
+    const effectPassMain = new EffectPass(this.mainCamera, this.selectiveBloom);
     this.mainComposer.addPass(renderPassMain);
     this.mainComposer.addPass(effectPassMain);
 
@@ -317,6 +324,11 @@ class HeroAnimation {
       this.mainScene.add(shadowPlane);
 
       this.mainScene.add(this.monitorGroup);
+      this.monitorGroup.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          this.selectiveBloom.selection.add(child);
+        }
+      });
       this.monitorGroup.rotation.set(0, 0, 0);
       this.handleResize();
       this.animate();
