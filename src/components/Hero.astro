@@ -27,13 +27,15 @@ const asciiText = [
   </div>
 
   <DragContainer id="home" title="about me" closable={false}>
-    <TextType
-      text={asciiText}
-      typingSpeed={10}
-      pauseDuration={800}
-      loop={false}
-      showCursor={false}
-    />
+    <div style="height: 110px; overflow: hidden; font-size: 0.75rem;">
+      <TextType
+        text={asciiText}
+        typingSpeed={10}
+        pauseDuration={800}
+        loop={false}
+        showCursor={false}
+      />
+    </div>
     <button data-action="open-window" data-target="projects" class="mt-4 px-4 py-2 bg-bg-dark text-text-bright rounded hover:bg-bg-light transition-colors cursor-pointer">
       Open Projects
     </button>
