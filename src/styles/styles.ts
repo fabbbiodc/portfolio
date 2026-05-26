@@ -5,7 +5,7 @@ export const homeSectionStyle =
   "relative h-screen w-full flex flex-col items-center justify-center p-12";
 
 export const containerContent =
-  "w-auto h-auto bg-bg-primary border-x-6 border-b-6 border-double";
+  "w-screen md:w-[50vw] h-screen md:h-[80vh] bg-bg-primary border-x-6 border-b-6 border-double overflow-auto";
 
 export const containerStyle = "w-1/2 h-full";
 

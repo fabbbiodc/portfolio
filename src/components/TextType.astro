@@ -1,0 +1,114 @@
+---
+interface Props {
+  text: string | string[];
+  typingSpeed?: number;
+  initialDelay?: number;
+  pauseDuration?: number;
+  deletingSpeed?: number;
+  loop?: boolean;
+  className?: string;
+  showCursor?: boolean;
+  hideCursorWhileTyping?: boolean;
+  cursorCharacter?: string;
+  cursorBlinkDuration?: number;
+  cursorClassName?: string;
+  textColors?: string[];
+  variableSpeed?: { min: number; max: number };
+  startOnVisible?: boolean;
+  reverseMode?: boolean;
+}
+
+const {
+  text,
+  typingSpeed = 50,
+  initialDelay = 0,
+  pauseDuration = 2000,
+  deletingSpeed = 30,
+  loop = true,
+  className = '',
+  showCursor = true,
+  hideCursorWhileTyping = false,
+  cursorCharacter = '|',
+  cursorBlinkDuration = 0.5,
+  cursorClassName = '',
+  textColors = [],
+  variableSpeed,
+  startOnVisible = false,
+  reverseMode = false,
+} = Astro.props;
+
+const serializedText = JSON.stringify(Array.isArray(text) ? text : [text]);
+const serializedTextColors =
+  textColors.length > 0 ? JSON.stringify(textColors) : undefined;
+const serializedVariableSpeed = variableSpeed
+  ? JSON.stringify(variableSpeed)
+  : undefined;
+---
+
+<span
+  data-text-type=""
+  class={`block whitespace-pre tracking-tight ${className}`}
+  data-text={serializedText}
+  data-typing-speed={typingSpeed}
+  data-initial-delay={initialDelay}
+  data-pause-duration={pauseDuration}
+  data-deleting-speed={deletingSpeed}
+  data-loop={loop}
+  data-show-cursor={showCursor}
+  data-hide-cursor-while-typing={hideCursorWhileTyping}
+  data-cursor-character={cursorCharacter}
+  data-cursor-blink-duration={cursorBlinkDuration}
+  data-text-colors={serializedTextColors}
+  data-variable-speed={serializedVariableSpeed}
+  data-start-on-visible={startOnVisible}
+  data-reverse-mode={reverseMode}
+>
+  <span data-text-type-display="">
+    {showCursor && (
+      <span
+        data-text-type-cursor=""
+        class={`cursor-blink ${cursorClassName}`}
+        style={`animation-duration: ${cursorBlinkDuration}s`}
+      >
+        {cursorCharacter}
+      </span>
+    )}
+  </span>
+</span>
+
+<style>
+  [data-text-type] {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+  }
+  [data-text-type-display] {
+    margin: 0;
+    padding: 0;
+    display: block;
+    line-height: 1;
+  }
+  @keyframes cursor-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+  .cursor-blink {
+    display: inline;
+    margin-left: 0;
+    opacity: 1;
+    animation: cursor-blink 0.5s step-end infinite;
+  }
+  .cursor-blink.hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  import "../scripts/textType";
+</script>
