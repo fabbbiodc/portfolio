@@ -8,24 +8,27 @@
   font-display: swap;
 }
 
-/* 1. Define your tokens here! Tailwind handles the rest. */
 @theme {
-  --color-bg-primary: #FFFFFF;
+  --color-bg-primary: #ffffff;
   --color-bg-dark: #171717;
   --color-text-primary: #171717;
-  --color-text-bright: #FFFFFF;
-  --color-accent-primary: #E6FF00;
-  --color-grid-lines: #E6FF0020;
+  --color-text-bright: #ffffff;
+  --color-accent-primary: #e6ff00;
+  --color-grid-lines: #e6ff0020;
+  --shadow-window: 4px 4px 1px rgb(0 0 0 / 0.35);
 }
 
 @layer base {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
 
-  html, body {
+  html,
+  body {
     height: 100%;
   }
 
@@ -38,18 +41,32 @@
     font-family: "ZxSpectrum", monospace;
     font-weight: 400;
     font-size: 1.125rem;
-    
-    /* You can still use the variables natively in CSS */
+
     background-color: var(--color-bg-primary);
-    background-image: 
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%),
-      radial-gradient(ellipse farthest-side, var(--color-text-primary) 30%, transparent 35%);
+    background-image:
+      radial-gradient(
+        ellipse farthest-side,
+        var(--color-text-primary) 30%,
+        transparent 35%
+      ),
+      radial-gradient(
+        ellipse farthest-side,
+        var(--color-text-primary) 30%,
+        transparent 35%
+      );
     background-size: 3px 9px;
-    background-position: 0 0, 1.5px 4.5px;
+    background-position:
+      0 0,
+      1.5px 4.5px;
     color: var(--color-text-primary);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: "ZxSpectrum", monospace;
     font-weight: 700;
   }
