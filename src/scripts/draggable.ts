@@ -188,6 +188,14 @@ class DraggableWindowManager {
     );
   }
 
+  openWindow(id: string) {
+    const windowEl = this.windowElements.get(id);
+    if (!windowEl) return;
+    windowEl.style.display = "block";
+    this.bringToFront(windowEl, id);
+    localStorage.removeItem(`window-${id}-closed`);
+  }
+
   closeWindow(windowEl: HTMLElement, id: string) {
     windowEl.style.display = "none";
     localStorage.setItem(`window-${id}-closed`, "true");
@@ -199,11 +207,5 @@ class DraggableWindowManager {
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    () => new DraggableWindowManager(),
-  );
-} else {
-  new DraggableWindowManager();
-}
+const manager = new DraggableWindowManager();
+export { manager };
