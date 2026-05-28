@@ -1,0 +1,27 @@
+<div
+  id="loading-overlay"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+>
+  <div class="bg-bg-primary border-6 border-double border-bg-dark p-8">
+    <div style="width: 260px">
+      <div class="w-full h-4 bg-bg-dark/15">
+        <div
+          id="loading-bar-fill"
+          class="h-full bg-text-primary transition-all duration-300"
+          style="width: 0%"
+        ></div>
+      </div>
+      <p id="loading-percent" class="text-center mt-3 text-text-primary">
+        0%
+      </p>
+      <div class="text-center mt-6">
+        <button
+          id="start-btn"
+          class="hidden px-6 py-3 bg-bg-dark text-text-bright rounded hover:bg-text-primary/80 transition-colors cursor-pointer"
+        >
+          START
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

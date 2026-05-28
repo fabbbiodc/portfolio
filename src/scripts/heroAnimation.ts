@@ -1,4 +1,3 @@
-// imports
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
@@ -14,15 +13,16 @@ import {
 } from "postprocessing";
 import { COLORS } from "./colors";
 
-// constants
 const EASING = 0.1;
 const EYE_MAX_ROTATION_X = Math.PI * 0.25;
 const EYE_MAX_ROTATION_Y = Math.PI * 0.25;
 const EYE_TRACKING_SENSITIVITY = 0.003;
 const RENDER_TARGET_SIZE = 1024;
 const PIXEL_SIZE = 4;
+const EYE_INDEX = 0;
+const MONITOR_INDEX = 1;
+const HDR_INDEX = 2;
 
-// helpers
 function mobileDetection(): boolean {
   const userAgent = navigator.userAgent.toLowerCase();
   return /mobile|android|iphone|ipad|ipod|blackberry|webos/.test(userAgent);
@@ -59,7 +59,16 @@ class HeroAnimation {
   private mainComposer!: EffectComposer;
   private selectiveBloom!: SelectiveBloomEffect;
 
-  private monitorAspectRatio = 1.77; // Default 16:9 until model loads
+  private monitorAspectRatio = 1.77;
+
+  // --- Loading ---
+  private started = false;
+  private assetProgress: { loaded: number; total: number }[] = [
+    { loaded: 0, total: 0 },
+    { loaded: 0, total: 0 },
+    { loaded: 0, total: 0 },
+  ];
+  private assetDone: boolean[] = [false, false, false];
 
   constructor(canvasId: string) {
     const canvas = document.getElementById(
@@ -91,7 +100,6 @@ class HeroAnimation {
 
   private setupScenesAndCameras() {
     this.mainScene = new THREE.Scene();
-    // this.mainScene.background = new THREE.Color(0, 0 ,0);
     this.mainScene.background = null;
 
     this.screenScene = new THREE.Scene();
@@ -185,7 +193,7 @@ class HeroAnimation {
 
   private setupPostProcessing() {
     this.screenComposer = new EffectComposer(this.mainRenderer);
-    this.screenComposer.autoRenderToScreen = false; // CRITICAL: prevents hijacking main canvas
+    this.screenComposer.autoRenderToScreen = false;
 
     this.mainComposer = new EffectComposer(this.mainRenderer);
 
@@ -238,19 +246,29 @@ class HeroAnimation {
 
   private loadEyeModel() {
     const eyeLoader = new GLTFLoader();
-    eyeLoader.load("/models/eye.glb", (gltf) => {
-      this.eyeModel = gltf.scene;
-      const eyeBox = new THREE.Box3().setFromObject(this.eyeModel);
-      const eyeCenter = eyeBox.getCenter(new THREE.Vector3());
-      this.eyeModel.position.sub(eyeCenter);
-      this.screenScene.add(this.eyeModel);
+    eyeLoader.load(
+      "/models/eye.glb",
+      (gltf) => {
+        this.eyeModel = gltf.scene;
+        const eyeBox = new THREE.Box3().setFromObject(this.eyeModel);
+        const eyeCenter = eyeBox.getCenter(new THREE.Vector3());
+        this.eyeModel.position.sub(eyeCenter);
+        this.screenScene.add(this.eyeModel);
 
-      const size = new THREE.Vector3();
-      eyeBox.getSize(size);
-      const maxDim = Math.max(size.x, size.y, size.z);
-      this.screenCamera.position.set(0, 0, maxDim * 1);
-      this.screenCamera.lookAt(0, 0, 0);
-    });
+        const size = new THREE.Vector3();
+        eyeBox.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        this.screenCamera.position.set(0, 0, maxDim * 1);
+        this.screenCamera.lookAt(0, 0, 0);
+        this.markAssetLoaded(EYE_INDEX);
+      },
+      (progress) => {
+        this.updateLoadingProgress(EYE_INDEX, progress.loaded, progress.total);
+      },
+      () => {
+        this.markAssetLoaded(EYE_INDEX);
+      },
+    );
   }
 
   private setupScreenMeshTexture() {
@@ -261,7 +279,6 @@ class HeroAnimation {
     const positionAttribute = this.screenMesh.geometry.attributes.position;
     const uvAttribute = this.screenMesh.geometry.attributes.uv;
 
-    // monitor.glb uv setup
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
       const y = positionAttribute.getY(i);
@@ -281,69 +298,126 @@ class HeroAnimation {
 
   private loadMonitorModel() {
     const monitorLoader = new GLTFLoader();
-    monitorLoader.load("/models/monitor.glb", (gltf) => {
-      this.monitorGroup = new THREE.Group();
-      const monitor = gltf.scene;
-      monitor.scale.set(3, 3, 3);
+    monitorLoader.load(
+      "/models/monitor.glb",
+      (gltf) => {
+        this.monitorGroup = new THREE.Group();
+        const monitor = gltf.scene;
+        monitor.scale.set(3, 3, 3);
 
-      monitor.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
+        monitor.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
 
-      this.monitorGroup.add(monitor);
+        this.monitorGroup.add(monitor);
 
-      this.screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
-        | THREE.Mesh
-        | undefined;
+        this.screenMesh = monitor.getObjectByName("Cylinder003_Material004_0") as
+          | THREE.Mesh
+          | undefined;
 
-      this.setupScreenMeshTexture();
+        this.setupScreenMeshTexture();
 
-      const monitorBox = new THREE.Box3().setFromObject(monitor);
-      const size = new THREE.Vector3();
-      monitorBox.getSize(size);
-      this.monitorAspectRatio = size.x / size.y;
+        const monitorBox = new THREE.Box3().setFromObject(monitor);
+        const size = new THREE.Vector3();
+        monitorBox.getSize(size);
+        this.monitorAspectRatio = size.x / size.y;
 
-      const center = monitorBox.getCenter(new THREE.Vector3());
-      monitor.position.sub(center);
+        const center = monitorBox.getCenter(new THREE.Vector3());
+        monitor.position.sub(center);
 
-      const centeredBox = new THREE.Box3().setFromObject(monitor);
-      const bottomY = centeredBox.min.y;
+        const centeredBox = new THREE.Box3().setFromObject(monitor);
+        const bottomY = centeredBox.min.y;
 
-      const planeGeometry = new THREE.PlaneGeometry(50, 50);
-      const planeMaterial = new THREE.ShadowMaterial({
-        opacity: 0.4,
-        depthWrite: false,
-      });
-      const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
-      shadowPlane.rotation.x = -Math.PI / 2;
-      shadowPlane.position.y = bottomY - 0.01; // Tiny offset to prevent z-fighting with model base
-      shadowPlane.receiveShadow = true;
-      this.mainScene.add(shadowPlane);
+        const planeGeometry = new THREE.PlaneGeometry(50, 50);
+        const planeMaterial = new THREE.ShadowMaterial({
+          opacity: 0.4,
+          depthWrite: false,
+        });
+        const shadowPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = bottomY - 0.01;
+        shadowPlane.receiveShadow = true;
+        this.mainScene.add(shadowPlane);
 
-      this.mainScene.add(this.monitorGroup);
-      this.monitorGroup.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          this.selectiveBloom.selection.add(child);
-        }
-      });
-      this.monitorGroup.rotation.set(0, 0, 0);
-      this.handleResize();
-      this.animate();
-    });
+        this.mainScene.add(this.monitorGroup);
+        this.monitorGroup.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            this.selectiveBloom.selection.add(child);
+          }
+        });
+        this.monitorGroup.rotation.set(0, 0, 0);
+        this.handleResize();
+        this.markAssetLoaded(MONITOR_INDEX);
+      },
+      (progress) => {
+        this.updateLoadingProgress(MONITOR_INDEX, progress.loaded, progress.total);
+      },
+      () => {
+        this.markAssetLoaded(MONITOR_INDEX);
+      },
+    );
   }
 
   // --- Background screenScene ---
 
   private loadHDRBackground() {
     const hdrLoader = new HDRLoader();
-    hdrLoader.load("/models/bunker.hdr", (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      this.screenScene.background = texture;
-      this.screenScene.environment = texture;
-    });
+    hdrLoader.load(
+      "/models/bunker.hdr",
+      (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        this.screenScene.background = texture;
+        this.screenScene.environment = texture;
+        this.markAssetLoaded(HDR_INDEX);
+      },
+      (progress) => {
+        this.updateLoadingProgress(HDR_INDEX, progress.loaded, progress.total);
+      },
+      () => {
+        this.markAssetLoaded(HDR_INDEX);
+      },
+    );
+  }
+
+  // --- Loading Progress ---
+
+  private updateLoadingProgress(index: number, loaded: number, total: number) {
+    if (total > 0) {
+      this.assetProgress[index] = { loaded, total };
+      this.updateLoadingUI();
+    }
+  }
+
+  private updateLoadingUI() {
+    let totalFraction = 0;
+    for (let i = 0; i < 3; i++) {
+      const p = this.assetProgress[i];
+      totalFraction += p.total > 0 ? (p.loaded / p.total) / 3 : 0;
+    }
+    const percent = Math.min(100, Math.round(totalFraction * 100));
+
+    const fill = document.getElementById("loading-bar-fill");
+    const label = document.getElementById("loading-percent");
+    if (fill) fill.style.width = `${percent}%`;
+    if (label) label.textContent = `${percent}%`;
+  }
+
+  private markAssetLoaded(index: number) {
+    this.assetDone[index] = true;
+    this.assetProgress[index] = { loaded: 1, total: 1 };
+    this.updateLoadingUI();
+
+    if (this.assetDone.every((d) => d)) {
+      const fill = document.getElementById("loading-bar-fill");
+      const label = document.getElementById("loading-percent");
+      const btn = document.getElementById("start-btn");
+      if (fill) fill.style.width = "100%";
+      if (label) label.textContent = "100%";
+      if (btn) btn.classList.remove("hidden");
+    }
   }
 
   // --- Interaction ---
@@ -379,12 +453,10 @@ class HeroAnimation {
     this.mainCamera.updateProjectionMatrix();
     this.frameCameraOnMonitor(isLandscape);
 
-    // Update shadow camera bounds for aspect ratio
     if (this.mainDirectionalLight) {
       this.updateShadowCameraBounds(this.mainDirectionalLight);
     }
 
-    // Update composer with correct aspect ratio
     const newComposerHeight = Math.round(RENDER_TARGET_SIZE / newAspect);
     this.screenComposer.setSize(RENDER_TARGET_SIZE, newComposerHeight);
     this.mainComposer.setSize(canvasWidth, canvasHeight);
@@ -400,7 +472,6 @@ class HeroAnimation {
     const center = new THREE.Vector3();
     box.getCenter(center);
 
-    // If we have the screenMesh, use its X position as the "true" horizontal center
     let trueCenterX = center.x;
     if (this.screenMesh) {
       const screenBox = new THREE.Box3().setFromObject(this.screenMesh);
@@ -424,7 +495,6 @@ class HeroAnimation {
 
     const lookTarget = new THREE.Vector3(trueCenterX, 0, 0);
     if (isLandscape) {
-      // Aim slightly to the left of the monitor to shift the monitor to the right of the canvas
       lookTarget.x -= 0.4;
       lookTarget.y += size.y * 0.02;
     }
@@ -468,64 +538,60 @@ class HeroAnimation {
 
     window.addEventListener("resize", () => this.handleResize());
 
-    // mobile tilt tracking
-    const permissionOverlay = document.getElementById(
-      "tilt-permission-overlay",
-    );
-    const enableTiltBtn = document.getElementById("enable-tilt-btn");
+    const startBtn = document.getElementById("start-btn");
+    if (startBtn) {
+      startBtn.addEventListener("click", () => this.handleStart());
+    }
+  }
 
-    // Check if the device uses iOS 13+ permission API
+  private handleStart() {
+    if (this.started) return;
+    this.started = true;
+
+    const overlay = document.getElementById("loading-overlay");
+    const content = document.getElementById("page-content");
+
     if (
       typeof (DeviceOrientationEvent as any).requestPermission === "function"
     ) {
-      // permission for ios devices
-      if (permissionOverlay && enableTiltBtn) {
-        permissionOverlay.classList.remove("hidden"); // Show the overlay
-
-        enableTiltBtn.addEventListener("click", () => {
-          (DeviceOrientationEvent as any)
-            .requestPermission()
-            .then((permissionState: string) => {
-              if (permissionState === "granted") {
-                window.addEventListener("deviceorientation", (event) =>
-                  this.handleOrientation(event),
-                );
-                permissionOverlay.classList.add("hidden");
-              } else {
-                console.warn("Device orientation permission denied");
-                enableTiltBtn.innerText = "Permission Denied";
-              }
-            })
-            .catch(console.error);
-        });
-      }
+      (DeviceOrientationEvent as any)
+        .requestPermission()
+        .then((state: string) => {
+          if (state === "granted") {
+            window.addEventListener("deviceorientation", (event) =>
+              this.handleOrientation(event),
+            );
+          } else {
+            console.warn("Device orientation permission denied");
+          }
+          this.beginAnimation();
+          if (overlay) overlay.style.display = "none";
+          if (content) content.classList.remove("hidden");
+        })
+        .catch(console.error);
     } else {
-      // non ios devices
-      if (permissionOverlay) {
-        permissionOverlay.classList.add("hidden");
-      }
       window.addEventListener("deviceorientation", (event) =>
         this.handleOrientation(event),
       );
+      this.beginAnimation();
+      if (overlay) overlay.style.display = "none";
+      if (content) content.classList.remove("hidden");
     }
+  }
+
+  private beginAnimation() {
+    this.animate();
   }
 
   private handleOrientation(event: DeviceOrientationEvent) {
     if (event.beta === null || event.gamma === null) return;
 
-    // optimized for device held at 45 degrees
     let normalizedGamma = -(event.gamma / 45);
     let normalizedBeta = -((event.beta - 45) / 45);
 
-    // // ortogonal orientation
-    // let normalizedGamma = event.gamma / 45;
-    // let normalizedBeta = event.beta / 45;
-
-    // Clamp the values to keep it within the -1.0 to 1.0 range
     normalizedGamma = Math.max(-1, Math.min(1, normalizedGamma));
     normalizedBeta = Math.max(-1, Math.min(1, normalizedBeta));
 
-    // INVERT the rotations by making them negative
     this.eyeTargetRotationY = -normalizedGamma * EYE_MAX_ROTATION_Y;
     this.eyeTargetRotationX = -normalizedBeta * EYE_MAX_ROTATION_X;
   }
@@ -570,8 +636,6 @@ class HeroAnimation {
       this.updateEyeRotation();
       this.screenComposer.render();
       this.mainComposer.render();
-      // mainRenderer.setRenderTarget(null);
-      // mainRenderer.render(mainScene, mainCamera);
     }
   }
 }

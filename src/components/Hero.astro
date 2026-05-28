@@ -2,6 +2,7 @@
 // Hero Section
 import DragContainer from './DragContainer.astro';
 import TextType from './TextType.astro';
+import LoadingScreen from './LoadingScreen.astro';
 
 const asciiText = [
   "██████ ▄▄▄  ▄▄▄▄  ▄▄  ▄▄▄",
@@ -18,16 +19,10 @@ const mobileName = 'Fabio\nDi Cecca';
 
 <div class="relative w-full min-h-screen flex flex-col items-center justify-start md:flex-row md:justify-end md:pr-10 lg:pr-20 overflow-hidden" style="height: 100dvh;">
     <canvas id="hero-animation" class="-z-10 block"></canvas>
-  
-  <div id="tilt-permission-overlay" class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"> 
-    <button 
-      id="enable-tilt-btn" 
-      class="pointer-events-auto px-6 py-3 bg-accent-primary/10 border border-accent-primary/20 rounded text-accent-primary backdrop-blur-sm hover:bg-accent-primary/20 transition-colors"
-    >
-      Enable 3D Tilt
-    </button>
-  </div>
 
+  <LoadingScreen />
+
+  <div id="page-content" class="hidden">
   <DragContainer id="home" title="about me" closable={false}>
     <div class="hidden md:block font-mono" style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;">
       <TextType
@@ -36,6 +31,7 @@ const mobileName = 'Fabio\nDi Cecca';
         pauseDuration={800}
         loop={false}
         showCursor={false}
+        startOnVisible={true}
       />
     </div>
     <div class="md:hidden uppercase" style="height: 5rem; overflow: hidden; font-size: 1.5rem;">
@@ -43,6 +39,7 @@ const mobileName = 'Fabio\nDi Cecca';
         text={mobileName}
         typingSpeed={120}
         loop={false}
+        startOnVisible={true}
       />
     </div>
     <button data-action="open-window" data-target="projects" class="mt-4 px-4 py-2 bg-bg-dark text-text-bright rounded hover:bg-bg-light transition-colors cursor-pointer">
@@ -52,6 +49,7 @@ const mobileName = 'Fabio\nDi Cecca';
   <DragContainer id="projects" title="projects" initialX={300} initialY={200} initiallyHidden>
     <h1>Projects Window</h1>
   </DragContainer>
+  </div>
 </div>
 
 <script>
