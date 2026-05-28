@@ -18,7 +18,7 @@ No test, lint, or typecheck scripts are configured.
 Single-page portfolio at `src/pages/index.astro`. Layout (`src/layouts/Layout.astro`) imports `global.css` and wraps a `<slot />`. Only page is `/`.
 
 - **3D scene** — `HeroAnimation` class in `src/scripts/heroAnimation.ts` drives canvas `#hero-animation`. Three.js + postprocessing effects: SelectiveBloom, Pixelation, Scanline, Glitch. Uses `/models/eye.glb`, `/models/monitor.glb`, `/models/bunker.hdr`.
-- **Draggable windows** — `DragContainer.astro` + `Titlebar.astro` + `src/scripts/draggable.ts`. Position via `transform: translate()`. State persisted to `localStorage` (`window-{id}-position`, `window-{id}-closed`, `window-z-index-counter`).
+- **Draggable windows** — `DragContainer.astro` + `Titlebar.astro` + `src/scripts/draggable.ts`. Position via `transform: translate()`. State persisted to `localStorage` (`window-{id}-position`, `window-{id}-closed`, `window-z-index-counter`). Exports `manager` singleton (`DraggableWindowManager`) with `openWindow(id)` method that shows the window and bumps its z-index above all others. Windows are opened from buttons with `data-action="open-window"` + `data-target="{id}"` — handled in `Hero.astro` via `manager.openWindow()`.
 - **TextType** — `TextType.astro` drives animated typing via `data-text-type` attributes. Init in `src/scripts/textType.ts`.
 - **Style constants** — `src/styles/styles.ts` exports Tailwind class strings. `src/scripts/colors.ts` exports Three.js color hex constants.
 - **Font** — `"ZxSpectrum"` loaded from `/fonts/zxspectrum.ttf` in `global.css`.
