@@ -1,5 +1,6 @@
 ---
 import { loadingContainerStyle } from "../styles/styles";
+import Button from "./Button.astro";
 ---
 
 <div
@@ -13,18 +14,12 @@ import { loadingContainerStyle } from "../styles/styles";
           id="loading-bar-fill"
           class="h-full bg-text-primary transition-all duration-300"
           style="width: 0%"
-        ></div>
-      </div>
-      <p id="loading-percent" class="text-center mt-3 text-text-primary">
-        0%
-      </p>
-      <div class="text-center mt-6">
-        <button
-          id="start-btn"
-          class="hidden px-6 py-3 bg-bg-dark text-text-bright rounded hover:bg-text-primary/80 transition-colors cursor-pointer"
         >
-          START
-        </button>
+        </div>
+      </div>
+      <p id="loading-percent" class="text-center mt-3 text-text-primary">0%</p>
+      <div class="text-center mt-6">
+        <Button id="start-btn" text="start" class="hidden" />
       </div>
     </div>
   </div>

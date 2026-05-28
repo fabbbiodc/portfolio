@@ -1,8 +1,9 @@
 ---
 // Hero Section
-import DragContainer from './DragContainer.astro';
-import TextType from './TextType.astro';
-import LoadingScreen from './LoadingScreen.astro';
+import DragContainer from "./DragContainer.astro";
+import TextType from "./TextType.astro";
+import LoadingScreen from "./LoadingScreen.astro";
+import Button from "./Button.astro";
 
 const asciiText = [
   "██████ ▄▄▄  ▄▄▄▄  ▄▄  ▄▄▄",
@@ -12,43 +13,60 @@ const asciiText = [
   "████▄  ▄▄   ▄█████ ▄▄▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄",
   "██  ██ ██   ██     ██▄▄  ██▀▀▀ ██▀▀▀ ██▀██",
   "████▀  ██   ▀█████ ██▄▄▄ ▀████ ▀████ ██▀██",
-].join('\n');
+].join("\n");
 
-const mobileName = 'Fabio\nDi Cecca';
+const mobileName = "Fabio\nDi Cecca";
 ---
 
-<div class="relative w-full min-h-screen flex flex-col items-center justify-start md:flex-row md:justify-end md:pr-10 lg:pr-20 overflow-hidden" style="height: 100dvh;">
-    <canvas id="hero-animation" class="-z-10 block"></canvas>
+<div
+  class="relative w-full min-h-screen flex flex-col items-center justify-start md:flex-row md:justify-end md:pr-10 lg:pr-20 overflow-hidden"
+  style="height: 100dvh;"
+>
+  <canvas id="hero-animation" class="-z-10 block"></canvas>
 
   <LoadingScreen />
 
   <div id="page-content" class="hidden">
-  <DragContainer id="home" title="about me" closable={false}>
-    <div class="hidden md:block font-mono" style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;">
-      <TextType
-        text={asciiText}
-        typingSpeed={10}
-        pauseDuration={800}
-        loop={false}
-        showCursor={false}
-        startOnVisible={true}
+    <DragContainer id="home" title="about me" closable={false}>
+      <div
+        class="hidden md:block font-mono"
+        style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;"
+      >
+        <TextType
+          text={asciiText}
+          typingSpeed={10}
+          pauseDuration={800}
+          loop={false}
+          showCursor={false}
+          startOnVisible={true}
+        />
+      </div>
+      <div
+        class="md:hidden uppercase"
+        style="height: 5rem; overflow: hidden; font-size: 1.5rem;"
+      >
+        <TextType
+          text={mobileName}
+          typingSpeed={120}
+          loop={false}
+          startOnVisible={true}
+        />
+      </div>
+      <Button
+        text="projects"
+        data-action="open-window"
+        data-target="projects"
       />
-    </div>
-    <div class="md:hidden uppercase" style="height: 5rem; overflow: hidden; font-size: 1.5rem;">
-      <TextType
-        text={mobileName}
-        typingSpeed={120}
-        loop={false}
-        startOnVisible={true}
-      />
-    </div>
-    <button data-action="open-window" data-target="projects" class="mt-4 px-4 py-2 bg-bg-dark text-text-bright rounded hover:bg-bg-light transition-colors cursor-pointer">
-      Open Projects
-    </button>
-  </DragContainer>
-  <DragContainer id="projects" title="projects" initialX={300} initialY={200} initiallyHidden>
-    <h1>Projects Window</h1>
-  </DragContainer>
+    </DragContainer>
+    <DragContainer
+      id="projects"
+      title="projects"
+      initialX={300}
+      initialY={200}
+      initiallyHidden
+    >
+      <h1>Projects Window</h1>
+    </DragContainer>
   </div>
 </div>
 
@@ -56,10 +74,12 @@ const mobileName = 'Fabio\nDi Cecca';
   import "../scripts/heroAnimation.ts";
   import { manager } from "../scripts/draggable.ts";
 
-  document.addEventListener('click', (e) => {
-    const target = (e.target as HTMLElement).closest('[data-action="open-window"]');
+  document.addEventListener("click", (e) => {
+    const target = (e.target as HTMLElement).closest(
+      '[data-action="open-window"]',
+    );
     if (target) {
-      const windowId = target.getAttribute('data-target');
+      const windowId = target.getAttribute("data-target");
       if (windowId) manager.openWindow(windowId);
     }
   });

@@ -19,3 +19,5 @@ export const titlebarDragHandleStyle = "cursor-grab select-none touch-none";
 
 export const loadingContainerStyle =
   "bg-bg-primary border-6 border-double border-bg-dark p-8";
+
+export const buttonPrimary = "bg-bg-dark text-text-bright hover:opacity-20";
