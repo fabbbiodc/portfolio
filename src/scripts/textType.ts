@@ -203,6 +203,9 @@ class TextTypeAnimation {
 
   private updateDisplay(): void {
     this.displayEl.textContent = this.displayedText;
+    if (this.cursorEl) {
+      this.displayEl.appendChild(this.cursorEl);
+    }
     const color = this.getCurrentTextColor();
     this.displayEl.style.color = color || '';
   }
