@@ -1,8 +1,12 @@
+---
+import { loadingContainerStyle } from "../styles/styles";
+---
+
 <div
   id="loading-overlay"
   class="fixed inset-0 z-50 flex items-center justify-center"
 >
-  <div class="bg-bg-primary border-6 border-double border-bg-dark p-8">
+  <div class={loadingContainerStyle}>
     <div style="width: 260px">
       <div class="w-full h-4 bg-bg-dark/15">
         <div
