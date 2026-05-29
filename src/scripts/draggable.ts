@@ -132,7 +132,7 @@ class DraggableWindowManager {
     const startTransformY = state.y;
 
     this.bringToFront(windowEl, id);
-    titlebar.style.cursor = "grabbing";
+    titlebar.classList.add("is-dragging");
     titlebar.setPointerCapture(e.pointerId);
 
     const onMove = (moveEvent: PointerEvent) => {
@@ -152,7 +152,7 @@ class DraggableWindowManager {
     };
 
     const onEnd = () => {
-      titlebar.style.cursor = "grab";
+      titlebar.classList.remove("is-dragging");
       this.savePosition(id);
       titlebar.removeEventListener("pointermove", onMove);
       titlebar.removeEventListener("pointerup", onEnd);

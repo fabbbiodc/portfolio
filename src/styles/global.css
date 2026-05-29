@@ -8,6 +8,25 @@
   font-display: swap;
 }
 
+:root {
+  --cursor-default: image-set(
+    url('/cursors/default-32.png') 1x,
+    url('/cursors/default-48.png') 2x
+  ) 0 0, auto;
+  --cursor-pointer: image-set(
+    url('/cursors/pointer-32.png') 1x,
+    url('/cursors/pointer-48.png') 2x
+  ) 0 9, pointer;
+  --cursor-grab: image-set(
+    url('/cursors/grab-32.png') 1x,
+    url('/cursors/grab-48.png') 2x
+  ) 0 7, grab;
+  --cursor-grabbing: image-set(
+    url('/cursors/grabbing-32.png') 1x,
+    url('/cursors/grabbing-48.png') 2x
+  ) 0 7, grabbing;
+}
+
 @theme {
   --color-bg-primary: #ffffff;
   --color-bg-dark: #171717;
@@ -70,4 +89,13 @@
     font-family: "ZxSpectrum", monospace;
     font-weight: 700;
   }
+
+  body { cursor: var(--cursor-default); }
+
+  a, button, [role="button"], input[type="submit"] {
+    cursor: var(--cursor-pointer);
+  }
+
+  .titlebar { cursor: var(--cursor-grab); }
+  .is-dragging { cursor: var(--cursor-grabbing) !important; }
 }

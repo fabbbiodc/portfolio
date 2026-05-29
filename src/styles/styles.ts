@@ -13,9 +13,9 @@ export const draggableWindowStyle =
   "absolute top-0 left-0 w-[calc(100vw-2rem)] max-w-lg md:w-auto shadow-window";
 
 export const titlebarCloseButtonStyle =
-  "ml-auto min-w-[28px] min-h-[28px] flex items-center justify-center hover:bg-bg-light rounded transition-colors cursor-pointer";
+  "ml-auto min-w-[28px] min-h-[28px] flex items-center justify-center hover:bg-bg-light rounded transition-colors";
 
-export const titlebarDragHandleStyle = "cursor-grab select-none touch-none";
+export const titlebarDragHandleStyle = "select-none touch-none";
 
 export const loadingContainerStyle =
   "bg-bg-primary border-6 border-double border-bg-dark p-8";
