@@ -62,6 +62,11 @@ const mobileName = "Fabio\nDi Cecca";
         data-action="open-window"
         data-target="projects"
       />
+      <Button
+        text="about-me"
+        data-action="open-window"
+        data-target="about-me"
+      />
     </DragContainer>
     <DragContainer
       id="projects"
@@ -72,6 +77,16 @@ const mobileName = "Fabio\nDi Cecca";
     >
       <h1>Projects Window</h1>
       <Button text="details" data-action="open-window" data-target="details" />
+    </DragContainer>
+    <DragContainer
+      id="about-me"
+      title="about me"
+      positionStrategy="child"
+      parentId="home"
+      initiallyHidden
+    >
+      <h1>Ciao come va</h1>
+      <!-- <Button text="details" data-action="open-window" data-target="details" /> -->
     </DragContainer>
     <DragContainer
       id="details"
