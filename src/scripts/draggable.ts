@@ -8,11 +8,25 @@ function isOffScreen(x: number, y: number, windowEl: HTMLElement): boolean {
   const w = windowEl.offsetWidth;
   const h = windowEl.offsetHeight;
   return (
-    x < -(w / 2) ||
-    x > window.innerWidth - w / 2 ||
-    y < -(h / 2) ||
-    y > window.innerHeight - h / 2
+    x < 0 ||
+    x > window.innerWidth - w ||
+    y < 0 ||
+    y > window.innerHeight - h
   );
+}
+
+function constrainToBounds(
+  x: number,
+  y: number,
+  windowEl: HTMLElement,
+): { x: number; y: number } {
+  const w = windowEl.offsetWidth;
+  const h = windowEl.offsetHeight;
+
+  return {
+    x: Math.max(0, Math.min(window.innerWidth - w, x)),
+    y: Math.max(0, Math.min(window.innerHeight - h, y)),
+  };
 }
 
 function constrainToViewport(
@@ -70,7 +84,7 @@ function computeDefaultPosition(
     y = (window.innerHeight - h) / 2;
   }
 
-  return constrainToViewport(x, y, windowEl);
+  return constrainToBounds(x, y, windowEl);
 }
 
 class DraggableWindowManager {
