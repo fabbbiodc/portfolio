@@ -27,7 +27,12 @@ const mobileName = "Fabio\nDi Cecca";
   <LoadingScreen />
 
   <div id="page-content" class="hidden">
-    <DragContainer id="home" title="about me" positionStrategy="home" closable={false}>
+    <DragContainer
+      id="home"
+      title="fabiodicec.ca"
+      positionStrategy="home"
+      closable={false}
+    >
       <div
         class="hidden md:block font-mono"
         style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;"
@@ -66,11 +71,7 @@ const mobileName = "Fabio\nDi Cecca";
       initiallyHidden
     >
       <h1>Projects Window</h1>
-      <Button
-        text="details"
-        data-action="open-window"
-        data-target="details"
-      />
+      <Button text="details" data-action="open-window" data-target="details" />
     </DragContainer>
     <DragContainer
       id="details"
