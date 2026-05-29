@@ -4,6 +4,7 @@ import {
   titlebarStyle,
   titlebarCloseButtonStyle,
   titlebarDragHandleStyle,
+  titlebarTextStyle,
 } from "../styles/styles";
 
 interface Props {
@@ -15,23 +16,10 @@ const { title, closable = true } = Astro.props;
 ---
 
 <div class={`${titlebarStyle} ${titlebarDragHandleStyle} titlebar`}>
-  <h1 class="flex-1">{title}</h1>
+  <h1 class={`flex-1 ${titlebarTextStyle}`}>{title}</h1>
   {closable && (
     <button class={titlebarCloseButtonStyle} data-action="close" aria-label="Close window">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke-width="1.5"
-        stroke="currentColor"
-        class="w-5 h-5"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
+      <span class="text-lg leading-none">X</span>
     </button>
   )}
 </div>

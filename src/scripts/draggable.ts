@@ -39,7 +39,7 @@ function constrainToViewport(
 
   const minX = -(w / 2);
   const maxX = window.innerWidth - w / 2;
-  const minY = -(h / 2);
+  const minY = 0;
   const maxY = window.innerHeight - h / 2;
 
   return {

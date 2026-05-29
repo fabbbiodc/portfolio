@@ -4,6 +4,7 @@ import DragContainer from "./DragContainer.astro";
 import TextType from "./TextType.astro";
 import LoadingScreen from "./LoadingScreen.astro";
 import Button from "./Button.astro";
+import { captionTextStyle } from "../styles/styles";
 
 const asciiText = [
   "██████ ▄▄▄  ▄▄▄▄  ▄▄  ▄▄▄",
@@ -69,6 +70,7 @@ const mobileName = "Fabio\nDi Cecca";
           data-target="about-me"
         />
       </div>
+      <p class={`${captionTextStyle} mt-4`}>try and drag these windows around</p>
     </DragContainer>
     <DragContainer
       id="projects"
