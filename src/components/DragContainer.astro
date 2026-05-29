@@ -7,21 +7,23 @@ import { draggableWindowStyle, containerContent } from "../styles/styles";
 interface Props {
   id: string;
   title: string;
-  initialX?: number;
-  initialY?: number;
   closable?: boolean;
   initiallyHidden?: boolean;
   noPadding?: boolean;
+  positionStrategy?: "home" | "child";
+  parentId?: string;
 }
 
-const { id, title, initialX = 100, initialY = 100, closable = true, initiallyHidden = false, noPadding = false } = Astro.props;
+const { id, title, closable = true, initiallyHidden = false, noPadding = false, positionStrategy = "home", parentId } = Astro.props;
 ---
 
 <div 
   class={`${draggableWindowStyle}`}
   data-window-id={id}
   data-closable={closable ? "true" : "false"}
-  style={`transform: translate(${initialX}px, ${initialY}px);${initiallyHidden ? ' display: none;' : ''}`}
+  data-position-strategy={positionStrategy}
+  data-parent-id={parentId}
+  style={`transform: translate(0px, 0px);${initiallyHidden ? ' display: none;' : ''}`}
 >
   <Titlebar title={title} closable={closable} />
   <div class={`${containerContent} ${noPadding ? '' : 'p-6 md:p-12'}`}>

@@ -10,7 +10,7 @@ export const containerContent =
 export const containerStyle = "w-1/2 h-full";
 
 export const draggableWindowStyle =
-  "absolute top-0 left-0 w-[calc(100vw-2rem)] max-w-lg md:w-auto shadow-window";
+  "absolute top-0 left-0 w-[calc(100vw-2rem)] max-w-lg shadow-window";
 
 export const titlebarCloseButtonStyle =
   "ml-auto min-w-[28px] min-h-[28px] flex items-center justify-center hover:bg-bg-light rounded transition-colors";

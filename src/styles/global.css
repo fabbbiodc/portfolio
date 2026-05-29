@@ -99,3 +99,9 @@
   .titlebar { cursor: var(--cursor-grab); }
   .is-dragging { cursor: var(--cursor-grabbing) !important; }
 }
+
+@media (width < 48rem) {
+  [data-window-id] {
+    width: 90vw !important;
+  }
+}

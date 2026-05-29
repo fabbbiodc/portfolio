@@ -5,16 +5,13 @@ interface WindowState {
 }
 
 function isOffScreen(x: number, y: number, windowEl: HTMLElement): boolean {
-  const rect = windowEl.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
-  const screenX = x + w / 2;
-  const screenY = y + h / 2;
+  const w = windowEl.offsetWidth;
+  const h = windowEl.offsetHeight;
   return (
-    screenX < 0 ||
-    screenX > window.innerWidth ||
-    screenY < 0 ||
-    screenY > window.innerHeight
+    x < -(w / 2) ||
+    x > window.innerWidth - w / 2 ||
+    y < -(h / 2) ||
+    y > window.innerHeight - h / 2
   );
 }
 
@@ -22,21 +19,58 @@ function constrainToViewport(
   x: number,
   y: number,
   windowEl: HTMLElement,
-  margin = 50,
 ): { x: number; y: number } {
-  const rect = windowEl.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
+  const w = windowEl.offsetWidth;
+  const h = windowEl.offsetHeight;
 
-  const minX = -(w - margin);
-  const maxX = window.innerWidth - margin;
-  const minY = -(h - margin);
-  const maxY = window.innerHeight - margin;
+  const minX = -(w / 2);
+  const maxX = window.innerWidth - w / 2;
+  const minY = -(h / 2);
+  const maxY = window.innerHeight - h / 2;
 
   return {
     x: Math.max(minX, Math.min(maxX, x)),
     y: Math.max(minY, Math.min(maxY, y)),
   };
+}
+
+function computeDefaultPosition(
+  windowEl: HTMLElement,
+): { x: number; y: number } {
+  const w = windowEl.offsetWidth;
+  const h = windowEl.offsetHeight;
+  const isMobile = window.innerWidth < 768;
+  const strategy =
+    windowEl.getAttribute("data-position-strategy") || "home";
+
+  let x: number;
+  let y: number;
+
+  if (isMobile) {
+    x = (window.innerWidth - w) / 2;
+    if (strategy === "home") {
+      y = window.innerHeight - h - 24;
+    } else {
+      y = (window.innerHeight - h) / 2;
+    }
+  } else if (strategy === "child") {
+    const parentId = windowEl.getAttribute("data-parent-id");
+    const parentEl = parentId
+      ? document.querySelector(`[data-window-id="${parentId}"]`)
+      : null;
+    if (parentEl) {
+      const parentRect = parentEl.getBoundingClientRect();
+      x = parentRect.right + 24;
+    } else {
+      x = 24;
+    }
+    y = (window.innerHeight - h) / 2;
+  } else {
+    x = 24;
+    y = (window.innerHeight - h) / 2;
+  }
+
+  return constrainToViewport(x, y, windowEl);
 }
 
 class DraggableWindowManager {
@@ -64,33 +98,34 @@ class DraggableWindowManager {
 
     const saved = localStorage.getItem(`window-${id}-position`);
     const isClosable = windowEl.dataset.closable !== "false";
-    const isClosed = isClosable && localStorage.getItem(`window-${id}-closed`) === "true";
+    const isClosed =
+      isClosable &&
+      localStorage.getItem(`window-${id}-closed`) === "true";
 
     if (isClosed) {
       windowEl.style.display = "none";
     }
 
-    const state: WindowState = saved
-      ? JSON.parse(saved)
-      : {
-          x: parseFloat(
-            windowEl.style.transform.match(/translate\(([-\d.]+)px/)?.[1] ||
-              "100",
-          ),
-          y: parseFloat(
-            windowEl.style.transform.match(/,\s*([-\d.]+)px\)/)?.[1] || "100",
-          ),
-          zIndex: this.zIndexCounter,
-        };
+    const state: WindowState = { x: 0, y: 0, zIndex: this.zIndexCounter };
+    let needsDeferredPosition = false;
 
-    if (saved && isOffScreen(state.x, state.y, windowEl)) {
-      state.x = parseFloat(
-        windowEl.style.transform.match(/translate\(([-\d.]+)px/)?.[1] || "100",
-      );
-      state.y = parseFloat(
-        windowEl.style.transform.match(/,\s*([-\d.]+)px\)/)?.[1] || "100",
-      );
-      localStorage.removeItem(`window-${id}-position`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (!isOffScreen(parsed.x, parsed.y, windowEl)) {
+        state.x = parsed.x;
+        state.y = parsed.y;
+        state.zIndex = parsed.zIndex;
+      } else if (!isClosed) {
+        const defaultPos = computeDefaultPosition(windowEl);
+        state.x = defaultPos.x;
+        state.y = defaultPos.y;
+      }
+    } else if (windowEl.offsetWidth > 0 && !isClosed) {
+      const defaultPos = computeDefaultPosition(windowEl);
+      state.x = defaultPos.x;
+      state.y = defaultPos.y;
+    } else if (!isClosed) {
+      needsDeferredPosition = true;
     }
 
     this.windowStates.set(id, state);
@@ -117,9 +152,30 @@ class DraggableWindowManager {
         this.closeWindow(windowEl, id);
       });
     }
+
+    if (needsDeferredPosition) {
+      this.waitForSize(windowEl, id);
+    }
   }
 
-  startDrag(e: PointerEvent, windowEl: HTMLElement, id: string) {
+  private waitForSize(windowEl: HTMLElement, id: string) {
+    if (windowEl.offsetWidth > 0) {
+      const defaultPos = computeDefaultPosition(windowEl);
+      const state = this.windowStates.get(id)!;
+      state.x = defaultPos.x;
+      state.y = defaultPos.y;
+      windowEl.style.transform = `translate(${defaultPos.x}px, ${defaultPos.y}px)`;
+      this.savePosition(id);
+      return;
+    }
+    requestAnimationFrame(() => this.waitForSize(windowEl, id));
+  }
+
+  startDrag(
+    e: PointerEvent,
+    windowEl: HTMLElement,
+    id: string,
+  ) {
     const closeBtn = windowEl.querySelector('[data-action="close"]');
     if (closeBtn && closeBtn.contains(e.target as Node)) return;
 
@@ -169,7 +225,11 @@ class DraggableWindowManager {
       const state = this.windowStates.get(id);
       if (!state || windowEl.style.display === "none") continue;
 
-      const constrained = constrainToViewport(state.x, state.y, windowEl);
+      const constrained = constrainToViewport(
+        state.x,
+        state.y,
+        windowEl,
+      );
       state.x = constrained.x;
       state.y = constrained.y;
       windowEl.style.transform = `translate(${constrained.x}px, ${constrained.y}px)`;
@@ -194,6 +254,12 @@ class DraggableWindowManager {
     windowEl.style.display = "block";
     this.bringToFront(windowEl, id);
     localStorage.removeItem(`window-${id}-closed`);
+
+    const state = this.windowStates.get(id)!;
+    const defaultPos = computeDefaultPosition(windowEl);
+    state.x = defaultPos.x;
+    state.y = defaultPos.y;
+    windowEl.style.transform = `translate(${defaultPos.x}px, ${defaultPos.y}px)`;
   }
 
   closeWindow(windowEl: HTMLElement, id: string) {
@@ -203,7 +269,10 @@ class DraggableWindowManager {
 
   savePosition(id: string) {
     const state = this.windowStates.get(id)!;
-    localStorage.setItem(`window-${id}-position`, JSON.stringify(state));
+    localStorage.setItem(
+      `window-${id}-position`,
+      JSON.stringify(state),
+    );
   }
 }
 
