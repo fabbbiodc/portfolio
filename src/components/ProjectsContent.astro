@@ -1,8 +1,15 @@
 ---
-import Button from "./Button.astro";
+import { projects } from "../data/projects";
+import ProjectCard from "./ProjectCard.astro";
 ---
 
-<div class="w-[90vw] md:w-80">
-  <h1>Projects Window</h1>
-  <Button text="details" data-action="open-window" data-target="details" />
+<div class="flex flex-col gap-4">
+  {projects.map((project) => (
+    <ProjectCard
+      id={project.id}
+      title={project.title}
+      tags={project.tags}
+      thumbnail={project.thumbnail}
+    />
+  ))}
 </div>

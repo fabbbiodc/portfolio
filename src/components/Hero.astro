@@ -66,7 +66,24 @@ import LoadingScreen from "./LoadingScreen.astro";
     );
     if (target) {
       const windowId = target.getAttribute("data-target");
-      if (windowId) manager.openWindow(windowId);
+      const projectTitle = target.getAttribute("data-project-title");
+      
+      if (windowId) {
+        // If there's a project title, update the window's titlebar
+        if (projectTitle) {
+          const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+          if (windowEl) {
+            const titlebar = windowEl.querySelector(".titlebar");
+            if (titlebar) {
+              const titleElement = titlebar.querySelector("[data-title]");
+              if (titleElement) {
+                titleElement.textContent = projectTitle;
+              }
+            }
+          }
+        }
+        manager.openWindow(windowId);
+      }
     }
   });
 </script>

@@ -1,0 +1,28 @@
+---
+import { projectCardStyle, markdownContentStyle } from "../styles/styles";
+
+interface Props {
+  id: string;
+  title: string;
+  tags: string[];
+  thumbnail: string;
+}
+
+const { id, title, tags, thumbnail } = Astro.props;
+const tagsString = tags.join(" / ");
+---
+
+<button
+  class={projectCardStyle}
+  data-action="open-window"
+  data-target="details"
+  data-project-title={title}
+>
+  <div class={`${markdownContentStyle} [&_*]:mb-0`}>
+    <h3>{title}</h3>
+  </div>
+  <img src={thumbnail} alt={title} class="w-full h-auto object-cover" />
+  <div class={`${markdownContentStyle} [&_*]:mb-0`}>
+    <strong>{tagsString}</strong>
+  </div>
+</button>

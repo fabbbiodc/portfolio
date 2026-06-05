@@ -1,8 +1,11 @@
 ---
 import { readFileSync } from "node:fs"
 import { marked } from "marked"
+import { projects } from "../data/projects"
 
-const md = readFileSync("public/projects/project_01.md", "utf-8")
+// Get the first project (we're reusing the same window for now)
+const project = projects[0]
+const md = readFileSync(`public${project.content}`, "utf-8")
 const html = await marked(md)
 const processed = html.replace(
   /src="pictures\//g,
