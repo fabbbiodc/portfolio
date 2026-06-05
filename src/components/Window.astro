@@ -1,8 +1,9 @@
 ---
-// Draggable window
+// Window wrapper - provides draggable chrome (titlebar, bg, border, shadow).
+// Content is supplied via the default slot and determines the window's size.
 
 import Titlebar from "./Titlebar.astro";
-import { draggableWindowStyle, containerContent } from "../styles/styles";
+import { windowStyle, containerContent } from "../styles/styles";
 
 interface Props {
   id: string;
@@ -12,6 +13,7 @@ interface Props {
   noPadding?: boolean;
   positionStrategy?: "home" | "child";
   parentId?: string;
+  class?: string;
 }
 
 const {
@@ -27,7 +29,7 @@ const {
 ---
 
 <div
-  class={`${draggableWindowStyle} flex flex-col ${className || ""}`}
+  class={`${windowStyle} ${className || ""}`}
   data-window-id={id}
   data-closable={closable ? "true" : "false"}
   data-position-strategy={positionStrategy}
@@ -35,7 +37,7 @@ const {
   style={`transform: translate(0px, 0px);${initiallyHidden ? " display: none;" : ""}`}
 >
   <Titlebar title={title} closable={closable} />
-  <div class={`${containerContent} ${noPadding ? '' : 'p-6 md:p-12'} grow min-h-0 overflow-y-auto`}>
+  <div class={`${containerContent} grow min-h-0 overflow-y-auto ${noPadding ? '' : 'p-6 md:p-12'}`}>
     <slot />
   </div>
 </div>

@@ -1,0 +1,57 @@
+---
+import TextType from "./TextType.astro";
+import Button from "./Button.astro";
+import { captionTextStyle } from "../styles/styles";
+
+const asciiText = [
+  "██████ ▄▄▄  ▄▄▄▄  ▄▄  ▄▄▄",
+  "██▄▄  ██▀██ ██▄██ ██ ██▀██",
+  "██    ██▀██ ██▄█▀ ██ ▀███▀",
+  "",
+  "████▄  ▄▄   ▄█████ ▄▄▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄",
+  "██  ██ ██   ██     ██▄▄  ██▀▀▀ ██▀▀▀ ██▀██",
+  "████▀  ██   ▀█████ ██▄▄▄ ▀████ ▀████ ██▀██",
+].join("\n");
+
+const mobileName = "Fabio\nDi Cecca";
+---
+
+<div class="w-[90vw] md:w-80">
+  <div
+    class="hidden md:block font-mono"
+    style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;"
+  >
+    <TextType
+      text={asciiText}
+      typingSpeed={10}
+      pauseDuration={800}
+      loop={false}
+      showCursor={false}
+      startOnVisible={true}
+    />
+  </div>
+  <div
+    class="md:hidden uppercase"
+    style="height: 5rem; overflow: hidden; font-size: 1.5rem;"
+  >
+    <TextType
+      text={mobileName}
+      typingSpeed={120}
+      loop={false}
+      startOnVisible={true}
+    />
+  </div>
+  <div class="flex flex-col items-start gap-2 mt-4">
+    <Button
+      text="projects"
+      data-action="open-window"
+      data-target="projects"
+    />
+    <Button
+      text="about-me"
+      data-action="open-window"
+      data-target="about-me"
+    />
+  </div>
+  <p class={`${captionTextStyle} mt-4`}>try and drag these windows around</p>
+</div>

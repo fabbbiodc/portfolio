@@ -12,6 +12,6 @@ const processed = html.replace(
 import { markdownContentStyle } from "../styles/styles"
 ---
 
-<div class={`${markdownContentStyle} max-h-[75vh] overflow-y-auto`}>">
+<div class={`${markdownContentStyle} w-[90vw] md:w-[50vw]`}>
   <fragment set:html={processed} />
 </div>

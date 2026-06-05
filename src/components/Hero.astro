@@ -1,23 +1,12 @@
 ---
 // Hero Section
-import DragContainer from "./DragContainer.astro";
-import TextType from "./TextType.astro";
-import LoadingScreen from "./LoadingScreen.astro";
-import Button from "./Button.astro";
+
+import Window from "./Window.astro";
+import HeroContent from "./HeroContent.astro";
+import ProjectsContent from "./ProjectsContent.astro";
+import AboutMeContent from "./AboutMeContent.astro";
 import ProjectDetail from "./ProjectDetail.astro";
-import { captionTextStyle } from "../styles/styles";
-
-const asciiText = [
-  "██████ ▄▄▄  ▄▄▄▄  ▄▄  ▄▄▄",
-  "██▄▄  ██▀██ ██▄██ ██ ██▀██",
-  "██    ██▀██ ██▄█▀ ██ ▀███▀",
-  "",
-  "████▄  ▄▄   ▄█████ ▄▄▄▄▄  ▄▄▄▄  ▄▄▄▄  ▄▄▄",
-  "██  ██ ██   ██     ██▄▄  ██▀▀▀ ██▀▀▀ ██▀██",
-  "████▀  ██   ▀█████ ██▄▄▄ ▀████ ▀████ ██▀██",
-].join("\n");
-
-const mobileName = "Fabio\nDi Cecca";
+import LoadingScreen from "./LoadingScreen.astro";
 ---
 
 <div
@@ -29,80 +18,41 @@ const mobileName = "Fabio\nDi Cecca";
   <LoadingScreen />
 
   <div id="page-content" class="hidden">
-    <DragContainer
+    <Window
       id="home"
       title="fabiodicec.ca"
       positionStrategy="home"
       closable={false}
     >
-      <div
-        class="hidden md:block font-mono"
-        style="height: 110px; width: 300px; overflow: hidden; font-size: 0.75rem;"
-      >
-        <TextType
-          text={asciiText}
-          typingSpeed={10}
-          pauseDuration={800}
-          loop={false}
-          showCursor={false}
-          startOnVisible={true}
-        />
-      </div>
-      <div
-        class="md:hidden uppercase"
-        style="height: 5rem; overflow: hidden; font-size: 1.5rem;"
-      >
-        <TextType
-          text={mobileName}
-          typingSpeed={120}
-          loop={false}
-          startOnVisible={true}
-        />
-      </div>
-      <div class="flex flex-col items-start gap-2 mt-4">
-        <Button
-          text="projects"
-          data-action="open-window"
-          data-target="projects"
-        />
-        <Button
-          text="about-me"
-          data-action="open-window"
-          data-target="about-me"
-        />
-      </div>
-      <p class={`${captionTextStyle} mt-4`}>try and drag these windows around</p>
-    </DragContainer>
-    <DragContainer
+      <HeroContent />
+    </Window>
+    <Window
       id="projects"
       title="projects"
       positionStrategy="child"
       parentId="home"
       initiallyHidden
     >
-      <h1>Projects Window</h1>
-      <Button text="details" data-action="open-window" data-target="details" />
-    </DragContainer>
-    <DragContainer
+      <ProjectsContent />
+    </Window>
+    <Window
       id="about-me"
       title="about me"
       positionStrategy="child"
       parentId="home"
       initiallyHidden
     >
-      <h1>Ciao come va</h1>
-      <!-- <Button text="details" data-action="open-window" data-target="details" /> -->
-    </DragContainer>
-    <DragContainer
+      <AboutMeContent />
+    </Window>
+    <Window
       id="details"
       title="details"
       positionStrategy="child"
       parentId="projects"
       initiallyHidden
-      class="!max-w-none w-[90vw] md:w-[50vw] h-auto max-h-[90vh]"
     >
       <ProjectDetail />
-    </DragContainer>
+    </Window>
   </div>
 </div>
 
