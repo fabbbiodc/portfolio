@@ -12,6 +12,6 @@ const processed = html.replace(
 import { markdownContentStyle } from "../styles/styles"
 ---
 
-<div class={`${markdownContentStyle} w-[90vw] md:w-[50vw]`}>
+<div class={`${markdownContentStyle} w-full max-w-[90vw] md:max-w-[50vw]`}>
   <div set:html={processed} />
 </div>

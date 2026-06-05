@@ -22,9 +22,10 @@ function constrainToBounds(
 ): { x: number; y: number } {
   const w = windowEl.offsetWidth;
   const h = windowEl.offsetHeight;
+  const rightMargin = 24;
 
   return {
-    x: Math.max(0, Math.min(window.innerWidth - w, x)),
+    x: Math.max(0, Math.min(window.innerWidth - w - rightMargin, x)),
     y: Math.max(0, Math.min(window.innerHeight - h, y)),
   };
 }
@@ -36,9 +37,10 @@ function constrainToViewport(
 ): { x: number; y: number } {
   const w = windowEl.offsetWidth;
   const h = windowEl.offsetHeight;
+  const rightMargin = 24;
 
   const minX = -(w / 2);
-  const maxX = window.innerWidth - w / 2;
+  const maxX = window.innerWidth - w / 2 - rightMargin;
   const minY = 0;
   const maxY = window.innerHeight - h / 2;
 
@@ -268,6 +270,12 @@ class DraggableWindowManager {
     windowEl.style.display = "flex";
     this.bringToFront(windowEl, id);
     localStorage.removeItem(`window-${id}-closed`);
+
+    // Reset scroll position to top
+    const contentDiv = windowEl.querySelector(".overflow-y-auto");
+    if (contentDiv) {
+      contentDiv.scrollTop = 0;
+    }
 
     const state = this.windowStates.get(id)!;
     const defaultPos = computeDefaultPosition(windowEl);
