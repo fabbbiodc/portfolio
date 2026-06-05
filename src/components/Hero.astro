@@ -4,6 +4,7 @@ import DragContainer from "./DragContainer.astro";
 import TextType from "./TextType.astro";
 import LoadingScreen from "./LoadingScreen.astro";
 import Button from "./Button.astro";
+import ProjectDetail from "./ProjectDetail.astro";
 import { captionTextStyle } from "../styles/styles";
 
 const asciiText = [
@@ -98,8 +99,9 @@ const mobileName = "Fabio\nDi Cecca";
       positionStrategy="child"
       parentId="projects"
       initiallyHidden
+      class="!max-w-none w-[90vw] md:w-[50vw] h-auto max-h-[90vh]"
     >
-      <p>Details about the selected project go here.</p>
+      <ProjectDetail />
     </DragContainer>
   </div>
 </div>

@@ -14,19 +14,28 @@ interface Props {
   parentId?: string;
 }
 
-const { id, title, closable = true, initiallyHidden = false, noPadding = false, positionStrategy = "home", parentId } = Astro.props;
+const {
+  id,
+  title,
+  closable = true,
+  initiallyHidden = false,
+  noPadding = false,
+  positionStrategy = "home",
+  parentId,
+  class: className,
+} = Astro.props;
 ---
 
-<div 
-  class={`${draggableWindowStyle}`}
+<div
+  class={`${draggableWindowStyle} flex flex-col ${className || ""}`}
   data-window-id={id}
   data-closable={closable ? "true" : "false"}
   data-position-strategy={positionStrategy}
   data-parent-id={parentId}
-  style={`transform: translate(0px, 0px);${initiallyHidden ? ' display: none;' : ''}`}
+  style={`transform: translate(0px, 0px);${initiallyHidden ? " display: none;" : ""}`}
 >
   <Titlebar title={title} closable={closable} />
-  <div class={`${containerContent} ${noPadding ? '' : 'p-6 md:p-12'}`}>
+  <div class={`${containerContent} ${noPadding ? '' : 'p-6 md:p-12'} grow min-h-0 overflow-y-auto`}>
     <slot />
   </div>
 </div>

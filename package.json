@@ -15,11 +15,13 @@
     "@tailwindcss/vite": "^4.2.4",
     "astro": "^6.4.4",
     "heroicons": "^2.2.0",
+    "marked": "^18.0.5",
     "postprocessing": "^6.39.1",
     "tailwindcss": "^4.2.4",
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "@types/three": "^0.184.0",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.9.3"
