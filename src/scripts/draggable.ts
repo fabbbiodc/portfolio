@@ -22,7 +22,8 @@ function constrainToBounds(
 ): { x: number; y: number } {
   const w = windowEl.offsetWidth;
   const h = windowEl.offsetHeight;
-  const rightMargin = 24;
+  const isMobile = window.innerWidth < 768;
+  const rightMargin = isMobile ? 0 : 24;
 
   return {
     x: Math.max(0, Math.min(window.innerWidth - w - rightMargin, x)),
@@ -37,7 +38,8 @@ function constrainToViewport(
 ): { x: number; y: number } {
   const w = windowEl.offsetWidth;
   const h = windowEl.offsetHeight;
-  const rightMargin = 24;
+  const isMobile = window.innerWidth < 768;
+  const rightMargin = isMobile ? 0 : 24;
 
   const minX = -(w / 2);
   const maxX = window.innerWidth - w / 2 - rightMargin;
