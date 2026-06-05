@@ -265,7 +265,7 @@ class DraggableWindowManager {
   openWindow(id: string) {
     const windowEl = this.windowElements.get(id);
     if (!windowEl) return;
-    windowEl.style.display = "block";
+    windowEl.style.display = "flex";
     this.bringToFront(windowEl, id);
     localStorage.removeItem(`window-${id}-closed`);
 

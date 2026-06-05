@@ -37,7 +37,7 @@ const {
   style={`transform: translate(0px, 0px);${initiallyHidden ? " display: none;" : ""}`}
 >
   <Titlebar title={title} closable={closable} />
-  <div class={`${containerContent} grow min-h-0 overflow-y-auto ${noPadding ? '' : 'p-6 md:p-12'}`}>
+  <div class={`${containerContent} grow min-h-0 overflow-y-auto w-full ${noPadding ? '' : 'p-6 md:p-12'}`}>
     <slot />
   </div>
 </div>

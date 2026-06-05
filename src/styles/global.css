@@ -9,22 +9,31 @@
 }
 
 :root {
-  --cursor-default: image-set(
-    url('/cursors/default-32.png') 1x,
-    url('/cursors/default-48.png') 2x
-  ) 0 0, auto;
-  --cursor-pointer: image-set(
-    url('/cursors/pointer-32.png') 1x,
-    url('/cursors/pointer-48.png') 2x
-  ) 0 9, pointer;
-  --cursor-grab: image-set(
-    url('/cursors/grab-32.png') 1x,
-    url('/cursors/grab-48.png') 2x
-  ) 0 7, grab;
-  --cursor-grabbing: image-set(
-    url('/cursors/grabbing-32.png') 1x,
-    url('/cursors/grabbing-48.png') 2x
-  ) 0 7, grabbing;
+  --cursor-default:
+    image-set(
+        url("/cursors/default-32.png") 1x,
+        url("/cursors/default-48.png") 2x
+      )
+      0 0,
+    auto;
+  --cursor-pointer:
+    image-set(
+        url("/cursors/pointer-32.png") 1x,
+        url("/cursors/pointer-48.png") 2x
+      )
+      0 9,
+    pointer;
+  --cursor-grab:
+    image-set(url("/cursors/grab-32.png") 1x, url("/cursors/grab-48.png") 2x) 0
+      7,
+    grab;
+  --cursor-grabbing:
+    image-set(
+        url("/cursors/grabbing-32.png") 1x,
+        url("/cursors/grabbing-48.png") 2x
+      )
+      0 7,
+    grabbing;
 }
 
 @theme {
@@ -36,6 +45,111 @@
   --color-grid-lines: #e6ff0020;
   --color-text-grey: #666666;
   --shadow-window: 4px 4px 1px rgb(0 0 0 / 0.35);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  body {
+    font-family: "ZxSpectrum", monospace;
+    font-weight: 400;
+    font-size: 1.125rem;
+    background-color: var(--color-bg-primary);
+    background-image:
+      radial-gradient(
+        ellipse farthest-side,
+        var(--color-text-primary) 30%,
+        transparent 35%
+      ),
+      radial-gradient(
+        ellipse farthest-side,
+        var(--color-text-primary) 30%,
+        transparent 35%
+      );
+    background-size: 3px 9px;
+    background-position:
+      0 0,
+      1.5px 4.5px;
+    color: var(--color-text-primary);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "ZxSpectrum", monospace;
+    font-weight: 700;
+  }
+
+  body { 
+    cursor: var(--cursor-default); 
+  }
+
+  a, 
+  button, 
+  [role="button"], 
+  input[type="submit"] {
+    cursor: var(--cursor-pointer);
+  }
+
+  .titlebar { 
+    cursor: var(--cursor-grab); 
+  }
+
+  .is-dragging { 
+    cursor: var(--cursor-grabbing) !important; 
+  }
+
+  /* --- Retro OS Scrollbar Styles --- */
+
+  /* 1. WebKit Browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+    border-left: 2px solid var(--color-text-primary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-text-primary);
+    border: 2px solid var(--color-bg-primary); 
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-primary);
+    border: 2px solid var(--color-text-primary);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--color-bg-primary);
+  }
+
+  /* 2. Firefox (uses a different standard) */
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-text-primary) var(--color-bg-primary);
+  }
 }
 
 @layer base {
@@ -91,12 +205,36 @@
     font-weight: 700;
   }
 
-  body { cursor: var(--cursor-default); }
+  body {
+    cursor: var(--cursor-default);
+  }
 
-  a, button, [role="button"], input[type="submit"] {
+  a,
+  button,
+  [role="button"],
+  input[type="submit"] {
     cursor: var(--cursor-pointer);
   }
 
-  .titlebar { cursor: var(--cursor-grab); }
-  .is-dragging { cursor: var(--cursor-grabbing) !important; }
+  .titlebar {
+    cursor: var(--cursor-grab);
+  }
+  .is-dragging {
+    cursor: var(--cursor-grabbing) !important;
+  }
+  ::-webkit-scrollbar {
+    width: 14px;
+    background: var(--color-bg-primary);
+    border-left: 2px solid var(--color-bg-dark);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-bg-dark);
+    /* Creates a nice blocky border effect inside the thumb */
+    border: 2px solid var(--color-bg-primary);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-grey);
+  }
 }
