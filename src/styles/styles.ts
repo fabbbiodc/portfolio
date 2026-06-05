@@ -19,14 +19,14 @@ export const buttonPrimary = "bg-bg-dark text-text-bright hover:opacity-20";
 
 export const markdownContentStyle =
   "space-y-4 leading-relaxed " +
-  "[&_h1]:text-xl [&_h1]:md:text-2xl [&_h1]:text-text-bright " +
-  "[&_h2]:text-lg [&_h2]:md:text-xl [&_h2]:text-text-bright " +
-  "[&_h3]:text-base [&_h3]:md:text-lg [&_h3]:text-text-bright " +
+  "[&_h1]:text-xl [&_h1]:md:text-2xl [&_h1]:text-text-bright [&_h1]:bg-bg-dark [&_h1]:inline-block [&_h1]:mb-2 [&_h1]:pl-1 " +
+  "[&_h2]:text-lg [&_h2]:md:text-xl [&_h2]:text-text-bright [&_h2]:bg-bg-dark [&_h2]:inline-block [&_h2]:mb-2 [&_h2]:pl-1 " +
+  "[&_h3]:text-base [&_h3]:md:text-lg [&_h3]:text-text-bright [&_h3]:bg-bg-dark [&_h3]:inline-block [&_h3]:mb-2 [&_h3]:pl-1 " +
   "[&_ul]:list-disc [&_ul]:pl-5 " +
   "[&_p]:text-sm [&_p]:md:text-base " +
-  "[&_img]:max-w-[80%] [&_img]:h-auto [&_img]:rounded [&_img]:mx-auto [&_img]:block " +
+  "[&_img]:max-w-[80%] [&_img]:h-auto [&_img]:mx-auto [&_img]:block [&_img]:my-4 " +
   "[&_iframe]:max-w-[80%] [&_iframe]:mx-auto [&_iframe]:block " +
-  "[&_strong]:text-text-bright";
+  "[&_strong]:text-bg-dark [&_strong]:font-bold";
 
 
 // Typography

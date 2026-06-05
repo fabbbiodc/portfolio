@@ -1,5 +1,6 @@
 # Project Nexus: Urban Canopy Optimizer
 
+
 ## Overview
 Project Nexus is an AI-driven initiative designed to monitor and optimize urban green spaces in metropolitan areas. By leveraging satellite imagery and local sensor data, the system provides real-time insights into plant health, soil moisture, and carbon sequestration rates.
 
