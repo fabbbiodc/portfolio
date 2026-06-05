@@ -14,4 +14,11 @@ export const projects: Project[] = [
     thumbnail: "/projects/thumbnails/project_01.jpg",
     content: "/projects/project_01.md",
   },
+  {
+    id: "project_02",
+    title: "EcoSync: Smart Building Energy Management",
+    tags: ["Node.js", "Python", "IoT"],
+    thumbnail: "/projects/thumbnails/project_02.jpg",
+    content: "/projects/project_02.md",
+  },
 ];
