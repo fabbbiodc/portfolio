@@ -1,15 +1,77 @@
 ---
 import { projects } from "../data/projects";
 import ProjectCard from "./ProjectCard.astro";
+
+const allTags = [...new Set(projects.flatMap((p) => p.tags))].sort();
 ---
 
 <div class="flex flex-col gap-4">
+  <div
+    class="flex flex-wrap gap-2 border-2 border-double border-bg-dark p-2"
+    id="tag-filter-bar"
+  >
+    <button
+      class="tag-filter px-2 py-0.5 text-xs border border-bg-dark bg-bg-primary text-text-primary hover:opacity-60"
+      data-tag="all"
+      data-active
+    >
+      all
+    </button>
+    {allTags.map((tag) => (
+      <button
+        class="tag-filter px-2 py-0.5 text-xs border border-bg-dark bg-bg-primary text-text-primary hover:opacity-60"
+        data-tag={tag}
+      >
+        {tag}
+      </button>
+    ))}
+  </div>
+
   {projects.map((project) => (
-    <ProjectCard
-      id={project.id}
-      title={project.title}
-      tags={project.tags}
-      thumbnail={project.thumbnail}
-    />
+    <div data-tags={project.tags.join(",")}>
+      <ProjectCard
+        id={project.id}
+        title={project.title}
+        tags={project.tags}
+        thumbnail={project.thumbnail}
+      />
+    </div>
   ))}
 </div>
+
+<script>
+  const filterBar = document.getElementById("tag-filter-bar");
+  const projectItems = filterBar?.parentElement?.querySelectorAll("[data-tags]");
+
+  function filterProjects(tag: string) {
+    if (!projectItems) return;
+    projectItems.forEach((item) => {
+      const itemTags = item.getAttribute("data-tags")?.split(",") ?? [];
+      item.classList.toggle("hidden", tag !== "all" && !itemTags.includes(tag));
+    });
+  }
+
+  function setActive(btn: HTMLElement | null) {
+    filterBar?.querySelectorAll("[data-tag]").forEach((b) => {
+      b.removeAttribute("data-active");
+      b.classList.remove("bg-bg-dark", "text-text-bright");
+      b.classList.add("bg-bg-primary", "text-text-primary", "border", "border-bg-dark");
+    });
+    if (btn) {
+      btn.setAttribute("data-active", "");
+      btn.classList.remove("bg-bg-primary", "text-text-primary", "border", "border-bg-dark");
+      btn.classList.add("bg-bg-dark", "text-text-bright");
+    }
+  }
+
+  filterBar?.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest("[data-tag]") as HTMLElement;
+    if (!btn) return;
+    const tag = btn.getAttribute("data-tag") ?? "all";
+    setActive(btn);
+    filterProjects(tag);
+  });
+
+  const allBtn = filterBar?.querySelector('[data-tag="all"]') as HTMLElement;
+  if (allBtn) setActive(allBtn);
+</script>
