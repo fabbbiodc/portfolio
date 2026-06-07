@@ -284,6 +284,10 @@ class DraggableWindowManager {
     state.x = defaultPos.x;
     state.y = defaultPos.y;
     windowEl.style.transform = `translate(${defaultPos.x}px, ${defaultPos.y}px)`;
+
+    windowEl.dispatchEvent(
+      new CustomEvent("window-opened", { detail: { id } }),
+    );
   }
 
   closeWindow(windowEl: HTMLElement, id: string) {

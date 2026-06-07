@@ -22,9 +22,9 @@ export const projectCardStyle =
 
 export const markdownContentStyle =
   "space-y-6 leading-relaxed " +
-  "[&_h1]:text-xl [&_h1]:md:text-2xl [&_h1]:text-text-bright [&_h1]:bg-bg-dark [&_h1]:inline-block [&_h1]:mb-2 [&_h1]:pl-1 " +
-  "[&_h2]:text-lg [&_h2]:md:text-xl [&_h2]:text-text-bright [&_h2]:bg-bg-dark [&_h2]:inline-block [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:pl-1 " +
-  "[&_h3]:text-base [&_h3]:md:text-lg [&_h3]:text-text-bright [&_h3]:bg-bg-dark [&_h3]:inline-block [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:pl-1 " +
+  "[&_h1]:text-xl [&_h1]:md:text-2xl [&_h1]:text-text-primary [&_h1]:font-bold [&_h1]:mb-2 " +
+  "[&_h2]:text-lg [&_h2]:md:text-xl [&_h2]:text-text-primary [&_h2]:font-bold [&_h2]:mb-2 [&_h2]:mt-6 " +
+  "[&_h3]:text-base [&_h3]:md:text-lg [&_h3]:text-text-primary [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:mt-6 " +
   "[&_ul]:list-disc [&_ul]:pl-5 " +
   "[&_p]:text-sm [&_p]:md:text-base " +
   "[&_img]:max-w-[80%] [&_img]:h-auto [&_img]:mx-auto [&_img]:block [&_img]:my-4 [&_img]:cursor-pointer " +

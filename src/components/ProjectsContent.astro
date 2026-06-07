@@ -72,6 +72,17 @@ const allTags = [...new Set(projects.flatMap((p) => p.tags))].sort();
     filterProjects(tag);
   });
 
+  function resetFilter() {
+    const allBtn = filterBar?.querySelector('[data-tag="all"]') as HTMLElement;
+    if (allBtn) {
+      setActive(allBtn);
+      filterProjects("all");
+    }
+  }
+
+  document.querySelector('[data-window-id="projects"]')?.addEventListener("window-opened", resetFilter);
+
+  // Initial state: all active
   const allBtn = filterBar?.querySelector('[data-tag="all"]') as HTMLElement;
   if (allBtn) setActive(allBtn);
 </script>
