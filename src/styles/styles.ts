@@ -27,7 +27,7 @@ export const markdownContentStyle =
   "[&_h3]:text-base [&_h3]:md:text-lg [&_h3]:text-text-bright [&_h3]:bg-bg-dark [&_h3]:inline-block [&_h3]:mb-2 [&_h3]:pl-1 " +
   "[&_ul]:list-disc [&_ul]:pl-5 " +
   "[&_p]:text-sm [&_p]:md:text-base " +
-  "[&_img]:max-w-[80%] [&_img]:h-auto [&_img]:mx-auto [&_img]:block [&_img]:my-4 " +
+  "[&_img]:max-w-[80%] [&_img]:h-auto [&_img]:mx-auto [&_img]:block [&_img]:my-4 [&_img]:cursor-pointer " +
   "[&_iframe]:max-w-[80%] [&_iframe]:mx-auto [&_iframe]:block " +
   "[&_strong]:text-bg-dark [&_strong]:font-bold";
 

@@ -15,6 +15,46 @@ const processed = html.replace(
 import { markdownContentStyle } from "../styles/styles"
 ---
 
-<div class={`${markdownContentStyle} w-full max-w-[90vw] md:max-w-[50vw]`}>
+<div class={`${markdownContentStyle} w-full max-w-[90vw] md:max-w-[50vw]`} id="project-detail-content">
   <div set:html={processed} />
 </div>
+
+<script>
+  const content = document.getElementById("project-detail-content");
+  let overlay: HTMLElement | null = null;
+  let overlayImg: HTMLImageElement | null = null;
+
+  function createOverlay() {
+    overlay = document.createElement("div");
+    overlay.className =
+      "fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 cursor-pointer";
+    overlay.addEventListener("click", closeOverlay);
+
+    overlayImg = document.createElement("img");
+    overlayImg.className =
+      "max-w-[90vw] max-h-[80vh] object-contain border-4 border-double border-bg-dark shadow-lg bg-bg-primary cursor-default";
+    overlayImg.addEventListener("click", (e) => e.stopPropagation());
+    overlay.appendChild(overlayImg);
+    document.body.appendChild(overlay);
+  }
+
+  function openOverlay(src: string) {
+    if (!overlay) createOverlay();
+    if (overlayImg) overlayImg.src = src;
+    overlay?.classList.remove("hidden");
+  }
+
+  function closeOverlay() {
+    overlay?.classList.add("hidden");
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeOverlay();
+  });
+
+  content?.addEventListener("click", (e) => {
+    const img = (e.target as HTMLElement).closest("img");
+    if (!img || !content?.contains(img)) return;
+    openOverlay(img.src);
+  });
+</script>
