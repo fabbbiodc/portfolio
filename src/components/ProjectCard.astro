@@ -18,11 +18,11 @@ const tagsString = tags.join(" / ");
   data-target="details"
   data-project-title={title}
 >
-  <div class={`${markdownContentStyle} [&_*]:mb-0`}>
+  <div class={`${markdownContentStyle}`}>
     <h3>{title}</h3>
   </div>
-  <img src={thumbnail} alt={title} class="w-full h-auto object-cover" />
-  <div class={`${markdownContentStyle} [&_*]:mb-0`}>
-    <strong>{tagsString}</strong>
+  <div class="text-xs text-text-grey">
+    {tagsString}
   </div>
+  <img src={thumbnail} alt={title} class="w-full h-auto object-cover" />
 </button>

@@ -18,7 +18,7 @@ export const loadingContainerStyle =
 export const buttonPrimary = "bg-bg-dark text-text-bright hover:opacity-20";
 
 export const projectCardStyle =
-  "w-full md:w-80 flex flex-col gap-2 bg-bg-primary hover:opacity-60 cursor-pointer text-left";
+  "w-full flex flex-col gap-2 bg-bg-primary hover:opacity-60 cursor-pointer text-left";
 
 export const markdownContentStyle =
   "space-y-4 leading-relaxed " +
