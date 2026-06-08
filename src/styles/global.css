@@ -103,9 +103,12 @@
     cursor: var(--cursor-default); 
   }
 
-  a, 
-  button, 
-  [role="button"], 
+  a {
+    text-decoration: underline;
+  }
+
+  button,
+  [role="button"],
   input[type="submit"] {
     cursor: var(--cursor-pointer);
   }
