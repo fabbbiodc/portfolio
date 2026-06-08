@@ -1,5 +1,3 @@
-# Curriculum
-
 ## Experience
 
 **Creative Technologist** — Barcelona  

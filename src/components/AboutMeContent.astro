@@ -7,13 +7,14 @@ const md = readFileSync("public/about-me.md", "utf-8");
 const html = await marked.parse(md);
 ---
 
-<div class={`${markdownContentStyle} flex flex-col gap-4`}>
-  <div set:html={html} />
+<div class={`${markdownContentStyle} flex flex-col`}>
+  <h1 class="text-xl md:text-2xl text-text-primary font-normal mb-2">About Me</h1>
   <button
     data-action="open-window"
     data-target="cv"
-    class="self-start inline-block bg-bg-dark text-text-bright px-2 py-0.5 no-underline cursor-pointer"
+    class="self-start inline-flex items-center gap-1 bg-bg-dark text-text-bright px-2 py-0.5 no-underline cursor-pointer mb-6"
   >
     > curriculum
   </button>
+  <div set:html={html} />
 </div>

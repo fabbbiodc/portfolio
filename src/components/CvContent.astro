@@ -7,6 +7,14 @@ const md = readFileSync("public/cv.md", "utf-8");
 const html = await marked.parse(md);
 ---
 
-<div class={markdownContentStyle}>
+<div class={`${markdownContentStyle} flex flex-col`}>
+  <h1 class="text-xl md:text-2xl text-text-primary font-normal mb-2">Curriculum</h1>
+  <a
+    href="/fabiodicecca_cv.pdf"
+    target="_blank"
+    class="self-start inline-flex items-center gap-1 bg-bg-dark text-text-bright px-2 py-0.5 no-underline cursor-pointer mb-6"
+  >
+    > download PDF
+  </a>
   <div set:html={html} />
 </div>
