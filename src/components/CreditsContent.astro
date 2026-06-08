@@ -1,0 +1,12 @@
+---
+import { readFileSync } from "node:fs";
+import { marked } from "marked";
+import { markdownContentStyle } from "../styles/styles";
+
+const md = readFileSync("public/credits.md", "utf-8");
+const html = await marked.parse(md);
+---
+
+<div class={markdownContentStyle}>
+  <div set:html={html} />
+</div>

@@ -35,3 +35,4 @@ export const markdownContentStyle =
 // Typography
 export const titlebarTextStyle = "text-sm md:text-base";
 export const captionTextStyle = "text-text-grey text-xs";
+export const footerButtonStyle = "bg-transparent text-text-primary hover:opacity-60";
