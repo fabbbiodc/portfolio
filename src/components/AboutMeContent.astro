@@ -1,6 +1,19 @@
 ---
+import { readFileSync } from "node:fs";
+import { marked } from "marked";
+import { markdownContentStyle } from "../styles/styles";
+
+const md = readFileSync("public/about-me.md", "utf-8");
+const html = await marked.parse(md);
 ---
 
-<div class="w-[90vw] md:w-80">
-  <h1>Ciao come va</h1>
+<div class={`${markdownContentStyle} flex flex-col gap-4`}>
+  <div set:html={html} />
+  <button
+    data-action="open-window"
+    data-target="cv"
+    class="self-start inline-block bg-bg-dark text-text-bright px-2 py-0.5 no-underline cursor-pointer"
+  >
+    > curriculum
+  </button>
 </div>

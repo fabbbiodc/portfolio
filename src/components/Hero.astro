@@ -5,6 +5,7 @@ import Window from "./Window.astro";
 import HeroContent from "./HeroContent.astro";
 import ProjectsContent from "./ProjectsContent.astro";
 import AboutMeContent from "./AboutMeContent.astro";
+import CvContent from "./CvContent.astro";
 import ProjectDetail from "./ProjectDetail.astro";
 import LoadingScreen from "./LoadingScreen.astro";
 import Footer from "./Footer.astro";
@@ -46,6 +47,15 @@ import CreditsContent from "./CreditsContent.astro";
       initiallyHidden
     >
       <AboutMeContent />
+    </Window>
+    <Window
+      id="cv"
+      title="curriculum"
+      positionStrategy="child"
+      parentId="about-me"
+      initiallyHidden
+    >
+      <CvContent />
     </Window>
     <Window
       id="details"
