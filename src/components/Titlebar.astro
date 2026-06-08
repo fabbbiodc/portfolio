@@ -16,7 +16,7 @@ const { title, closable = true } = Astro.props;
 ---
 
 <div class={`${titlebarStyle} ${titlebarDragHandleStyle} titlebar`}>
-  <h1 class={`flex-1 ${titlebarTextStyle}`} data-title>{title}</h1>
+  <h1 class={`flex-1 font-normal ${titlebarTextStyle}`} data-title>{title}</h1>
   {closable && (
     <button class={titlebarCloseButtonStyle} data-action="close" aria-label="Close window">
       <span class="text-lg leading-none">X</span>

@@ -8,6 +8,15 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "ZxSpectrum";
+  src: url("/fonts/zx_spectrum-7_bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 250%;
+}
+
 :root {
   --cursor-default:
     image-set(

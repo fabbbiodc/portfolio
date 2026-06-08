@@ -25,7 +25,7 @@ Single-page portfolio at `src/pages/index.astro`. Layout (`src/layouts/Layout.as
 - **TextType** — `TextType.astro` serializes config to `data-*` attributes; `src/scripts/textType.ts` reads them. All wiring through the DOM.
 - **Button** — `Button.astro` auto-prepends `>` via `::before` pseudo-element.
 - **Custom cursors** — `public/cursors/` has 2x pixel-art PNGs. Defined as CSS custom properties (`--cursor-default`, `--cursor-pointer`, `--cursor-grab`, `--cursor-grabbing`) in `src/styles/global.css` using `image-set(...)`.
-- **Font** — `"ZxSpectrum"` loaded from `/fonts/zxspectrum.ttf` in `global.css`.
+- **Font** — `"ZxSpectrum"` loaded from `/fonts/zx_spectrum-7.ttf` (regular) and `/fonts/zx_spectrum-7_bold.ttf` (bold) in `global.css`.
 
 ## Important Notes
 
