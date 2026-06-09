@@ -75,4 +75,25 @@ export const projects: Project[] = [
       { text: "View Case Study", url: "https://fabiodicecca.framer.website/studybuddy" },
     ],
   },
+  {
+    id: "skypong",
+    title: "SkyPong: Multiplayer Pong",
+    tags: ["Next.js", "Babylon.js", "WebSockets", "Microservices"],
+    thumbnail: "/projects/thumbnails/skypong.png",
+    content: "/projects/skypong.md",
+    links: [
+      { text: "Git Repo", url: "https://github.com/fabbbiodc/skypong" },
+      { text: "Play Now", url: "http://fabbbiodc.github.io/skypong" },
+    ],
+  },
+  {
+    id: "cub3d",
+    title: "Cub3D: Raycasting Engine",
+    tags: ["C", "Raycasting", "Game Engine", "Graphics Programming"],
+    thumbnail: "/projects/thumbnails/cub3d.png",
+    content: "/projects/cub3d.md",
+    links: [
+      { text: "Git Repo", url: "https://github.com/fabbbiodc/cub3d" },
+    ],
+  },
 ];
