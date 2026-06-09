@@ -99,12 +99,13 @@ import CreditsContent from "./CreditsContent.astro";
     if (target) {
       const windowId = target.getAttribute("data-target");
       const projectTitle = target.getAttribute("data-project-title");
+      const projectId = target.getAttribute("data-project-id");
       
       if (windowId) {
-        // If there's a project title, update the window's titlebar
-        if (projectTitle) {
-          const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
-          if (windowEl) {
+        const windowEl = document.querySelector(`[data-window-id="${windowId}"]`);
+        if (windowEl) {
+          // Update titlebar
+          if (projectTitle) {
             const titlebar = windowEl.querySelector(".titlebar");
             if (titlebar) {
               const titleElement = titlebar.querySelector("[data-title]");
@@ -112,6 +113,13 @@ import CreditsContent from "./CreditsContent.astro";
                 titleElement.textContent = projectTitle;
               }
             }
+          }
+          // Show matching project content
+          if (projectId) {
+            windowEl.querySelectorAll("[data-project-content]").forEach((el) => {
+              const content = el as HTMLElement;
+              content.style.display = content.getAttribute("data-project-content") === projectId ? "block" : "none";
+            });
           }
         }
         manager.openWindow(windowId);

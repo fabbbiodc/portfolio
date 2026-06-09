@@ -35,4 +35,44 @@ export const projects: Project[] = [
       { text: "View Source Code", url: "https://example.com/ecosync/source" },
     ],
   },
+  {
+    id: "tourlane",
+    title: "Tourlane Self Scheduling",
+    tags: ["UX Design", "Product Design", "Material Design 3"],
+    thumbnail: "/projects/thumbnails/tourlane.png",
+    content: "/projects/tourlane.md",
+    links: [
+      { text: "View Case Study", url: "https://fabiodicecca.framer.website/tourlane" },
+    ],
+  },
+  {
+    id: "cgm",
+    title: "CGM Vaccine Registration",
+    tags: ["UX Design", "Healthcare", "Regulatory Compliance"],
+    thumbnail: "/projects/thumbnails/cgm.png",
+    content: "/projects/cgm.md",
+    links: [
+      { text: "View Case Study", url: "https://fabiodicecca.framer.website/cgm" },
+    ],
+  },
+  {
+    id: "tresor",
+    title: "Tresor: Treasure Hunt",
+    tags: ["UX Design", "AR", "Game Design"],
+    thumbnail: "/projects/thumbnails/tresor.png",
+    content: "/projects/tresor.md",
+    links: [
+      { text: "View Case Study", url: "https://fabiodicecca.framer.website/tresor" },
+    ],
+  },
+  {
+    id: "studybuddy",
+    title: "Study Buddy: Student Collaboration",
+    tags: ["UI Design", "Web App", "EdTech"],
+    thumbnail: "/projects/thumbnails/studybuddy.png",
+    content: "/projects/studybuddy.md",
+    links: [
+      { text: "View Case Study", url: "https://fabiodicecca.framer.website/studybuddy" },
+    ],
+  },
 ];

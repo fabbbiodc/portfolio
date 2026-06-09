@@ -7,7 +7,7 @@ dist/
 node_modules/
 
 # project files
-projectfiles/ 
+# projectfiles/ 
 
 # logs
 npm-debug.log*

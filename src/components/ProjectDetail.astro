@@ -3,53 +3,68 @@ import { readFileSync } from "node:fs"
 import { marked } from "marked"
 import { projects } from "../data/projects"
 
-// Get the first project (we're reusing the same window for now)
-const project = projects[0]
-const md = readFileSync(`public${project.content}`, "utf-8")
+type ProcessedProject = {
+  id: string
+  title: string
+  tags: string[]
+  links: { text: string; url: string }[]
+  bodyHtml: string
+}
 
-const tokens = marked.lexer(md)
-const bodyTokens = tokens.filter((t) => !(t.type === "heading" && t.depth === 1))
-const bodyHtml = await marked.parser(bodyTokens)
-const processed = bodyHtml.replace(
-  /src="pictures\//g,
-  'src="/projects/pictures/',
-)
+const processedProjects: ProcessedProject[] = projects.map((project) => {
+  const md = readFileSync(`public${project.content}`, "utf-8")
+  const tokens = marked.lexer(md)
+  const bodyTokens = tokens.filter((t) => !(t.type === "heading" && t.depth === 1))
+  let bodyHtml = marked.parser(bodyTokens)
+  bodyHtml = bodyHtml.replace(/src="pictures\//g, 'src="/projects/pictures/')
+  return {
+    id: project.id,
+    title: project.title,
+    tags: project.tags,
+    links: project.links,
+    bodyHtml,
+  }
+})
 
 import { markdownContentStyle } from "../styles/styles"
 ---
 
 <div class="flex flex-col gap-4" id="project-detail-content">
-  <div>
-    <h1
-      class="text-xl md:text-2xl text-text-primary font-normal mb-2"
-    >
-      {project.title}
-    </h1>
-  </div>
+  {processedProjects.map((project) => (
+    <div data-project-content={project.id} style="display: none;">
+      <div>
+        <h1
+          class="text-xl md:text-2xl text-text-primary font-normal mb-2"
+        >
+          {project.title}
+        </h1>
+      </div>
 
-  <div class="flex flex-wrap gap-2">
-    {project.tags.map((tag) => (
-      <span class="border border-bg-dark bg-bg-primary text-text-primary text-xs px-2 py-0.5">
-        {tag}
-      </span>
-    ))}
-  </div>
+      <div class="flex flex-wrap gap-2">
+        {project.tags.map((tag) => (
+          <span class="border border-bg-dark bg-bg-primary text-text-primary text-xs px-2 py-0.5">
+            {tag}
+          </span>
+        ))}
+      </div>
 
-  {project.links.length > 0 && (
-    <div class="flex flex-wrap gap-2">
-      {project.links.map((link) => (
-        <a href={link.url}>{link.text}</a>
-      ))}
+      {project.links.length > 0 && (
+        <div class="flex flex-wrap gap-2 mt-2">
+          {project.links.map((link) => (
+            <a href={link.url}>{link.text}</a>
+          ))}
+        </div>
+      )}
+
+      <div class={`${markdownContentStyle}`}>
+        <div set:html={project.bodyHtml} />
+      </div>
     </div>
-  )}
-
-  <div class={`${markdownContentStyle}`}>
-    <div set:html={processed} />
-  </div>
+  ))}
 </div>
 
 <script>
-  const content = document.getElementById("project-detail-content");
+  const content = document.querySelector("#project-detail-content");
   let overlay: HTMLElement | null = null;
   let overlayImg: HTMLImageElement | null = null;
 
@@ -102,5 +117,16 @@ import { markdownContentStyle } from "../styles/styles"
   }
   #project-detail-content a:hover {
     opacity: 0.2;
+  }
+  #project-detail-content img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    object-position: left;
+  }
+  @media (max-width: 767px) {
+    #project-detail-content img {
+      max-height: none;
+    }
   }
 </style>
