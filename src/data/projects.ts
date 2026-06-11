@@ -14,6 +14,16 @@ interface Project {
 
 export const projects: Project[] = [
   {
+    id: "dominguette",
+    title: "Studio Dominguette",
+    tags: ["Web", "Framer"],
+    thumbnail: "/projects/thumbnails/dominguette.png",
+    content: "/projects/dominguette.md",
+    links: [
+      { text: "View website", url: "https://studiodominguette.com/" },
+    ],
+  },
+  {
     id: "tourlane",
     title: "Tourlane Self Scheduling",
     tags: ["Design", "UX/UI"],
