@@ -250,3 +250,13 @@
     background: var(--color-text-grey);
   }
 }
+
+@media (min-width: 768px) {
+  [data-window-id="projects"],
+  [data-window-id="details"] {
+    max-width: 50vw;
+  }
+  [data-window-id="projects"] {
+    max-width: 35vw;
+  }
+}

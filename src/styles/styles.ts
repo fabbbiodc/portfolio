@@ -5,7 +5,7 @@ export const containerContent =
   "bg-bg-primary border-x-6 border-b-6 border-double shadow-lg";
 
 export const windowStyle =
-  "absolute top-0 left-0 min-w-80 max-w-[calc(100vw-2rem)] max-h-[90vh] shadow-window flex flex-col";
+  "absolute top-0 left-0 min-w-80 w-[90vw] md:w-auto max-h-[90vh] shadow-window flex flex-col";
 
 export const titlebarCloseButtonStyle =
   "ml-auto min-w-[28px] min-h-[28px] flex items-center justify-center hover:opacity-60";
