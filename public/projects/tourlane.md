@@ -2,18 +2,18 @@
 
 ## Overview
 
+![Tourlane 01](pictures/tourlane/tourlane_01.png)
+
 In my role as **Senior Product Designer**, I promoted the implementation of the Self Scheduling process.
 This initiative empowers users to **initiate contact with the company on their own terms**. Its objective is to enhance **user satisfaction**, align with company objectives for **future scalability**, and **reduce costs** by minimizing the time spent by Travel Experts on cold calls to customers.
-
-## Case Study Preview
-
-![Self Scheduling Flow Mobile](pictures/tourlane/tourlane01.png)
 
 ## What is Self Scheduling?
 
 In the previous user journey at Tourlane, users input their travel preferences through the "enquiry experience," then moved to the "Offer Preview" page where they had to sign up to view a draft travel offer. After signing up, users unexpectedly received phone calls to qualify their intent and availability, often resulting in a disruptive experience.
 
 The introduction of the Self Scheduling feature revolutionized this process. Integrated into the Offer Preview page, it allowed users to **schedule their own phone or video calls at their convenience**. This empowerment not only enhanced user control and satisfaction but also streamlined the qualification process. Importantly, it aimed to **increase conversion rates** by ensuring that interactions were initiated by genuinely interested users, making the process more efficient and **user-friendly**.
+
+![Tourlane 02](pictures/tourlane/tourlane_02.png)
 
 ## Why Self Scheduling?
 
@@ -37,6 +37,10 @@ Self-scheduling aligns with company objectives to provide personalized service a
 
 Click on the button to see the Self Scheduling and Offer Preview in action.
 
+![Tourlane 03](pictures/tourlane/tourlane_03.png)
+
+[Prototype](https://www.figma.com/proto/ukU0iiaGermg7D4k2vqqug/%5BElements%5D-M3-Offer?page-id=2380%3A25089&type=design&node-id=2380-26890&viewport=554%2C462%2C0.16&t=ReLXUHsHQUfR3f2u-1&scaling=min-zoom&starting-point-node-id=2380%3A26890&show-proto-sidebar=1&mode=design)
+
 - Choose the trip "On the Road"
 - Explore the offer preview page
 - Click on one of the CTAs
@@ -46,6 +50,8 @@ Click on the button to see the Self Scheduling and Offer Preview in action.
 ## My role in the process
 
 As a Senior Product Designer at Tourlane, I led the enhancement of user experiences, specifically addressing user dissatisfaction with unsolicited calls. Together with the Product Manager, we developed the self-scheduling feature, overseeing the design process from low-fidelity sketches to high-fidelity prototypes.
+
+![Tourlane 04](pictures/tourlane/tourlane_04.png)
 
 ### Collaboration
 
@@ -71,7 +77,7 @@ The introduction of the self-scheduling feature was a collaborative effort that 
 
 ### Optimizing the Offer Preview Page
 
-Old Offer Preview / New Offer Preview
+![Tourlane 05](pictures/tourlane/tourlane_05.png)
 
 #### Central Role in User Journey
 
@@ -86,6 +92,8 @@ Recognizing that the majority of our users access the site via mobile devices gu
 We adopted Material Design 3 guidelines to enhance the visual and functional aspects of the OP page, focusing on improved usability and aesthetics for a better mobile experience.
 
 ### Building user trust
+
+![Tourlane 06](pictures/tourlane/tourlane_06.png)
 
 #### Importance of trust in travel
 
@@ -105,6 +113,8 @@ We utilized an iterative design process to refine these trust-building elements,
 
 ### Data driven decision making
 
+![Tourlane 07](pictures/tourlane/tourlane_07.png)
+
 #### Foundation in research and analysis
 
 Every design decision at Tourlane is underpinned by thorough research and analysis, ensuring that our strategies are informed by data rather than assumptions.
@@ -118,6 +128,8 @@ We employed a variety of methods to gather insights, including A/B testing to co
 The insights gained from these research methods were instrumental in developing the self-scheduling feature. Data showed a clear preference for user autonomy and control, leading to the implementation of a feature that allows users to schedule their interactions at their convenience.
 
 ## Achievements and future opportunities
+
+![Tourlane 08](pictures/tourlane/tourlane_08.png)
 
 #### User empowerment
 

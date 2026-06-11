@@ -2,15 +2,15 @@
 
 ## Overview
 
+![CGM 01](pictures/cgm/cgm_01.png)
+
 In this project, the primary goal was to develop and integrate a vaccine registration function into an existing physician software platform, a leading **B2B SaaS product used by medical professionals**. This new feature was designed to connect directly with the online medical service of the local Lazio ASL—one of the most sophisticated administrative healthcare systems in Italy, which utilizes intricate API services. The integration aimed to streamline the vaccination registration process, making it more efficient and compliant with **Italian healthcare regulations**.
-
-## Case Study Preview
-
-![Vaccine Registration Dashboard](pictures/cgm/cgm01.png)
 
 ## Key details
 
 This project was not only crucial for **streamlining the vaccination** process during the critical times of the **COVID-19 pandemic** but also essential for ensuring compliance with healthcare standards. The initiative directly supported medical professionals by providing a tool that significantly enhanced their ability to **manage public health responsibilities** effectively.
+
+![CGM 02](pictures/cgm/cgm_02.png)
 
 #### Target Audience
 
@@ -32,9 +32,16 @@ Integrating the new function into an existing software environment required care
 
 Click on the prototype button to have a quick walkthrough a typical vaccination registration.
 
+![CGM 03](pictures/cgm/cgm_03.png)
+
+[Prototype](https://www.figma.com/proto/kFQl9KzucFwwPxYMGbU0yV/CGM-Vaccine-Case-Study?page-id=119%3A136&type=design&node-id=119-182&viewport=1490%2C38%2C0.18&t=kc6Lo04DFQk38YFi-1&scaling=contain&starting-point-node-id=119%3A182&mode=design)
+
 Follow the highlights and complete a vaccine registration.
 
+
 ## My role in the process
+
+![CGM 04](pictures/cgm/cgm_04.png)
 
 #### Regulatory expertise
 
@@ -53,6 +60,8 @@ I focused on creating a design that was not only intuitive for users but also fl
 I designed with foresight, anticipating potential regulatory changes and preparing the system architecture to accommodate these adjustments efficiently. This strategic planning was crucial for minimizing future risks and maintaining the software's leadership in compliance within the Italian market.
 
 ## Outcomes
+
+![CGM 05](pictures/cgm/cgm_05.png)
 
 #### Streamlined registration process
 

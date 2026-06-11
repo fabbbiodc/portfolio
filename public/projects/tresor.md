@@ -1,18 +1,16 @@
 # Tresor - Treasure Hunt
 
+![Tresor 01](pictures/tresor/tresor_01.png)
+
 Tresor is an innovative app crafted to empower players to engage in or create their own treasure hunts, leveraging cutting-edge **location-based and augmented reality technologies**. These technologies are now widely available on most portable connected devices, making the treasure hunt experience both accessible and immersive. This project, part of my CareerFoundry UX design course, showcases how digital tools can transform traditional gaming into interactive, real-world adventures.
-
-[Go to the video presentation at the bottom!](./tresor#video)
-
-## Case Study Preview
-
-![Tresor Hero](pictures/tresor/tresor01.png)
 
 ## The project
 
 In the CareerFoundry bootcamp, I was presented with several project options and chose to design a game. The problem identified was the lack of engaging, accessible location-based games that don't rely on user levels for progression. My solution was "Tresor," a game I designed from scratch, which uses augmented reality and geolocation technology to create a dynamic treasure hunting experience. This approach ensures that all players, regardless of experience, can enjoy creating and participating in treasure hunts, promoting equal and active participation in a fun, immersive game environment.
 
 ## The process
+
+![Tresor 02](pictures/tresor/tresor_02.png)
 
 1. ### Discover
 
@@ -22,13 +20,19 @@ In the "Discover" phase for the Tresor app, I focused on identifying market gaps
 
 Evaluated major games like Pokemon GO and Geocaching, using SWOT analysis to pinpoint opportunities for differentiation and innovation.
 
+![Tresor 03](pictures/tresor/tresor_03.png)
+
 #### Survey and interviews
 
 Collected extensive data on user preferences for outdoor activities, gaming experiences, and interactions with AR and GPS technology. This research was pivotal in formulating user personas, which guided the design strategy by providing a clear picture of the target users' characteristics and needs.
 
+![Tresor 03](pictures/tresor/tresor_03.png)
+
 #### Protopersonas and user journeys
 
 In the "Discover" phase of the Tresor app design, I formulated user personas and user journeys based on the quantitative and qualitative data gathered from surveys and interviews. This detailed data analysis ensured that the personas and journeys accurately reflected the diverse needs and behaviors of potential users, guiding targeted and effective design decisions throughout the development process.
+
+![Tresor 04](pictures/tresor/tresor_04.png)
 
 1. ### Define
 
@@ -38,9 +42,13 @@ In the "Define" phase of the Tresor app design, the focus shifted to refining th
 
 In the "Define" phase of the Tresor app, the development of user flows was a crucial step. These flows were carefully crafted using insights from the initial research and user personas, providing a visual representation of the steps users like Kevin would take when engaging in a treasure hunt within the app. This detailed planning helped to ensure that the user experience would be seamless and intuitive, guiding the design decisions for the app's functionality and navigation.
 
+![Tresor 05](pictures/tresor/tresor_05.png)
+
 #### Information architecture
 
 The information architecture was initially drafted into a sitemap and optimized through a round of card sorting. This process helped refine the organization of the app's content, making navigation more intuitive for users by ensuring logical access to various features and screens.
+
+![Tresor 06](pictures/tresor/tresor_06.png)
 
 1. ### Ideate
 
@@ -48,15 +56,21 @@ Following the completion of extensive research, it was time to translate these i
 
 #### Low fidelity wireframes
 
+![Tresor 07](pictures/tresor/tresor_07.png)
+
 1. ### Prototype
 
 The next stage involved developing a mid-fidelity prototype, which was crucial for the initial round of user testing. This prototype marked the first interaction between the product and its users, allowing us to shift from our own perspectives to understanding the user's experience and identifying previously unnoticed issues. Although the inclusion of images in the wireframes might suggest a higher fidelity level, they were essential to facilitate effective testing.
 
 #### Mid fidelity wireframes
 
+![Tresor 08](pictures/tresor/tresor_08.png)
+
 1. ### Validate
 
 In the "Validate" phase of the Tresor app design, I conducted user testing to evaluate the usability of the prototype. This involved observing participants as they completed tasks such as logging in, searching for treasure hunts, playing, and creating hunts. Testing was done both live and remotely, with sessions recorded using screen mirroring apps and screen capture tools. Errors were analyzed according to Jakob Nielsen's scale, helping to identify areas for improvement in the user experience.
+
+![Tresor 09](pictures/tresor/tresor_09.png)
 
 1. ### Refine
 
@@ -64,11 +78,19 @@ In the "Refine" phase of the Tresor app design, the product began to take its fi
 
 #### Design guide
 
+![Tresor 10](pictures/tresor/tresor_10.png)
+
 [Full Design Guide Pdf](https://drive.google.com/file/d/11RHBaXO9ytqtdTOeNd4hVo_MejVz22qx/view?usp=drive_link)
 
 #### Mockups
 
+![Tresor 11](pictures/tresor/tresor_11.png)
+
 #### Prototype
+
+![Tresor 12](pictures/tresor/tresor_12.png)
+
+[Prototype](https://www.figma.com/proto/UAkjId9s5qXoc7di6PKCP6/Tresor?page-id=0%3A1&node-id=0-77&viewport=-217%2C365%2C0.18240000307559967&scaling=scale-down)
 
 Sign up and complete a game of Tresor through the prototype.
 
