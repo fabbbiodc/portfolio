@@ -251,6 +251,15 @@
   }
 }
 
+[data-window-id="contacts"] {
+  width: 90vw;
+}
+@media (min-width: 768px) {
+  [data-window-id="contacts"] {
+    width: auto;
+  }
+}
+
 @media (min-width: 768px) {
   [data-window-id="projects"],
   [data-window-id="details"],
