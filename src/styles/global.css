@@ -253,7 +253,9 @@
 
 @media (min-width: 768px) {
   [data-window-id="projects"],
-  [data-window-id="details"] {
+  [data-window-id="details"],
+  [data-window-id="about-me"],
+  [data-window-id="cv"] {
     max-width: 50vw;
   }
   [data-window-id="projects"] {
