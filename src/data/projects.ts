@@ -124,4 +124,24 @@ export const projects: Project[] = [
       { text: "Git Repo", url: "https://github.com/fabbbiodc/minishell" },
     ],
   },
+  {
+    id: "portfolio",
+    title: "Portfolio — fabiodicec.ca",
+    tags: ["Coding", "Astro", "Three.js"],
+    thumbnail: "/projects/thumbnails/portfolio.png",
+    content: "/projects/portfolio.md",
+    links: [
+      { text: "Live Site", url: "https://fabiodicec.ca" },
+    ],
+  },
+  {
+    id: "mapdot",
+    title: "mapdot",
+    tags: ["Coding", "Vue", "Three.js"],
+    thumbnail: "/projects/thumbnails/mapdot.png",
+    content: "/projects/mapdot.md",
+    links: [
+      { text: "Git Repo", url: "https://github.com/fabbbiodc/mapdot" },
+    ],
+  },
 ];
