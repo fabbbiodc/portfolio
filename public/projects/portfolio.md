@@ -4,7 +4,7 @@ A retro‑futuristic single‑page portfolio built with Astro, Three.js, and Tai
 
 ## Demo
 
-![Portfolio 01](pictures/portfolio/portfolio_01.png)
+![Portfolio 01](pictures/portfolio/portfolio_01.gif)
 
 ## Overview
 
@@ -24,9 +24,7 @@ At its core is a real‑time 3D scene rendered with Three.js: a mouse‑tracked 
 
 ## Visuals
 
-![Portfolio 02](pictures/portfolio/portfolio_02.png)
-
-![Portfolio 03](pictures/portfolio/portfolio_03.png)
+![Portfolio 02](pictures/portfolio/portfolio_02.gif)
 
 ## Tech Stack
 
@@ -40,5 +38,4 @@ At its core is a real‑time 3D scene rendered with Three.js: a mouse‑tracked 
 
 ### Links
 
-- **Live Site:** [fabiodicec.ca](https://fabiodicec.ca)
 - **Source:** [github.com/fabbbiodc/portfolio](https://github.com/fabbbiodc/portfolio)

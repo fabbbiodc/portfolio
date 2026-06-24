@@ -6,7 +6,7 @@ A work-in-progress 3D terrain visualization tool built with Vue 3 and Three.js.
 
 ## Demo
 
-![Mapdot 01](pictures/mapdot/mapdot_01.png)
+![Mapdot 01](pictures/mapdot/mapdot_01.gif)
 
 ## Overview
 

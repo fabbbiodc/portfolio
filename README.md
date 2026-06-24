@@ -2,9 +2,11 @@
 
 > A retro‑futuristic single‑page portfolio built with Astro, Three.js & Tailwind CSS v4.
 
-![Portfolio screenshot](./screenshot.png)
+[> Visit fabiodicec.ca](https://fabiodicec.ca)
 
-Live at [fabiodicec.ca](https://fabiodicec.ca)
+![Portfolio 01](public/projects/pictures/portfolio/portfolio_01.gif)
+
+![Portfolio 02](public/projects/pictures/portfolio/portfolio_02.gif)
 
 ---
 
@@ -81,27 +83,6 @@ npm run preview    # Preview production build
 ```
 
 **Node:** `>=22.12.0`
-
----
-
-## Visuals
-
-> Replace these placeholder images with your own screenshots.
-
-![Hero 3D scene](./images/hero-3d.png)
-*3D scene with eye model, CRT monitor, and postprocessing effects.*
-
-![Draggable windows](./images/draggable-windows.png)
-*Open windows showing projects and about‑me content.*
-
-![Loading screen](./images/loading-screen.png)
-*Asset loading overlay with progress bar and start button.*
-
-![Custom cursor](./images/custom-cursor.png)
-*Pixel‑art cursor states — default, pointer, grab, grabbing.*
-
-![Typewriter effect](./images/text-type.gif)
-*Animated typewriter text component.*
 
 ---
 

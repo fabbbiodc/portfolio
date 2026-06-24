@@ -142,6 +142,7 @@ export const projects: Project[] = [
     content: "/projects/mapdot.md",
     links: [
       { text: "Git Repo", url: "https://github.com/fabbbiodc/mapdot" },
+      { text: "Live Preview", url: "https://fabbbiodc.github.io/mapdot/" },
     ],
   },
 ];
