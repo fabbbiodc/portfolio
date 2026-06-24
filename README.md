@@ -73,19 +73,6 @@ src/
 
 ---
 
-## Getting Started
-
-```bash
-npm install
-npm run dev        # Dev server on 0.0.0.0
-npm run build      # Static build → dist/
-npm run preview    # Preview production build
-```
-
-**Node:** `>=22.12.0`
-
----
-
 ## Credits
 
 - **3D models** — Eye by [assetfactory](https://sketchfab.com/assetfactory), Monitor by [Moomo0802](https://sketchfab.com/thing2x22) — licensed under CC BY 4.0.
