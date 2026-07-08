@@ -108,7 +108,7 @@ export const projects: Project[] = [
   {
     id: "tourlane",
     title: "Tourlane Self Scheduling",
-    tags: ["design", "ux/ui"],
+    tags: ["design", "UX/UI"],
     thumbnail: "/projects/thumbnails/tourlane.png",
     content: "/projects/tourlane.md",
     links: [
@@ -118,7 +118,7 @@ export const projects: Project[] = [
   {
     id: "cgm",
     title: "CGM Vaccine Registration",
-    tags: ["design", "ux/ui"],
+    tags: ["design", "UX/UI"],
     thumbnail: "/projects/thumbnails/cgm.png",
     content: "/projects/cgm.md",
     links: [
@@ -128,7 +128,7 @@ export const projects: Project[] = [
   {
     id: "tresor",
     title: "Tresor: Treasure Hunt",
-    tags: ["design", "ux/ui"],
+    tags: ["design", "UX/UI"],
     thumbnail: "/projects/thumbnails/tresor.png",
     content: "/projects/tresor.md",
     links: [
@@ -138,7 +138,7 @@ export const projects: Project[] = [
   {
     id: "studybuddy",
     title: "Study Buddy: Student Collaboration",
-    tags: ["design", "ux/ui"],
+    tags: ["design", "UX/UI"],
     thumbnail: "/projects/thumbnails/studybuddy.png",
     content: "/projects/studybuddy.md",
     links: [
