@@ -1,22 +1,20 @@
-## Experience
+# Fabio Di Cecca
+## Full-Stack Developer & UX/UI Designer
 
-**Creative Technologist** — Barcelona  
-2020 – Present
+Full-Stack Developer and UX/UI Designer with a background in architectural systems design. I specialize in bridging the gap between complex engineering and intuitive user experiences, taking true end-to-end ownership to build scalable, customer-focused digital products.
 
-Building interactive web experiences, 3D visualizations, and creative tools.
+### Engineering Background & Professional Experience
 
-**Frontend Developer** — Various  
-2016 – 2020
+* **Software Engineering | 42 School**
 
-Developing web applications with modern JavaScript frameworks.
+  Completed an intensive peer-to-peer coding education program, mastering hands-on software development. Built production-style distributed systems and comprehensive full-stack applications in a rigorous, self-directed, and project-based environment.
 
-## Education
+* **Senior Product Designer | Tourlane**
 
-**Bachelor of Science in Computer Science**
+  Owned complex product flows end-to-end, acting as the primary bridge between customer needs and technical implementation. Iterated rapidly within Agile environments to deliver solutions that directly increased lead conversion rates and user engagement.
+* **UX Designer | Compugroup Medical**
 
-## Skills
+  Tackled product ambiguity in highly regulated healthcare software by defining concrete UX strategies. Partnered with product management to align technical capabilities with long-term business goals, delivering prototypes that resolved core usability issues.
+* **Architect | Behnisch Architekten & Kadawittfeldarchitektur**
 
-- JavaScript / TypeScript
-- React, Astro, Node.js
-- Three.js, WebGL
-- Creative coding
+  Led large-scale architectural projects requiring rigorous systems thinking. Managed highly complex project lifecycles from concept to execution, collaborating with multidisciplinary engineering teams to balance strict constraints with high-quality design outcomes.
