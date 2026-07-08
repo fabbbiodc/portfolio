@@ -264,7 +264,9 @@
   [data-window-id="projects"],
   [data-window-id="details"],
   [data-window-id="about-me"],
-  [data-window-id="cv"] {
+  [data-window-id="cv"],
+  [data-window-id="credits"],
+  [data-window-id="impressum"] {
     max-width: 50vw;
   }
   [data-window-id="projects"] {
